@@ -9,9 +9,9 @@ from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 
 
-class MainWindow(QMainWindow):
+class PsortGuiWidget(QMainWindow):
     def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
+        super(PsortGuiWidget, self).__init__(parent)
 
         self.setGlobalObjects()
 
@@ -120,12 +120,14 @@ class MainWindow(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_filterPanel_lopass_dash, color="red")
         self.txtedit_mainwin__filterPanel_lopass_min = QDoubleSpinBox()
+        self.txtedit_mainwin__filterPanel_lopass_min.setKeyboardTracking(False)
         self.txtedit_mainwin__filterPanel_lopass_min.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_lopass_min.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_lopass_min.setDecimals(0)
         self.setFont(self.txtedit_mainwin__filterPanel_lopass_min, color="red")
         self.txtedit_mainwin__filterPanel_lopass_min.setValue(10.0)
         self.txtedit_mainwin__filterPanel_lopass_max = QDoubleSpinBox()
+        self.txtedit_mainwin__filterPanel_lopass_max.setKeyboardTracking(False)
         self.txtedit_mainwin__filterPanel_lopass_max.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_lopass_max.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_lopass_max.setDecimals(0)
@@ -138,6 +140,7 @@ class MainWindow(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_filterPanel_hipass_dash, color="blue")
         self.txtedit_mainwin__filterPanel_hipass_min = QDoubleSpinBox()
+        self.txtedit_mainwin__filterPanel_hipass_min.setKeyboardTracking(False)
         self.txtedit_mainwin__filterPanel_hipass_min.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_hipass_min.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_hipass_min.setDecimals(0)
@@ -145,6 +148,7 @@ class MainWindow(QMainWindow):
             self.txtedit_mainwin__filterPanel_hipass_min, color="blue")
         self.txtedit_mainwin__filterPanel_hipass_min.setValue(100.0)
         self.txtedit_mainwin__filterPanel_hipass_max = QDoubleSpinBox()
+        self.txtedit_mainwin__filterPanel_hipass_max.setKeyboardTracking(False)
         self.txtedit_mainwin__filterPanel_hipass_max.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_hipass_max.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_hipass_max.setDecimals(0)
@@ -181,13 +185,16 @@ class MainWindow(QMainWindow):
     def build_mainwin_rawSignalPanel(self):
         self.plot_mainwin_rawSignalPanel_rawSignal = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
-        self.plot_mainwin_rawSignalPanel_rawSignal.setTitle("Y: Raw_Signal(uV) | X: Time(ms)")
+        self.plot_mainwin_rawSignalPanel_rawSignal.setTitle(
+            "Y: Raw_Signal(uV) | X: Time(ms)")
         self.plot_mainwin_rawSignalPanel_ssDist = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_ssDist)
-        self.plot_mainwin_rawSignalPanel_ssDist.setTitle("Y: SS_Peak_Dist(uV) | X: Count(#)")
+        self.plot_mainwin_rawSignalPanel_ssDist.setTitle(
+            "Y: SS_Peak_Dist(uV) | X: Count(#)")
         self.plot_mainwin_rawSignalPanel_csDist = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_csDist)
-        self.plot_mainwin_rawSignalPanel_csDist.setTitle("Y: CS_Peak_Dist(uV) | X: Count(#)")
+        self.plot_mainwin_rawSignalPanel_csDist.setTitle(
+            "Y: CS_Peak_Dist(uV) | X: Count(#)")
 
         self.layout_mainwin_rawSignalPanel_threshold = QVBoxLayout()
         self.txtlabel_mainwin_rawSignalPanel_hipassThresh = QLabel(
@@ -195,6 +202,7 @@ class MainWindow(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_rawSignalPanel_hipassThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_hipassThresh = QDoubleSpinBox()
+        self.txtedit_mainwin_rawSignalPanel_hipassThresh.setKeyboardTracking(False)
         self.txtedit_mainwin_rawSignalPanel_hipassThresh.setMinimum(1.0)
         self.txtedit_mainwin_rawSignalPanel_hipassThresh.setMaximum(15000.0)
         self.txtedit_mainwin_rawSignalPanel_hipassThresh.setDecimals(0)
@@ -206,6 +214,7 @@ class MainWindow(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_rawSignalPanel_lopassThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_lopassThresh = QDoubleSpinBox()
+        self.txtedit_mainwin_rawSignalPanel_lopassThresh.setKeyboardTracking(False)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.setMinimum(1.0)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.setMaximum(15000.0)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.setDecimals(0)
@@ -290,7 +299,8 @@ class MainWindow(QMainWindow):
         self.setFont(
             self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems([
+                                                                            "Manual", "Kmeans"])
         self.setFont(
             self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.addWidget(
@@ -304,16 +314,20 @@ class MainWindow(QMainWindow):
 
         self.plot_mainwin_SsPanel_plots_SsWave = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsWave)
-        self.plot_mainwin_SsPanel_plots_SsWave.setTitle("Y: SS_Waveform(uV) | X: Time(ms)")
+        self.plot_mainwin_SsPanel_plots_SsWave.setTitle(
+            "Y: SS_Waveform(uV) | X: Time(ms)")
         self.plot_mainwin_SsPanel_plots_SsIsi = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsIsi)
-        self.plot_mainwin_SsPanel_plots_SsIsi.setTitle("Y: SS_ISI(#) | X: Time(ms)")
+        self.plot_mainwin_SsPanel_plots_SsIsi.setTitle(
+            "Y: SS_ISI(#) | X: Time(ms)")
         self.plot_mainwin_SsPanel_plots_SsPca = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsPca)
-        self.plot_mainwin_SsPanel_plots_SsPca.setTitle("Y: SS_PCA2(au) | X: SS_PCA1(au)")
+        self.plot_mainwin_SsPanel_plots_SsPca.setTitle(
+            "Y: SS_PCA2(au) | X: SS_PCA1(au)")
         self.plot_mainwin_SsPanel_plots_SsCorr = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsCorr)
-        self.plot_mainwin_SsPanel_plots_SsCorr.setTitle("Y: SSxSS_Corr(1) | X: Time(ms)")
+        self.plot_mainwin_SsPanel_plots_SsCorr.setTitle(
+            "Y: SSxSS_Corr(1) | X: Time(ms)")
 
         self.layout_mainwin_SsPanel_plots.addLayout(
             self.layout_mainwin_SsPanel_plots_SsWaveBtn, 0, 0)
@@ -390,7 +404,8 @@ class MainWindow(QMainWindow):
         self.setFont(
             self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems([
+                                                                            "Manual", "Kmeans"])
         self.setFont(
             self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
 
@@ -404,16 +419,20 @@ class MainWindow(QMainWindow):
 
         self.plot_mainwin_CsPanel_plots_CsWave = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsWave)
-        self.plot_mainwin_CsPanel_plots_CsWave.setTitle("Y: CS_Waveform(uV) | X: Time(ms)")
+        self.plot_mainwin_CsPanel_plots_CsWave.setTitle(
+            "Y: CS_Waveform(uV) | X: Time(ms)")
         self.plot_mainwin_CsPanel_plots_CsIsi = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsIsi)
-        self.plot_mainwin_CsPanel_plots_CsIsi.setTitle("Y: CS_ISI(#) | X: Time(ms)")
+        self.plot_mainwin_CsPanel_plots_CsIsi.setTitle(
+            "Y: CS_ISI(#) | X: Time(ms)")
         self.plot_mainwin_CsPanel_plots_CsPca = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsPca)
-        self.plot_mainwin_CsPanel_plots_CsPca.setTitle("Y: CS_PCA2(au) | X: CS_PCA1(au)")
+        self.plot_mainwin_CsPanel_plots_CsPca.setTitle(
+            "Y: CS_PCA2(au) | X: CS_PCA1(au)")
         self.plot_mainwin_CsPanel_plots_CsCorr = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsCorr)
-        self.plot_mainwin_CsPanel_plots_CsCorr.setTitle("Y: CSxSS_Corr(1) | X: Time(ms)")
+        self.plot_mainwin_CsPanel_plots_CsCorr.setTitle(
+            "Y: CSxSS_Corr(1) | X: Time(ms)")
 
         self.layout_mainwin_CsPanel_plots.addLayout(
             self.layout_mainwin_CsPanel_plots_CsWaveBtn, 0, 0)
@@ -494,6 +513,7 @@ class MainWindow(QMainWindow):
         self.txtlabel_toolbar_slotNumLabel = QLabel("Slot#")
         self.setFont(self.txtlabel_toolbar_slotNumLabel)
         self.txtedit_toolbar_slotNumCurrent = QSpinBox()
+        self.txtedit_toolbar_slotNumCurrent.setKeyboardTracking(False)
         self.txtedit_toolbar_slotNumCurrent.setMinimum(1)
         self.txtedit_toolbar_slotNumCurrent.setMaximum(30)
         self.setFont(self.txtedit_toolbar_slotNumCurrent)
@@ -541,7 +561,8 @@ class MainWindow(QMainWindow):
 
     def set_plotWidget(self, plot_widget):
         plot_widget.setBackground('w')
-        plot_widget.setTitle("Y: Variable_Name(au) | X: Variable_Name(au)", color='k', size='12')
+        plot_widget.setTitle(
+            "Y: Variable_Name(au) | X: Variable_Name(au)", color='k', size='12')
         plot_widget.showLabel('left', show=False)
         plot_widget.showLabel('bottom', show=False)
         #plot_widget.setLabel('left', "Y Label", color='k', size='12', units='au')
