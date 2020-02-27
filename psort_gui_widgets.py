@@ -54,18 +54,9 @@ class MainWindow(QMainWindow):
 
     def build_main_window_Widget(self):
         self.layout_mainwin = QVBoxLayout()
-        self.layout_mainwin_filePanel = QHBoxLayout()
         self.layout_mainwin_filterPanel = QHBoxLayout()
         self.layout_mainwin_rawSignalPanel = QHBoxLayout()
         self.layout_mainwin_SsCsPanel = QHBoxLayout()
-
-        self.widget_mainwin_filePanel = QWidget()
-        self.widget_mainwin_filePanel.setAutoFillBackground(True)
-        palette = self.widget_mainwin_filePanel.palette()
-        palette.setColor(QtGui.QPalette.Window,
-                         QtGui.QColor(200, 200, 200, 150))
-        self.widget_mainwin_filePanel.setPalette(palette)
-        self.widget_mainwin_filePanel.setLayout(self.layout_mainwin_filePanel)
 
         self.widget_mainwin_filterPanel = QWidget()
         self.widget_mainwin_filterPanel.setAutoFillBackground(True)
@@ -91,16 +82,13 @@ class MainWindow(QMainWindow):
         self.widget_mainwin_SsCsPanel.setPalette(palette)
         self.widget_mainwin_SsCsPanel.setLayout(self.layout_mainwin_SsCsPanel)
 
-        self.build_mainwin_filePanel()
         self.build_mainwin_filterPanel()
         self.build_mainwin_rawSignalPanel()
         self.build_mainwin_SsCsPanel()
         # add layouts to the layout_mainwin
-        #self.layout_mainwin.addWidget(self.widget_mainwin_filePanel)
         self.layout_mainwin.addWidget(self.widget_mainwin_filterPanel)
         self.layout_mainwin.addWidget(self.widget_mainwin_rawSignalPanel)
         self.layout_mainwin.addWidget(self.widget_mainwin_SsCsPanel)
-        #self.layout_mainwin.setStretch(0, 0)  # the size of filePanel is fixed
         # the size of filterPanel is fixed
         self.layout_mainwin.setStretch(0, 0)
         # the size of rawSignalPanel is variable
@@ -110,74 +98,6 @@ class MainWindow(QMainWindow):
         self.layout_mainwin.setSpacing(1)
         self.layout_mainwin.setContentsMargins(1, 1, 1, 1)
         self.widget_mainwin.setLayout(self.layout_mainwin)
-        return 0
-
-    def build_mainwin_filePanel(self):
-        # Build Load/Save push buttons
-        self.layout_mainwin_filePanel_loadSave = QVBoxLayout()
-        self.pushBtn_mainwin_filePanel_load = QPushButton("Load File")
-        self.setFont(self.pushBtn_mainwin_filePanel_load)
-        self.pushBtn_mainwin_filePanel_save = QPushButton("Save File")
-        self.setFont(self.pushBtn_mainwin_filePanel_save)
-        self.layout_mainwin_filePanel_loadSave.addWidget(
-            self.pushBtn_mainwin_filePanel_load)
-        self.layout_mainwin_filePanel_loadSave.addWidget(
-            self.pushBtn_mainwin_filePanel_save)
-        # Build file path
-        self.layout_mainwin_filePanel_filePath = QVBoxLayout()
-        self.txtlabel_mainwin_filePanel_fileName = QLabel("File Name")
-        self.setFont(self.txtlabel_mainwin_filePanel_fileName)
-        self.txtlabel_mainwin_filePanel_filePath = QLabel("File Path")
-        self.setFont(self.txtlabel_mainwin_filePanel_filePath)
-        self.layout_mainwin_filePanel_filePath.addWidget(
-            self.txtlabel_mainwin_filePanel_fileName)
-        self.layout_mainwin_filePanel_filePath.addWidget(
-            self.txtlabel_mainwin_filePanel_filePath)
-        # Build slot buttons
-        self.layout_mainwin_filePanel_slotBtn = QVBoxLayout()
-        self.layout_mainwin_filePanel_slotBtn_row1 = QHBoxLayout()
-        self.layout_mainwin_filePanel_slotBtn_row2 = QHBoxLayout()
-        self.pushBtn_mainwin_filePanel_slotPrevious = QPushButton("<<Previous")
-        self.setFont(self.pushBtn_mainwin_filePanel_slotPrevious)
-        self.pushBtn_mainwin_filePanel_slotNext = QPushButton("Next>>")
-        self.setFont(self.pushBtn_mainwin_filePanel_slotNext)
-        self.layout_mainwin_filePanel_slotBtn_row1.addWidget(
-            self.pushBtn_mainwin_filePanel_slotPrevious)
-        self.layout_mainwin_filePanel_slotBtn_row1.addWidget(
-            self.pushBtn_mainwin_filePanel_slotNext)
-        self.txtlabel_mainwin_filePanel_slotNumLabel = QLabel("Slot#")
-        self.setFont(self.txtlabel_mainwin_filePanel_slotNumLabel)
-        self.txtedit_mainwin_filePanel_slotNumCurrent = QSpinBox()
-        self.txtedit_mainwin_filePanel_slotNumCurrent.setMinimum(1)
-        self.txtedit_mainwin_filePanel_slotNumCurrent.setMaximum(30)
-        self.setFont(self.txtedit_mainwin_filePanel_slotNumCurrent)
-        self.txtlabel_mainwin_filePanel_slotNumTotal = QLabel("/ 30(0)")
-        self.setFont(self.txtlabel_mainwin_filePanel_slotNumTotal)
-        self.layout_mainwin_filePanel_slotBtn_row2.addWidget(
-            self.txtlabel_mainwin_filePanel_slotNumLabel)
-        self.layout_mainwin_filePanel_slotBtn_row2.addWidget(
-            self.txtedit_mainwin_filePanel_slotNumCurrent)
-        self.layout_mainwin_filePanel_slotBtn_row2.addWidget(
-            self.txtlabel_mainwin_filePanel_slotNumTotal)
-        self.layout_mainwin_filePanel_slotBtn.addLayout(
-            self.layout_mainwin_filePanel_slotBtn_row1)
-        self.layout_mainwin_filePanel_slotBtn.addLayout(
-            self.layout_mainwin_filePanel_slotBtn_row2)
-        # add layouts to the layout_mainwin_filePanel
-        self.layout_mainwin_filePanel.addLayout(
-            self.layout_mainwin_filePanel_loadSave)
-        self.layout_mainwin_filePanel.addLayout(
-            self.layout_mainwin_filePanel_filePath)
-        self.layout_mainwin_filePanel.addLayout(
-            self.layout_mainwin_filePanel_slotBtn)
-        # the size of Load/Save push buttons are fixed
-        self.layout_mainwin_filePanel.setStretch(0, 0)
-        # the size of file path labels are variable
-        self.layout_mainwin_filePanel.setStretch(1, 1)
-        self.layout_mainwin_filePanel.setStretch(
-            2, 0)  # the size of slot buttons are fixed
-        self.layout_mainwin_filePanel.setSpacing(1)
-        self.layout_mainwin_filePanel.setContentsMargins(1, 1, 1, 1)
         return 0
 
     def build_mainwin_filterPanel(self):
@@ -261,10 +181,13 @@ class MainWindow(QMainWindow):
     def build_mainwin_rawSignalPanel(self):
         self.plot_mainwin_rawSignalPanel_rawSignal = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
+        self.plot_mainwin_rawSignalPanel_rawSignal.setTitle("Y: Raw_Signal(uV) | X: Time(ms)")
         self.plot_mainwin_rawSignalPanel_ssDist = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_ssDist)
+        self.plot_mainwin_rawSignalPanel_ssDist.setTitle("Y: SS_Peak_Dist(uV) | X: Count(#)")
         self.plot_mainwin_rawSignalPanel_csDist = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_csDist)
+        self.plot_mainwin_rawSignalPanel_csDist.setTitle("Y: CS_Peak_Dist(uV) | X: Count(#)")
 
         self.layout_mainwin_rawSignalPanel_threshold = QVBoxLayout()
         self.txtlabel_mainwin_rawSignalPanel_hipassThresh = QLabel(
@@ -350,8 +273,14 @@ class MainWindow(QMainWindow):
             "Pick Waveform")
         self.setFont(
             self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectPcaWindow = QPushButton(
+            "Pick PCA Win")
+        self.setFont(
+            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectPcaWindow, color="blue")
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.addWidget(
             self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave)
+        self.layout_mainwin_SsPanel_plots_SsWaveBtn.addWidget(
+            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectPcaWindow)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setSpacing(1)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setContentsMargins(
             1, 1, 1, 1)
@@ -360,26 +289,31 @@ class MainWindow(QMainWindow):
             "Pick PCA Data")
         self.setFont(
             self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaWindow = QPushButton(
-            "Pick PCA Win")
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
         self.setFont(
-            self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaWindow, color="blue")
+            self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.addWidget(
             self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.addWidget(
-            self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaWindow)
+            self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo)
+
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.setSpacing(1)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.setContentsMargins(
             1, 1, 1, 1)
 
         self.plot_mainwin_SsPanel_plots_SsWave = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsWave)
+        self.plot_mainwin_SsPanel_plots_SsWave.setTitle("Y: SS_Waveform(uV) | X: Time(ms)")
         self.plot_mainwin_SsPanel_plots_SsIsi = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsIsi)
+        self.plot_mainwin_SsPanel_plots_SsIsi.setTitle("Y: SS_ISI(#) | X: Time(ms)")
         self.plot_mainwin_SsPanel_plots_SsPca = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsPca)
+        self.plot_mainwin_SsPanel_plots_SsPca.setTitle("Y: SS_PCA2(au) | X: SS_PCA1(au)")
         self.plot_mainwin_SsPanel_plots_SsCorr = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsCorr)
+        self.plot_mainwin_SsPanel_plots_SsCorr.setTitle("Y: SSxSS_Corr(1) | X: Time(ms)")
 
         self.layout_mainwin_SsPanel_plots.addLayout(
             self.layout_mainwin_SsPanel_plots_SsWaveBtn, 0, 0)
@@ -439,8 +373,14 @@ class MainWindow(QMainWindow):
             "Pick Waveform")
         self.setFont(
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectPcaWindow = QPushButton(
+            "Pick PCA Win")
+        self.setFont(
+            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectPcaWindow, color="red")
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.addWidget(
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave)
+        self.layout_mainwin_CsPanel_plots_CsWaveBtn.addWidget(
+            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectPcaWindow)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setSpacing(1)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setContentsMargins(
             1, 1, 1, 1)
@@ -449,26 +389,31 @@ class MainWindow(QMainWindow):
             "Pick PCA Data")
         self.setFont(
             self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaWindow = QPushButton(
-            "Pick PCA Win")
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
         self.setFont(
-            self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaWindow, color="red")
+            self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
+
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.addWidget(
             self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.addWidget(
-            self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaWindow)
+            self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.setSpacing(1)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.setContentsMargins(
             1, 1, 1, 1)
 
         self.plot_mainwin_CsPanel_plots_CsWave = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsWave)
+        self.plot_mainwin_CsPanel_plots_CsWave.setTitle("Y: CS_Waveform(uV) | X: Time(ms)")
         self.plot_mainwin_CsPanel_plots_CsIsi = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsIsi)
+        self.plot_mainwin_CsPanel_plots_CsIsi.setTitle("Y: CS_ISI(#) | X: Time(ms)")
         self.plot_mainwin_CsPanel_plots_CsPca = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsPca)
+        self.plot_mainwin_CsPanel_plots_CsPca.setTitle("Y: CS_PCA2(au) | X: CS_PCA1(au)")
         self.plot_mainwin_CsPanel_plots_CsCorr = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsCorr)
+        self.plot_mainwin_CsPanel_plots_CsCorr.setTitle("Y: CSxSS_Corr(1) | X: Time(ms)")
 
         self.layout_mainwin_CsPanel_plots.addLayout(
             self.layout_mainwin_CsPanel_plots_CsWaveBtn, 0, 0)
@@ -596,7 +541,7 @@ class MainWindow(QMainWindow):
 
     def set_plotWidget(self, plot_widget):
         plot_widget.setBackground('w')
-        plot_widget.setTitle("X: Variable - Y: Variable", color='k', size='12')
+        plot_widget.setTitle("Y: Variable_Name(au) | X: Variable_Name(au)", color='k', size='12')
         plot_widget.showLabel('left', show=False)
         plot_widget.showLabel('bottom', show=False)
         #plot_widget.setLabel('left', "Y Label", color='k', size='12', units='au')
