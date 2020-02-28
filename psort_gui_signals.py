@@ -21,23 +21,27 @@ class PsortGuiSignals(PsortGuiWidget):
     def connect_toolbar_signals(self):
         self.actionBtn_toolbar_next.triggered.connect(self.onToolbar_next_ButtonClick)
         self.actionBtn_toolbar_previous.triggered.connect(self.onToolbar_previous_ButtonClick)
-        self.actionBtn_toolbar_refresh.triggered.connect(self.onToolbar_slotNumCurrent_ValueChanged)
+        self.actionBtn_toolbar_refresh.triggered.connect(self.onToolbar_refresh_ButtonClick)
         self.txtedit_toolbar_slotNumCurrent.valueChanged.connect(self.onToolbar_slotNumCurrent_ValueChanged)
         return 0
 
     def onToolbar_next_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num += 1
-        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
+        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num-1)
         return 0
 
     def onToolbar_previous_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num -= 1
-        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
+        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num-1)
+        return 0
+
+    def onToolbar_refresh_ButtonClick(self):
+        self.psortDataBase.refreshCurrentSlot()
         return 0
 
     def onToolbar_slotNumCurrent_ValueChanged(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
-        self.psortDataBase.refreshSlot(slot_num)
+        self.psortDataBase.changeCurrentSlot(slot_num-1)
         return 0
