@@ -502,9 +502,6 @@ class PsortGuiWidget(QMainWindow):
         self.actionBtn_toolbar_save = QAction(QtGui.QApplication.style().standardIcon(
             QtGui.QStyle.SP_DialogSaveButton), "Save Session", self)
         self.actionBtn_toolbar_save.setStatusTip("Save Session")
-        self.actionBtn_toolbar_new = QAction(QtGui.QApplication.style(
-        ).standardIcon(QtGui.QStyle.SP_FileIcon), "New Session", self)
-        self.actionBtn_toolbar_new.setStatusTip("New Session")
 
         self.widget_toolbar_empty = QWidget()
         self.widget_toolbar_empty.setSizePolicy(
@@ -525,7 +522,6 @@ class PsortGuiWidget(QMainWindow):
         self.txtlabel_toolbar_filePath = QLabel("/File_Path/")
         self.setFont(self.txtlabel_toolbar_filePath)
 
-        self.toolbar.addAction(self.actionBtn_toolbar_new)
         self.toolbar.addAction(self.actionBtn_toolbar_load)
         self.toolbar.addAction(self.actionBtn_toolbar_save)
         self.toolbar.addSeparator()
