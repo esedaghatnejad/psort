@@ -11,12 +11,14 @@ from PyQt5.QtWidgets import *
 import pyqtgraph as pg
 import os
 
+import numpy as np
+
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
         super(PsortGuiSignals, self).__init__(parent)
         self.psortDataBase = PsortDataBase()
         self.connect_toolbar_signals()
-
+        self.temporary_func0()
         return None
 
     def connect_toolbar_signals(self):
@@ -49,6 +51,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.psortDataBase.changeCurrentSlot_to(slot_num-1)
         self.txtlabel_toolbar_slotNumTotal.setText(
             "/ " + str(self.psortDataBase.get_total_slot_num()) + "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
+        self.temporary_func1()
         return 0
 
     def onToolbar_load_ButtonClick(self):
@@ -63,17 +66,33 @@ class PsortGuiSignals(PsortGuiWidget):
             _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
             self.txtlabel_toolbar_fileName.setText(file_name)
             self.txtlabel_toolbar_filePath.setText("..."+file_path[-30:]+os.sep)
+            self.txtedit_toolbar_slotNumCurrent.setMaximum(self.psortDataBase.get_total_slot_num())
+            self.txtedit_toolbar_slotNumCurrent.setValue(1)
+            self.onToolbar_slotNumCurrent_ValueChanged()
         return 0
 
     def onToolbar_save_ButtonClick(self):
         if not(self.psortDataBase.is_all_slots_analyzed()):
             # TODO: Warning Dialog
+            False
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath()
         if not(os.path.isdir(file_path)):
             file_path = os.getcwd()
         file_fullPath, _ = QFileDialog.getSaveFileName(self, "Save DataBase",
                                        file_path,
                                        filter="psort DataBase (*.psort)")
-        if os.path.isfile(os.path.realpath(file_fullPath)):
-            self.psortDataBase.save_dataBase(file_fullPath)
+        self.psortDataBase.save_dataBase(file_fullPath)
+        return 0
+
+    def temporary_func0(self):
+        #ch_data, ch_time = self.psortDataBase.get_current_slot_data_time()
+        ch_data = np.random.random((300))
+        ch_time = np.arange(300)
+        pen = pg.mkPen(color=(0, 0, 0), width=1, style=QtCore.Qt.SolidLine)
+        self.data0_mainwin_rawSignalPanel_rawSignal =\
+            self.plot_mainwin_rawSignalPanel_rawSignal.plot(ch_time, ch_data, name="hiPass", pen=pen)
+        return 0
+    def temporary_func1(self):
+        ch_data, ch_time = self.psortDataBase.get_current_slot_data_time()
+        self.data0_mainwin_rawSignalPanel_rawSignal.setData(ch_time, ch_data)
         return 0
