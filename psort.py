@@ -3,11 +3,12 @@
 """
 @author: Ehsan Sedaghat-Nejad (esedaghatnejad@gmail.com)
 """
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtGui
 from psort_gui_signals import PsortGuiSignals
 import sys # We need sys so that we can pass argv to QApplication
 
 app = QtWidgets.QApplication(sys.argv)
+app.setWindowIcon(QtGui.QIcon('marmoset.png'))
 window = PsortGuiSignals()
 window.show()
 app.exec_()
