@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: Ehsan Sedaghat-Nejad (esedaghatnejad@gmail.com)
+Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
+@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -120,14 +121,14 @@ class PsortGuiWidget(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_filterPanel_lopass_dash, color="red")
         self.txtedit_mainwin__filterPanel_lopass_min = QDoubleSpinBox()
-        self.txtedit_mainwin__filterPanel_lopass_min.setKeyboardTracking(False)
+        self.txtedit_mainwin__filterPanel_lopass_min.setKeyboardTracking(True)
         self.txtedit_mainwin__filterPanel_lopass_min.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_lopass_min.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_lopass_min.setDecimals(0)
         self.setFont(self.txtedit_mainwin__filterPanel_lopass_min, color="red")
         self.txtedit_mainwin__filterPanel_lopass_min.setValue(10.0)
         self.txtedit_mainwin__filterPanel_lopass_max = QDoubleSpinBox()
-        self.txtedit_mainwin__filterPanel_lopass_max.setKeyboardTracking(False)
+        self.txtedit_mainwin__filterPanel_lopass_max.setKeyboardTracking(True)
         self.txtedit_mainwin__filterPanel_lopass_max.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_lopass_max.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_lopass_max.setDecimals(0)
@@ -148,7 +149,7 @@ class PsortGuiWidget(QMainWindow):
             self.txtedit_mainwin__filterPanel_hipass_min, color="blue")
         self.txtedit_mainwin__filterPanel_hipass_min.setValue(100.0)
         self.txtedit_mainwin__filterPanel_hipass_max = QDoubleSpinBox()
-        self.txtedit_mainwin__filterPanel_hipass_max.setKeyboardTracking(False)
+        self.txtedit_mainwin__filterPanel_hipass_max.setKeyboardTracking(True)
         self.txtedit_mainwin__filterPanel_hipass_max.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_hipass_max.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_hipass_max.setDecimals(0)
@@ -187,13 +188,13 @@ class PsortGuiWidget(QMainWindow):
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
         self.plot_mainwin_rawSignalPanel_rawSignal.setTitle(
             "Y: Raw_Signal(uV) | X: Time(ms)")
-        self.plot_mainwin_rawSignalPanel_ssDist = pg.PlotWidget()
-        self.set_plotWidget(self.plot_mainwin_rawSignalPanel_ssDist)
-        self.plot_mainwin_rawSignalPanel_ssDist.setTitle(
+        self.plot_mainwin_rawSignalPanel_SsPeak = pg.PlotWidget()
+        self.set_plotWidget(self.plot_mainwin_rawSignalPanel_SsPeak)
+        self.plot_mainwin_rawSignalPanel_SsPeak.setTitle(
             "Y: SS_Peak_Dist(uV) | X: Count(#)")
-        self.plot_mainwin_rawSignalPanel_csDist = pg.PlotWidget()
-        self.set_plotWidget(self.plot_mainwin_rawSignalPanel_csDist)
-        self.plot_mainwin_rawSignalPanel_csDist.setTitle(
+        self.plot_mainwin_rawSignalPanel_CsPeak = pg.PlotWidget()
+        self.set_plotWidget(self.plot_mainwin_rawSignalPanel_CsPeak)
+        self.plot_mainwin_rawSignalPanel_CsPeak.setTitle(
             "Y: CS_Peak_Dist(uV) | X: Count(#)")
 
         self.layout_mainwin_rawSignalPanel_threshold = QVBoxLayout()
@@ -202,7 +203,7 @@ class PsortGuiWidget(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_rawSignalPanel_hipassThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_hipassThresh = QDoubleSpinBox()
-        self.txtedit_mainwin_rawSignalPanel_hipassThresh.setKeyboardTracking(False)
+        self.txtedit_mainwin_rawSignalPanel_hipassThresh.setKeyboardTracking(True)
         self.txtedit_mainwin_rawSignalPanel_hipassThresh.setMinimum(1.0)
         self.txtedit_mainwin_rawSignalPanel_hipassThresh.setMaximum(15000.0)
         self.txtedit_mainwin_rawSignalPanel_hipassThresh.setDecimals(0)
@@ -214,7 +215,7 @@ class PsortGuiWidget(QMainWindow):
         self.setFont(
             self.txtlabel_mainwin_rawSignalPanel_lopassThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_lopassThresh = QDoubleSpinBox()
-        self.txtedit_mainwin_rawSignalPanel_lopassThresh.setKeyboardTracking(False)
+        self.txtedit_mainwin_rawSignalPanel_lopassThresh.setKeyboardTracking(True)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.setMinimum(1.0)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.setMaximum(15000.0)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.setDecimals(0)
@@ -234,9 +235,9 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_rawSignalPanel.addWidget(
             self.plot_mainwin_rawSignalPanel_rawSignal)
         self.layout_mainwin_rawSignalPanel.addWidget(
-            self.plot_mainwin_rawSignalPanel_ssDist)
+            self.plot_mainwin_rawSignalPanel_SsPeak)
         self.layout_mainwin_rawSignalPanel.addWidget(
-            self.plot_mainwin_rawSignalPanel_csDist)
+            self.plot_mainwin_rawSignalPanel_CsPeak)
         self.layout_mainwin_rawSignalPanel.addLayout(
             self.layout_mainwin_rawSignalPanel_threshold)
         self.layout_mainwin_rawSignalPanel.setStretch(0, 3)
@@ -316,10 +317,10 @@ class PsortGuiWidget(QMainWindow):
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsWave)
         self.plot_mainwin_SsPanel_plots_SsWave.setTitle(
             "Y: SS_Waveform(uV) | X: Time(ms)")
-        self.plot_mainwin_SsPanel_plots_SsIsi = pg.PlotWidget()
-        self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsIsi)
-        self.plot_mainwin_SsPanel_plots_SsIsi.setTitle(
-            "Y: SS_ISI(#) | X: Time(ms)")
+        self.plot_mainwin_SsPanel_plots_SsIfr = pg.PlotWidget()
+        self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsIfr)
+        self.plot_mainwin_SsPanel_plots_SsIfr.setTitle(
+            "Y: SS_IFR(#) | X: Freq(Hz)")
         self.plot_mainwin_SsPanel_plots_SsPca = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsPca)
         self.plot_mainwin_SsPanel_plots_SsPca.setTitle(
@@ -334,7 +335,7 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots.addWidget(
             self.plot_mainwin_SsPanel_plots_SsWave, 1, 0)
         self.layout_mainwin_SsPanel_plots.addWidget(
-            self.plot_mainwin_SsPanel_plots_SsIsi, 1, 1)
+            self.plot_mainwin_SsPanel_plots_SsIfr, 1, 1)
         self.layout_mainwin_SsPanel_plots.addLayout(
             self.layout_mainwin_SsPanel_plots_SsPcaBtn, 2, 0)
         self.layout_mainwin_SsPanel_plots.addWidget(
@@ -421,10 +422,10 @@ class PsortGuiWidget(QMainWindow):
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsWave)
         self.plot_mainwin_CsPanel_plots_CsWave.setTitle(
             "Y: CS_Waveform(uV) | X: Time(ms)")
-        self.plot_mainwin_CsPanel_plots_CsIsi = pg.PlotWidget()
-        self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsIsi)
-        self.plot_mainwin_CsPanel_plots_CsIsi.setTitle(
-            "Y: CS_ISI(#) | X: Time(ms)")
+        self.plot_mainwin_CsPanel_plots_CsIfr = pg.PlotWidget()
+        self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsIfr)
+        self.plot_mainwin_CsPanel_plots_CsIfr.setTitle(
+            "Y: CS_IFR(#) | X: Freq(Hz)")
         self.plot_mainwin_CsPanel_plots_CsPca = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsPca)
         self.plot_mainwin_CsPanel_plots_CsPca.setTitle(
@@ -439,7 +440,7 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots.addWidget(
             self.plot_mainwin_CsPanel_plots_CsWave, 1, 0)
         self.layout_mainwin_CsPanel_plots.addWidget(
-            self.plot_mainwin_CsPanel_plots_CsIsi, 1, 1)
+            self.plot_mainwin_CsPanel_plots_CsIfr, 1, 1)
         self.layout_mainwin_CsPanel_plots.addLayout(
             self.layout_mainwin_CsPanel_plots_CsPcaBtn, 2, 0)
         self.layout_mainwin_CsPanel_plots.addWidget(

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: Ehsan Sedaghat-Nejad (esedaghatnejad@gmail.com)
+Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
+@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
 
 import numpy as np
@@ -185,17 +186,6 @@ class PsortDataBase():
         del data_continuous, ch_time
         return 0
 
-    def get_total_slot_isAnalyzed(self):
-        total_slot_isAnalyzed = int(0)
-        total_slot_num = int(self._topLevelDataBase['total_slot_num'][0])
-        for counter_slot in range(total_slot_num):
-            total_slot_isAnalyzed += self._grandDataBase[counter_slot]['isAnalyzed'][0]
-        self._topLevelDataBase['total_slot_isAnalyzed'][0] = total_slot_isAnalyzed
-        return int(total_slot_isAnalyzed)
-
-    def get_total_slot_num(self):
-        return int(self._topLevelDataBase['total_slot_num'][0])
-
     def is_all_slots_analyzed(self):
         self.saveCurrentSlot_to(self._topLevelDataBase['current_slot_num'][0])
         total_slot_isAnalyzed = self.get_total_slot_isAnalyzed()
@@ -214,6 +204,20 @@ class PsortDataBase():
         self._topLevelDataBase['file_ext']              = np.array([file_ext])
         self._topLevelDataBase['file_name_without_ext'] = np.array([file_name_without_ext])
         return 0
+
+    def get_total_slot_num(self):
+        return int(self._topLevelDataBase['total_slot_num'][0])
+
+    def get_sample_rate(self):
+        return int(self._topLevelDataBase['sampleRate'][0])
+
+    def get_total_slot_isAnalyzed(self):
+        total_slot_isAnalyzed = int(0)
+        total_slot_num = int(self._topLevelDataBase['total_slot_num'][0])
+        for counter_slot in range(total_slot_num):
+            total_slot_isAnalyzed += self._grandDataBase[counter_slot]['isAnalyzed'][0]
+        self._topLevelDataBase['total_slot_isAnalyzed'][0] = total_slot_isAnalyzed
+        return int(total_slot_isAnalyzed)
 
     def get_file_fullPath(self):
         file_fullPath = self._topLevelDataBase['file_fullPath'][0]
