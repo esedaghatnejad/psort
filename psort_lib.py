@@ -36,7 +36,7 @@ def find_peaks(data, threshold=None, peakType=None):
     if threshold is None:
         threshold = 0.
     if ((peakType == 'max') or (peakType == 'Max')):
-        _
+        pass # do nothing
     elif ((peakType == 'min') or (peakType == 'Min')):
         data *= -1.
     else:

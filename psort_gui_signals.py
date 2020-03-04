@@ -20,7 +20,7 @@ _workingDataBase = {
     'total_slot_num': (np.full((1), 30, dtype=np.uint8)),
     'current_slot_num': np.zeros((1), dtype=np.uint8),
     'total_slot_isAnalyzed': np.zeros((1), dtype=np.uint8),
-    'sampleRate': np.zeros((1), dtype=np.uint32),
+    'sample_rate': np.zeros((1), dtype=np.uint32),
     'hipass_min_cutoff_freq': np.zeros((1), dtype=np.float32),
     'hipass_max_cutoff_freq': np.zeros((1), dtype=np.float32),
     'lopass_min_cutoff_freq': np.zeros((1), dtype=np.float32),
@@ -59,8 +59,10 @@ class PsortGuiSignals(PsortGuiWidget):
         super(PsortGuiSignals, self).__init__(parent)
         self.init_workingDataBase()
         self.psortDataBase = PsortDataBase()
-        self.connect_toolbar_signals()
         self.init_plots()
+        self.connect_toolbar_signals()
+        self.connect_plot_signals()
+        self.connect_rawSignal_signals()
         self.setEnableWidgets(False)
 
         return None
@@ -93,6 +95,32 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onToolbar_load_ButtonClick)
         self.actionBtn_toolbar_save.triggered.\
             connect(self.onToolbar_save_ButtonClick)
+        return 0
+
+    def connect_plot_signals(self):
+        self.infLine_rawSignal_hiPassThresh.sigPositionChangeFinished.\
+            connect(self.onInfLineHiPassThresh_positionChangeFinished)
+        self.infLine_rawSignal_hiPassThresh.sigPositionChanged.\
+            connect(self.onInfLineHiPassThresh_positionChanged)
+        self.infLine_SsPeak.sigPositionChanged.\
+            connect(self.onInfLineSsPeak_positionChanged)
+        self.infLine_SsPeak.sigPositionChangeFinished.\
+            connect(self.onInfLineSsPeak_positionChangeFinished)
+        self.infLine_rawSignal_loPassThresh.sigPositionChangeFinished.\
+            connect(self.onInfLineLoPassThresh_positionChangeFinished)
+        self.infLine_rawSignal_loPassThresh.sigPositionChanged.\
+            connect(self.onInfLineLoPassThresh_positionChanged)
+        self.infLine_CsPeak.sigPositionChanged.\
+            connect(self.onInfLineCsPeak_positionChanged)
+        self.infLine_CsPeak.sigPositionChangeFinished.\
+            connect(self.onInfLineCsPeak_positionChangeFinished)
+        return 0
+
+    def connect_rawSignal_signals(self):
+        self.txtedit_mainwin_rawSignalPanel_hipassThresh.valueChanged.\
+            connect(self.onRawSignal_hipassThresh_ValueChanged)
+        self.txtedit_mainwin_rawSignalPanel_lopassThresh.valueChanged.\
+            connect(self.onRawSignal_lopassThresh_ValueChanged)
         return 0
 
     def onToolbar_next_ButtonClick(self):
@@ -153,34 +181,100 @@ class PsortGuiSignals(PsortGuiWidget):
         self.psortDataBase.save_dataBase(file_fullPath)
         return 0
 
+    def onInfLineHiPassThresh_positionChangeFinished(self):
+        self.txtedit_mainwin_rawSignalPanel_hipassThresh.\
+            setValue(abs(self.infLine_rawSignal_hiPassThresh.value()))
+        return 0
+
+    def onInfLineHiPassThresh_positionChanged(self):
+        self.infLine_SsPeak.setValue(self.infLine_rawSignal_hiPassThresh.value())
+        return 0
+
+    def onInfLineSsPeak_positionChangeFinished(self):
+        self.txtedit_mainwin_rawSignalPanel_hipassThresh.\
+            setValue(abs(self.infLine_SsPeak.value()))
+        return 0
+
+    def onInfLineSsPeak_positionChanged(self):
+        self.infLine_rawSignal_hiPassThresh.setValue(self.infLine_SsPeak.value())
+        return 0
+
+    def onInfLineLoPassThresh_positionChangeFinished(self):
+        self.txtedit_mainwin_rawSignalPanel_lopassThresh.\
+            setValue(abs(self.infLine_rawSignal_loPassThresh.value()))
+        return 0
+
+    def onInfLineLoPassThresh_positionChanged(self):
+        self.infLine_CsPeak.setValue(self.infLine_rawSignal_loPassThresh.value())
+        return 0
+
+    def onInfLineCsPeak_positionChangeFinished(self):
+        self.txtedit_mainwin_rawSignalPanel_lopassThresh.\
+            setValue(abs(self.infLine_CsPeak.value()))
+        return 0
+
+    def onInfLineCsPeak_positionChanged(self):
+        self.infLine_rawSignal_loPassThresh.setValue(self.infLine_CsPeak.value())
+        return 0
+
+    def onRawSignal_hipassThresh_ValueChanged(self):
+        if self.comboBx_mainwin_filterPanel_SsHiPass.currentIndex() == 0:
+            _sign = -1
+        elif self.comboBx_mainwin_filterPanel_SsHiPass.currentIndex() == 1:
+            _sign = +1
+        self.infLine_rawSignal_hiPassThresh.\
+            setValue(self.txtedit_mainwin_rawSignalPanel_hipassThresh.value()*_sign)
+        self.infLine_SsPeak.\
+            setValue(self.txtedit_mainwin_rawSignalPanel_hipassThresh.value()*_sign)
+        return 0
+
+    def onRawSignal_lopassThresh_ValueChanged(self):
+        if self.comboBx_mainwin_filterPanel_CsLoPass.currentIndex() == 0:
+            _sign = +1
+        elif self.comboBx_mainwin_filterPanel_CsLoPass.currentIndex() == 1:
+            _sign = -1
+        self.infLine_rawSignal_loPassThresh.\
+            setValue(self.txtedit_mainwin_rawSignalPanel_lopassThresh.value()*_sign)
+        self.infLine_CsPeak.\
+            setValue(self.txtedit_mainwin_rawSignalPanel_lopassThresh.value()*_sign)
+        return 0
+
     def init_plots(self):
         pen_rawSignal_hipass = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
         self.pltData_rawSignal_hipass =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="hiPass", pen=pen_rawSignal_hipass)
-        self.viewBox_rawSignal = self.plot_mainwin_rawSignalPanel_rawSignal.getViewBox()
-        self.viewBox_rawSignal.autoRange()
         pen_rawSignal_lopass = pg.mkPen(color='r', width=1, style=QtCore.Qt.SolidLine)
         self.pltData_rawSignal_lopass =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="loPass", pen=pen_rawSignal_lopass)
-        #pen = pg.mkPen(color=(255, 0, 0), width=5, style=QtCore.Qt.SolidLine)
-        #self.data_line = self.graphWidget.plot(self.x, self.y, name="Sensor 1", pen=pen, symbol='o', symbolSize=10, symbolBrush=('b'))
-        pen_rawSignal_SsInedx = pg.mkPen(None)
         self.pltData_rawSignal_SsInedx =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="SsIndex", pen=pen_rawSignal_SsInedx,
-                symbol='o', symbolSize=2, symbolBrush=('b'))
-        pen_SsPeak = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
+            plot(np.zeros((0)), np.zeros((0)), name="SsIndex", pen=None,
+                symbol='o', symbolSize=3, symbolBrush=(100,100,255,255), symbolPen=None)
+        self.pltData_rawSignal_CsInedx =\
+            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            plot(np.zeros((0)), np.zeros((0)), name="CsIndex", pen=None,
+                symbol='o', symbolSize=3, symbolBrush=(255,100,100,255), symbolPen=None)
+        self.infLine_rawSignal_hiPassThresh = pg.InfiniteLine(pos=-100., angle=0, pen=(150,150,255,255),movable=True, label='hiPass', labelOpts={'position':0.05})
+        self.plot_mainwin_rawSignalPanel_rawSignal.addItem(self.infLine_rawSignal_hiPassThresh)
+        self.infLine_rawSignal_loPassThresh = pg.InfiniteLine(pos=+100., angle=0, pen=(255,150,150,255),movable=True, label='loPass', labelOpts={'position':0.95})
+        self.plot_mainwin_rawSignalPanel_rawSignal.addItem(self.infLine_rawSignal_loPassThresh)
+        self.viewBox_rawSignal = self.plot_mainwin_rawSignalPanel_rawSignal.getViewBox()
+        self.viewBox_rawSignal.autoRange()
         self.pltData_SsPeak =\
             self.plot_mainwin_rawSignalPanel_SsPeak.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssPeak", pen=pen_SsPeak)
+            plot(np.arange(2), np.zeros((1)), name="ssPeak", stepMode=True, fillLevel=0, brush=(100,100,255,255))
+        self.infLine_SsPeak = pg.InfiniteLine(pos=-100., angle=90, pen=(150,150,255,255),movable=True, label='hiPass', labelOpts={'position':0.90})
+        self.plot_mainwin_rawSignalPanel_SsPeak.addItem(self.infLine_SsPeak)
         self.viewBox_SsPeak = self.plot_mainwin_rawSignalPanel_SsPeak.getViewBox()
         self.viewBox_SsPeak.autoRange()
         pen_CsPeak = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
         self.pltData_CsPeak =\
             self.plot_mainwin_rawSignalPanel_CsPeak.\
-            plot(np.zeros((0)), np.zeros((0)), name="csPeak", pen=pen_CsPeak)
+            plot(np.arange(2), np.zeros((1)), name="csPeak", stepMode=True, fillLevel=0, brush=(255,100,100,50))
+        self.infLine_CsPeak = pg.InfiniteLine(pos=+100., angle=90, pen=(255,150,150,255),movable=True, label='loPass', labelOpts={'position':0.90})
+        self.plot_mainwin_rawSignalPanel_CsPeak.addItem(self.infLine_CsPeak)
         self.viewBox_CsPeak = self.plot_mainwin_rawSignalPanel_CsPeak.getViewBox()
         self.viewBox_CsPeak.autoRange()
         pen_SsWave = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
@@ -237,6 +331,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.filter_data()
         self.detect_ss_index()
         self.plot_rawSignal()
+        self.plot_ss_peaks_histogram()
         return 0
 
     def plot_rawSignal(self):
@@ -255,10 +350,18 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_rawSignal.autoRange()
         return 0
 
+    def plot_ss_peaks_histogram(self):
+        ss_peaks = self._workingDataBase['ch_data_hipass'][self._workingDataBase['ss_index']]
+        ss_hist, ss_bin_edges = np.histogram(ss_peaks, bins='auto')
+        self.pltData_SsPeak.setData(ss_bin_edges, ss_hist)
+        self.onRawSignal_hipassThresh_ValueChanged()
+        self.viewBox_SsPeak.autoRange()
+        return 0
+
     def filter_data(self):
         self._workingDataBase['ch_data'], self._workingDataBase['ch_time'] = \
             self.psortDataBase.get_current_slot_data_time()
-        self._workingDataBase['sampleRate'] = \
+        self._workingDataBase['sample_rate'] = \
             self.psortDataBase.get_sample_rate()
         self._workingDataBase['hipass_min_cutoff_freq'] = \
             self.txtedit_mainwin__filterPanel_hipass_min.value()
@@ -271,41 +374,31 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['ch_data_hipass'] = \
             psort_lib.bandpass_filter(
                 self._workingDataBase['ch_data'],
-                sample_rate=self._workingDataBase['sampleRate'],
+                sample_rate=self._workingDataBase['sample_rate'],
                 lo_cutoff_freq=self._workingDataBase['hipass_min_cutoff_freq'],
                 hi_cutoff_freq=self._workingDataBase['hipass_max_cutoff_freq'])
         self._workingDataBase['ch_data_lopass'] = \
             psort_lib.bandpass_filter(
                 self._workingDataBase['ch_data'],
-                sample_rate=self._workingDataBase['sampleRate'],
+                sample_rate=self._workingDataBase['sample_rate'],
                 lo_cutoff_freq=self._workingDataBase['lopass_min_cutoff_freq'],
                 hi_cutoff_freq=self._workingDataBase['lopass_max_cutoff_freq'])
         return 0
 
     def detect_ss_index(self):
+        if self.comboBx_mainwin_filterPanel_SsHiPass.currentIndex() == 0:
+            _peakType = 'min'
+        elif self.comboBx_mainwin_filterPanel_SsHiPass.currentIndex() == 1:
+            _peakType = 'max'
         self._workingDataBase['hipass_threshold'] = \
             self.txtedit_mainwin_rawSignalPanel_hipassThresh.value()
         self._workingDataBase['ss_index_notFinalized'] = \
             psort_lib.find_peaks(
                 self._workingDataBase['ch_data_hipass'],
                 threshold=self._workingDataBase['hipass_threshold'],
-                peakType='min')
+                peakType=_peakType)
         self._workingDataBase['ss_index'] = \
             deepcopy(self._workingDataBase['ss_index_notFinalized'])
         self._workingDataBase['ss_peak'] = \
             self._workingDataBase['ch_data_hipass'][self._workingDataBase['ss_index']]
-        return 0
-
-    def ss_peaks_histogram(self):
-        """
-        ## make interesting distribution of values
-        vals = np.hstack([np.random.normal(size=500), np.random.normal(size=260, loc=4)])
-
-        ## compute standard histogram
-        y,x = np.histogram(vals, bins=np.linspace(-3, 8, 40))
-
-        ## Using stepMode=True causes the plot to draw two lines for each sample.
-        ## notice that len(x) == len(y)+1
-        plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
-        """
         return 0

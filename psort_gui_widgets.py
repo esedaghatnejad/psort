@@ -13,7 +13,7 @@ import pyqtgraph as pg
 class PsortGuiWidget(QMainWindow):
     def __init__(self, parent=None):
         super(PsortGuiWidget, self).__init__(parent)
-
+        pg.setConfigOptions(antialias=False)
         self.setGlobalObjects()
 
         self.setWindowTitle("PurkinjeSort")
