@@ -7,6 +7,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
+import os
 import pyqtgraph as pg
 
 
@@ -62,14 +63,14 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_filterPanel = QWidget()
         self.widget_mainwin_filterPanel.setAutoFillBackground(True)
         palette = self.widget_mainwin_filterPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 20, 255, 20))
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 255, 255, 30))
         self.widget_mainwin_filterPanel.setPalette(palette)
         self.widget_mainwin_filterPanel.setLayout(self.layout_mainwin_filterPanel)
 
         self.widget_mainwin_rawSignalPanel = QWidget()
         self.widget_mainwin_rawSignalPanel.setAutoFillBackground(True)
         palette = self.widget_mainwin_rawSignalPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 20, 255, 20))
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 255, 255, 255))
         self.widget_mainwin_rawSignalPanel.setPalette(palette)
         self.widget_mainwin_rawSignalPanel.setLayout(self.layout_mainwin_rawSignalPanel)
 
@@ -185,6 +186,14 @@ class PsortGuiWidget(QMainWindow):
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
         self.plot_mainwin_rawSignalPanel_rawSignal.setTitle("Y: Raw_Signal(uV) | X: Time(ms)")
         # SsPeak Panel, containing SsHistogram and SsThresh
+        self.widget_mainwin_rawSignalPanel_SsPeakPanel = QWidget()
+        self.widget_mainwin_rawSignalPanel_SsPeakPanel.setAutoFillBackground(True)
+        palette = self.widget_mainwin_rawSignalPanel_SsPeakPanel.palette()
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 255, 30))
+        self.widget_mainwin_rawSignalPanel_SsPeakPanel.setPalette(palette)
+        self.widget_mainwin_rawSignalPanel_SsPeakPanel.\
+            setLayout(self.layout_mainwin_rawSignalPanel_SsPeak)
+
         self.plot_mainwin_rawSignalPanel_SsPeak = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_SsPeak)
         self.plot_mainwin_rawSignalPanel_SsPeak.setTitle("Y: SS_Peak_Dist(uV) | X: Count(#)")
@@ -201,7 +210,7 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_rawSignalPanel_hipassRefresh = QPushButton(None)
         self.setFont(self.pushBtn_mainwin_rawSignalPanel_hipassRefresh, color="blue")
         self.pushBtn_mainwin_rawSignalPanel_hipassRefresh.\
-            setIcon(QtGui.QIcon('./icon/refresh-button-blue.png'))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'refresh-button-blue.png')))
 
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
             addWidget(self.txtlabel_mainwin_rawSignalPanel_hipassThresh)
@@ -212,6 +221,8 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setStretch(0, 0)
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setStretch(1, 1)
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setStretch(2, 0)
+        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setSpacing(1)
+        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
 
         self.layout_mainwin_rawSignalPanel_SsPeak.\
             addLayout(self.layout_mainwin_rawSignalPanel_SsPeak_Thresh)
@@ -219,7 +230,17 @@ class PsortGuiWidget(QMainWindow):
             addWidget(self.plot_mainwin_rawSignalPanel_SsPeak)
         self.layout_mainwin_rawSignalPanel_SsPeak.setStretch(0, 0)
         self.layout_mainwin_rawSignalPanel_SsPeak.setStretch(1, 1)
+        self.layout_mainwin_rawSignalPanel_SsPeak.setSpacing(1)
+        self.layout_mainwin_rawSignalPanel_SsPeak.setContentsMargins(1, 1, 1, 1)
         # CsPeak Panel, containing CsHistogram and CsThresh
+        self.widget_mainwin_rawSignalPanel_CsPeakPanel = QWidget()
+        self.widget_mainwin_rawSignalPanel_CsPeakPanel.setAutoFillBackground(True)
+        palette = self.widget_mainwin_rawSignalPanel_CsPeakPanel.palette()
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 0, 0, 30))
+        self.widget_mainwin_rawSignalPanel_CsPeakPanel.setPalette(palette)
+        self.widget_mainwin_rawSignalPanel_CsPeakPanel.\
+            setLayout(self.layout_mainwin_rawSignalPanel_CsPeak)
+
         self.plot_mainwin_rawSignalPanel_CsPeak = pg.PlotWidget()
         self.set_plotWidget(self.plot_mainwin_rawSignalPanel_CsPeak)
         self.plot_mainwin_rawSignalPanel_CsPeak.setTitle("Y: CS_Peak_Dist(uV) | X: Count(#)")
@@ -236,7 +257,7 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_rawSignalPanel_lopassRefresh = QPushButton(None)
         self.setFont(self.pushBtn_mainwin_rawSignalPanel_lopassRefresh, color="red")
         self.pushBtn_mainwin_rawSignalPanel_lopassRefresh.\
-            setIcon(QtGui.QIcon('./icon/refresh-button-red.png'))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'refresh-button-red.png')))
 
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
             addWidget(self.txtlabel_mainwin_rawSignalPanel_lopassThresh)
@@ -247,6 +268,8 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setStretch(0, 0)
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setStretch(1, 1)
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setStretch(2, 0)
+        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setSpacing(1)
+        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
 
         self.layout_mainwin_rawSignalPanel_CsPeak.\
             addLayout(self.layout_mainwin_rawSignalPanel_CsPeak_Thresh)
@@ -254,13 +277,15 @@ class PsortGuiWidget(QMainWindow):
             addWidget(self.plot_mainwin_rawSignalPanel_CsPeak)
         self.layout_mainwin_rawSignalPanel_CsPeak.setStretch(0, 0)
         self.layout_mainwin_rawSignalPanel_CsPeak.setStretch(1, 1)
+        self.layout_mainwin_rawSignalPanel_CsPeak.setSpacing(1)
+        self.layout_mainwin_rawSignalPanel_CsPeak.setContentsMargins(1, 1, 1, 1)
         # rawSignal plot is x3 while the SsPeak and CsPeak are x1
         self.layout_mainwin_rawSignalPanel.\
             addWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
         self.layout_mainwin_rawSignalPanel.\
-            addLayout(self.layout_mainwin_rawSignalPanel_SsPeak)
+            addWidget(self.widget_mainwin_rawSignalPanel_SsPeakPanel)
         self.layout_mainwin_rawSignalPanel.\
-            addLayout(self.layout_mainwin_rawSignalPanel_CsPeak)
+            addWidget(self.widget_mainwin_rawSignalPanel_CsPeakPanel)
         self.layout_mainwin_rawSignalPanel.setStretch(0, 3)
         self.layout_mainwin_rawSignalPanel.setStretch(1, 1)
         self.layout_mainwin_rawSignalPanel.setStretch(2, 1)
@@ -273,7 +298,7 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_SsPanel = QWidget()
         self.widget_mainwin_SsPanel.setAutoFillBackground(True)
         palette = self.widget_mainwin_SsPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 255, 50))
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 255, 30))
         self.widget_mainwin_SsPanel.setPalette(palette)
         self.widget_mainwin_SsPanel.setLayout(self.layout_mainwin_SsPanel)
 
@@ -281,7 +306,7 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_CsPanel = QWidget()
         self.widget_mainwin_CsPanel.setAutoFillBackground(True)
         palette = self.widget_mainwin_CsPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 0, 0, 50))
+        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 0, 0, 30))
         self.widget_mainwin_CsPanel.setPalette(palette)
         self.widget_mainwin_CsPanel.setLayout(self.layout_mainwin_CsPanel)
 

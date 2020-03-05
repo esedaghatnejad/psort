@@ -16,12 +16,12 @@ def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=
         hi_cutoff_freq = 6000.
     if abs(lo_cutoff_freq - hi_cutoff_freq) < 1.0:
         hi_cutoff_freq = hi_cutoff_freq + 1
-        print('psort_lib.bandpass_filter: lo_cutoff_freq and hi_cutoff_freq are the same')
+        print('<Warning> psort_lib.bandpass_filter: lo_cutoff_freq and hi_cutoff_freq are the same')
     elif lo_cutoff_freq > hi_cutoff_freq:
         _temp = lo_cutoff_freq
         lo_cutoff_freq = hi_cutoff_freq
         hi_cutoff_freq = _temp
-        print('psort_lib.bandpass_filter: lo_cutoff_freq is grater than hi_cutoff_freq are the same')
+        print('<Warning> psort_lib.bandpass_filter: lo_cutoff_freq is grater than hi_cutoff_freq')
     lo_cutoff_wn = float(lo_cutoff_freq) / (float(sample_rate) / 2.)
     hi_cutoff_wn = float(hi_cutoff_freq) / (float(sample_rate) / 2.)
     b_lo_cutoff, a_lo_cutoff = signal.butter(N=4, Wn=lo_cutoff_wn, btype='high')
@@ -40,7 +40,7 @@ def find_peaks(data, threshold=None, peakType=None):
     elif ((peakType == 'min') or (peakType == 'Min')):
         data *= -1.
     else:
-        print('psort_lib.find_peaks: peakType should be either max or min')
+        print('<Error> psort_lib.find_peaks: peakType should be either max or min')
     peak_index_boolean = np.logical_and((np.diff(data) >=  0)[:-1], (np.diff(data) < 0)[1:])
     peak_index_boolean = np.concatenate(([False], peak_index_boolean, [False]))
     threshold = abs(float(threshold))
@@ -51,3 +51,34 @@ def find_peaks(data, threshold=None, peakType=None):
     if ((peakType == 'min') or (peakType == 'Min')):
         data *= -1.
     return peak_index_boolean
+
+def inter_spike_interval_from_index(index_bool, sample_rate=None):
+    if sample_rate is None:
+        sample_rate = 30000. # sample_rate in Hz
+    if index_bool.dtype == np.bool:
+        index_value = np.where(index_bool)[0]
+    elif index_bool.dtype == np.int:
+        pass
+    elif index_bool.dtype == np.float:
+        print('<Warning> psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float')
+    else:
+        print('<Error> psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid')
+    inter_spike_interval = np.diff(index_value) / float(sample_rate)
+    np.append(inter_spike_interval, inter_spike_interval[-1])  # ISI in sec
+    return inter_spike_interval
+
+def instant_firing_rate_from_index(index_bool, sample_rate=None):
+    if sample_rate is None:
+        sample_rate = 30000. # sample_rate in Hz
+    if index_bool.dtype == np.bool:
+        index_value = np.where(index_bool)[0]
+    elif index_bool.dtype == np.int:
+        pass
+    elif index_bool.dtype == np.float:
+        print('<Warning> psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float')
+    else:
+        print('<Error> psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid')
+    inter_spike_interval = np.diff(index_value) / float(sample_rate)
+    np.append(inter_spike_interval, inter_spike_interval[-1])  # ISI in sec
+    instant_firing_rate = 1. / inter_spike_interval # IFR in Hz
+    return instant_firing_rate
