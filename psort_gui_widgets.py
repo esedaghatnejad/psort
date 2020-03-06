@@ -5,7 +5,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
 
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
@@ -22,6 +22,8 @@ class PsortGuiWidget(QMainWindow):
         self.setStatusBar(QtGui.QStatusBar(self))
         # Set up Toolbar
         self.build_toolbar()
+        # Set up menu bar
+        self.build_menubar()
         # the grand window consist of a main_window and a pop up window for complementary actions stacked over each other
         self.layout_grand = QStackedLayout()
         self.widget_mainwin = QWidget()
@@ -134,7 +136,7 @@ class PsortGuiWidget(QMainWindow):
         self.txtlabel_mainwin_filterPanel_hipass_dash = QLabel("-")
         self.setFont(self.txtlabel_mainwin_filterPanel_hipass_dash, color="blue")
         self.txtedit_mainwin__filterPanel_hipass_min = QDoubleSpinBox()
-        self.txtedit_mainwin__filterPanel_hipass_min.setKeyboardTracking(False)
+        self.txtedit_mainwin__filterPanel_hipass_min.setKeyboardTracking(True)
         self.txtedit_mainwin__filterPanel_hipass_min.setMinimum(1.0)
         self.txtedit_mainwin__filterPanel_hipass_min.setMaximum(15000.0)
         self.txtedit_mainwin__filterPanel_hipass_min.setDecimals(0)
@@ -388,10 +390,16 @@ class PsortGuiWidget(QMainWindow):
 
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete = QPushButton("Delete")
         self.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
+        self.pushBtn_mainwin_SsPanel_buttons_SsDelete.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogDiscardButton))
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep = QPushButton("Keep")
         self.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsKeep, color="blue")
+        self.pushBtn_mainwin_SsPanel_buttons_SsKeep.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogOkButton))
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs = QPushButton("Move to CS")
         self.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
+        self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_MediaSkipForward))
 
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDelete)
@@ -480,10 +488,16 @@ class PsortGuiWidget(QMainWindow):
 
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete = QPushButton("Delete")
         self.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
+        self.pushBtn_mainwin_CsPanel_buttons_CsDelete.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogDiscardButton))
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep = QPushButton("Keep")
         self.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsKeep, color="red")
+        self.pushBtn_mainwin_CsPanel_buttons_CsKeep.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogOkButton))
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs = QPushButton("Move to SS")
         self.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
+        self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_MediaSkipBackward))
 
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDelete)
@@ -564,7 +578,26 @@ class PsortGuiWidget(QMainWindow):
         self.toolbar.addAction(self.actionBtn_toolbar_refresh)
         self.toolbar.addSeparator()
         self.toolbar.addAction(self.actionBtn_toolbar_next)
+        return 0
 
+    def build_menubar(self):
+        self.actionBtn_menubar_exit = QAction("Exit", self)
+        self.actionBtn_menubar_exit.setStatusTip("Exit application")
+        self.actionBtn_menubar_open = QAction("Open...", self)
+        self.actionBtn_menubar_open.setStatusTip("Open file")
+        self.actionBtn_menubar_save = QAction("Save", self)
+        self.actionBtn_menubar_save.setStatusTip("Save file")
+
+
+        self.menubar = self.menuBar()
+
+        self.menu_menubar_file = self.menubar.addMenu("File")
+
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_open)
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_save)
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_exit)
+
+        self.menubar.setNativeMenuBar(False)
         return 0
 
     def setFont(self, widget, pointSize=None, color=None):
