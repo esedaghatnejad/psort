@@ -36,10 +36,10 @@ _workingDataBase = {
     'cs_index': np.zeros((0), dtype=np.bool),
     'ss_peak': np.zeros((0), dtype=np.float32),
     'cs_peak': np.zeros((0), dtype=np.float32),
-    'ss_wave': np.zeros((0), dtype=np.float32),
-    'ss_wave_span': np.zeros((0), dtype=np.float32),
-    'cs_wave': np.zeros((0), dtype=np.float32),
-    'cs_wave_span': np.zeros((0), dtype=np.float32),
+    'ss_wave': np.zeros((0, 0), dtype=np.float32),
+    'ss_wave_span': np.zeros((0, 0), dtype=np.float32),
+    'cs_wave': np.zeros((0, 0), dtype=np.float32),
+    'cs_wave_span': np.zeros((0, 0), dtype=np.float32),
     'ss_ifr': np.zeros((0), dtype=np.float32),
     'ss_ifr_mean': np.zeros((1), dtype=np.float32),
     'ss_ifr_hist': np.zeros((0), dtype=np.float32),
@@ -55,9 +55,13 @@ _workingDataBase = {
     'ss_pca1': np.zeros((0), dtype=np.float32),
     'ss_pca2': np.zeros((0), dtype=np.float32),
     'ss_pca_mat': np.zeros((0, 0), dtype=np.float32),
+    'ss_pca_bound_min': np.zeros((1), dtype=np.uint32),
+    'ss_pca_bound_max': np.zeros((1), dtype=np.uint32),
     'cs_pca1': np.zeros((0), dtype=np.float32),
     'cs_pca2': np.zeros((0), dtype=np.float32),
     'cs_pca_mat': np.zeros((0, 0), dtype=np.float32),
+    'cs_pca_bound_min': np.zeros((1), dtype=np.uint32),
+    'cs_pca_bound_max': np.zeros((1), dtype=np.uint32),
     'ss_index_notFinalized': np.zeros((0), dtype=np.bool),
     'cs_index_notFinalized': np.zeros((0), dtype=np.bool),
     'ss_pca1_notFinalized': np.zeros((0), dtype=np.float32),
@@ -65,6 +69,11 @@ _workingDataBase = {
     'cs_pca1_notFinalized': np.zeros((0), dtype=np.float32),
     'cs_pca2_notFinalized': np.zeros((0), dtype=np.float32),
 }
+
+_MIN_X_RANGE_WAVE = 0.002
+_MAX_X_RANGE_WAVE = 0.004
+_X_RANGE_CORR = 0.050
+_BIN_SIZE_CORR = 0.001
 
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
@@ -76,6 +85,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.connect_toolbar_signals()
         self.connect_plot_signals()
         self.connect_rawSignal_signals()
+        self.connect_ssPanel_signals()
+        self.connect_csPanel_signals()
         self.setEnableWidgets(False)
         return None
 
@@ -135,6 +146,15 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onInfLineCsPeak_positionChanged)
         self.infLine_CsPeak.sigPositionChangeFinished.\
             connect(self.onInfLineCsPeak_positionChangeFinished)
+        self.infLine_SsWave_minPca.sigPositionChangeFinished.\
+            connect(self.onInfLineSsWaveMinPca_positionChangeFinished)
+        self.infLine_SsWave_maxPca.sigPositionChangeFinished.\
+            connect(self.onInfLineSsWaveMaxPca_positionChangeFinished)
+        self.infLine_CsWave_minPca.sigPositionChangeFinished.\
+            connect(self.onInfLineCsWaveMinPca_positionChangeFinished)
+        self.infLine_CsWave_maxPca.sigPositionChangeFinished.\
+            connect(self.onInfLineCsWaveMaxPca_positionChangeFinished)
+
         return 0
 
     def connect_rawSignal_signals(self):
@@ -142,6 +162,20 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onRawSignal_hipassThresh_ValueChanged)
         self.txtedit_mainwin_rawSignalPanel_lopassThresh.valueChanged.\
             connect(self.onRawSignal_lopassThresh_ValueChanged)
+        return 0
+
+    def connect_ssPanel_signals(self):
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData.pressed.\
+            connect(self.onSsPanel_refreshPcaData_Pressed)
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData.pressed.\
+            connect(self.onSsPanel_selectPcaData_Pressed)
+        return 0
+
+    def connect_csPanel_signals(self):
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData.pressed.\
+            connect(self.onCsPanel_refreshPcaData_Pressed)
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData.pressed.\
+            connect(self.onCsPanel_selectPcaData_Pressed)
         return 0
 
     def refresh_workingDataBase(self):
@@ -171,6 +205,14 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def init_plots(self):
+        # popUp Plot
+        self.pltData_popUpPlot =\
+            self.plot_popup_mainPlot.\
+            plot(np.zeros((0)), np.zeros((0)), name="popUp", pen=None,
+                symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
+        self.viewBox_popUpPlot = self.plot_popup_mainPlot.getViewBox()
+        self.viewBox_popUpPlot.autoRange()
+        # rawSignal
         pen_rawSignal_hipass = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
         self.pltData_rawSignal_hipass =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
@@ -187,70 +229,112 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None,
                 symbol='o', symbolSize=7, symbolBrush=(255,100,100,255), symbolPen=None)
-        self.infLine_rawSignal_hiPassThresh = pg.InfiniteLine(pos=-100., angle=0, pen=(150,150,255,255),movable=True, hoverPen='g', label='hiPass', labelOpts={'position':0.05})
+        self.infLine_rawSignal_hiPassThresh = \
+            pg.InfiniteLine(pos=-100., angle=0, pen=(150,150,255,255),
+                            movable=True, hoverPen='g', label='hiPass', labelOpts={'position':0.05})
         self.plot_mainwin_rawSignalPanel_rawSignal.addItem(self.infLine_rawSignal_hiPassThresh)
-        self.infLine_rawSignal_loPassThresh = pg.InfiniteLine(pos=+100., angle=0, pen=(255,150,150,255),movable=True, hoverPen='g', label='loPass', labelOpts={'position':0.95})
+        self.infLine_rawSignal_loPassThresh = \
+            pg.InfiniteLine(pos=+100., angle=0, pen=(255,150,150,255),
+                            movable=True, hoverPen='g', label='loPass', labelOpts={'position':0.95})
         self.plot_mainwin_rawSignalPanel_rawSignal.addItem(self.infLine_rawSignal_loPassThresh)
         self.viewBox_rawSignal = self.plot_mainwin_rawSignalPanel_rawSignal.getViewBox()
         self.viewBox_rawSignal.autoRange()
+        # ssPeak
         self.pltData_SsPeak =\
             self.plot_mainwin_rawSignalPanel_SsPeak.\
-            plot(np.arange(2), np.zeros((1)), name="ssPeak", stepMode=True, fillLevel=0, brush=(100,100,255,255))
-        self.infLine_SsPeak = pg.InfiniteLine(pos=-100., angle=90, pen=(150,150,255,255),movable=True, hoverPen='g', label='hiPass', labelOpts={'position':0.90})
+            plot(np.arange(2), np.zeros((1)), name="ssPeak",
+                stepMode=True, fillLevel=0, brush=(0,0,255,255))
+        self.infLine_SsPeak = \
+            pg.InfiniteLine(pos=-100., angle=90, pen=(150,150,255,255),
+                            movable=True, hoverPen='g', label='hiPass', labelOpts={'position':0.90})
         self.plot_mainwin_rawSignalPanel_SsPeak.addItem(self.infLine_SsPeak)
         self.viewBox_SsPeak = self.plot_mainwin_rawSignalPanel_SsPeak.getViewBox()
         self.viewBox_SsPeak.autoRange()
+        # csPeak
         self.pltData_CsPeak =\
             self.plot_mainwin_rawSignalPanel_CsPeak.\
-            plot(np.arange(2), np.zeros((1)), name="csPeak", stepMode=True, fillLevel=0, brush=(255,100,100,255))
-        self.infLine_CsPeak = pg.InfiniteLine(pos=+100., angle=90, pen=(255,150,150,255),movable=True, hoverPen='g', label='loPass', labelOpts={'position':0.90})
+            plot(np.arange(2), np.zeros((1)), name="csPeak",
+                stepMode=True, fillLevel=0, brush=(255,0,0,255))
+        self.infLine_CsPeak = \
+            pg.InfiniteLine(pos=+100., angle=90, pen=(255,150,150,255),
+                            movable=True, hoverPen='g', label='loPass', labelOpts={'position':0.90})
         self.plot_mainwin_rawSignalPanel_CsPeak.addItem(self.infLine_CsPeak)
         self.viewBox_CsPeak = self.plot_mainwin_rawSignalPanel_CsPeak.getViewBox()
         self.viewBox_CsPeak.autoRange()
+        # ssWave
         pen_SsWave = pg.mkPen(color=(0, 0, 0, 20), width=1, style=QtCore.Qt.SolidLine)
         self.pltData_SsWave =\
             self.plot_mainwin_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWave", pen=pen_SsWave)
+        self.infLine_SsWave_minPca = \
+            pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000., angle=90, pen=(150,150,255,255),
+                            movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
+        self.plot_mainwin_SsPanel_plots_SsWave.addItem(self.infLine_SsWave_minPca)
+        self.infLine_SsWave_maxPca = \
+            pg.InfiniteLine(pos=_MAX_X_RANGE_WAVE*1000., angle=90, pen=(150,150,255,255),
+                            movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
+        self.plot_mainwin_SsPanel_plots_SsWave.addItem(self.infLine_SsWave_maxPca)
         self.viewBox_SsWave = self.plot_mainwin_SsPanel_plots_SsWave.getViewBox()
         self.viewBox_SsWave.autoRange()
+        # ssIfr
         self.pltData_SsIfr =\
             self.plot_mainwin_SsPanel_plots_SsIfr.\
-            plot(np.arange(2), np.zeros((1)), name="ssIfr", stepMode=True, fillLevel=0, brush=(100,100,255,255))
-        self.infLine_SsIfr = pg.InfiniteLine(pos=+60., angle=90, pen=(150,150,255,255),movable=False, hoverPen='g', label='ssIfr', labelOpts={'position':0.90})
+            plot(np.arange(2), np.zeros((1)), name="ssIfr",
+                stepMode=True, fillLevel=0, brush=(0,0,255,255))
+        self.infLine_SsIfr = \
+            pg.InfiniteLine(pos=+60., angle=90, pen=(150,150,255,255),
+                            movable=False, hoverPen='g', label='ssIfr', labelOpts={'position':0.90})
         self.plot_mainwin_SsPanel_plots_SsIfr.addItem(self.infLine_SsIfr)
         self.viewBox_SsIfr = self.plot_mainwin_SsPanel_plots_SsIfr.getViewBox()
         self.viewBox_SsIfr.autoRange()
+        # ssPca
         self.pltData_SsPca =\
             self.plot_mainwin_SsPanel_plots_SsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="ssPca", pen=None,
                 symbol='o', symbolSize=2, symbolBrush=(0,0,0,100), symbolPen=None)
         self.viewBox_SsPca = self.plot_mainwin_SsPanel_plots_SsPca.getViewBox()
         self.viewBox_SsPca.autoRange()
+        # ssCorr
         pen_SsCorr = pg.mkPen(color='b', width=3, style=QtCore.Qt.SolidLine)
         self.pltData_SsCorr =\
             self.plot_mainwin_SsPanel_plots_SsCorr.\
             plot(np.zeros((0)), np.zeros((0)), name="ssCorr", pen=pen_SsCorr)
         self.viewBox_SsCorr = self.plot_mainwin_SsPanel_plots_SsCorr.getViewBox()
         self.viewBox_SsCorr.autoRange()
+        # csWave
         pen_CsWave = pg.mkPen(color=(0, 0, 0, 100), width=1, style=QtCore.Qt.SolidLine)
         self.pltData_CsWave =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWave", pen=pen_CsWave)
+        self.infLine_CsWave_minPca = \
+            pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000., angle=90, pen=(255,150,150,255),
+                            movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
+        self.plot_mainwin_CsPanel_plots_CsWave.addItem(self.infLine_CsWave_minPca)
+        self.infLine_CsWave_maxPca = \
+            pg.InfiniteLine(pos=_MAX_X_RANGE_WAVE*1000., angle=90, pen=(255,150,150,255),
+                            movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
+        self.plot_mainwin_CsPanel_plots_CsWave.addItem(self.infLine_CsWave_maxPca)
         self.viewBox_CsWave = self.plot_mainwin_CsPanel_plots_CsWave.getViewBox()
         self.viewBox_CsWave.autoRange()
+        # csIfr
         self.pltData_CsIfr =\
             self.plot_mainwin_CsPanel_plots_CsIfr.\
-            plot(np.arange(2), np.zeros((1)), name="csIfr", stepMode=True, fillLevel=0, brush=(255,100,100,255))
-        self.infLine_CsIfr = pg.InfiniteLine(pos=+0.80, angle=90, pen=(255,150,150,255),movable=False, hoverPen='g', label='csIfr', labelOpts={'position':0.90})
+            plot(np.arange(2), np.zeros((1)), name="csIfr",
+                stepMode=True, fillLevel=0, brush=(255,0,0,255))
+        self.infLine_CsIfr = \
+            pg.InfiniteLine(pos=+0.80, angle=90, pen=(255,150,150,255),
+                            movable=False, hoverPen='g', label='csIfr', labelOpts={'position':0.90})
         self.plot_mainwin_CsPanel_plots_CsIfr.addItem(self.infLine_CsIfr)
         self.viewBox_CsIfr = self.plot_mainwin_CsPanel_plots_CsIfr.getViewBox()
         self.viewBox_CsIfr.autoRange()
+        # csPca
         self.pltData_CsPca =\
             self.plot_mainwin_CsPanel_plots_CsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="csPca", pen=None,
                 symbol='o', symbolSize=3, symbolBrush=(0,0,0,200), symbolPen=None)
         self.viewBox_CsPca = self.plot_mainwin_CsPanel_plots_CsPca.getViewBox()
         self.viewBox_CsPca.autoRange()
+        # csCorr
         pen_CsCorr = pg.mkPen(color='r', width=3, style=QtCore.Qt.SolidLine)
         self.pltData_CsCorr =\
             self.plot_mainwin_CsPanel_plots_CsCorr.\
@@ -353,6 +437,46 @@ class PsortGuiSignals(PsortGuiWidget):
         self.infLine_rawSignal_loPassThresh.setValue(self.infLine_CsPeak.value())
         return 0
 
+    def onInfLineSsWaveMinPca_positionChangeFinished(self):
+        if self.infLine_SsWave_minPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_minPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        if self.infLine_SsWave_minPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_minPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        self._workingDataBase['ss_pca_bound_min'][0] = \
+            int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        return 0
+
+    def onInfLineSsWaveMaxPca_positionChangeFinished(self):
+        if self.infLine_SsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        if self.infLine_SsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        self._workingDataBase['ss_pca_bound_max'][0] = \
+            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        return 0
+
+    def onInfLineCsWaveMinPca_positionChangeFinished(self):
+        if self.infLine_CsWave_minPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_minPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        if self.infLine_CsWave_minPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_minPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        self._workingDataBase['cs_pca_bound_min'][0] = \
+            int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        return 0
+
+    def onInfLineCsWaveMaxPca_positionChangeFinished(self):
+        if self.infLine_CsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        if self.infLine_CsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        self._workingDataBase['cs_pca_bound_max'][0] = \
+            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        return 0
+
     def onRawSignal_hipassThresh_ValueChanged(self):
         if self.comboBx_mainwin_filterPanel_SsHiPass.currentIndex() == 0:
             _sign = -1
@@ -373,6 +497,22 @@ class PsortGuiSignals(PsortGuiWidget):
             setValue(self.txtedit_mainwin_rawSignalPanel_lopassThresh.value()*_sign)
         self.infLine_CsPeak.\
             setValue(self.txtedit_mainwin_rawSignalPanel_lopassThresh.value()*_sign)
+        return 0
+
+    def onSsPanel_refreshPcaData_Pressed(self):
+        self.extract_ss_pca()
+        self.plot_ss_pca()
+        return 0
+
+    def onCsPanel_refreshPcaData_Pressed(self):
+        self.extract_cs_pca()
+        self.plot_cs_pca()
+        return 0
+
+    def onSsPanel_selectPcaData_Pressed(self):
+        return 0
+
+    def onCsPanel_selectPcaData_Pressed(self):
         return 0
 
     def plot_rawSignal(self):
@@ -400,6 +540,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_SsPeak.setData(ss_peak_bin_edges, ss_peak_hist)
         self.onRawSignal_hipassThresh_ValueChanged()
         self.viewBox_SsPeak.autoRange()
+        self.viewBox_SsPeak.setLimits(yMin=0., minYRange=0.)
         return 0
 
     def plot_cs_peaks_histogram(self):
@@ -407,6 +548,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_CsPeak.setData(cs_peak_bin_edges, cs_peak_hist)
         self.onRawSignal_lopassThresh_ValueChanged()
         self.viewBox_CsPeak.autoRange()
+        self.viewBox_CsPeak.setLimits(yMin=0., minYRange=0.)
         return 0
 
     def plot_ss_ifr_histogram(self):
@@ -418,6 +560,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ss_ifr_bins'],
                 self._workingDataBase['ss_ifr_hist'])
         self.viewBox_SsIfr.autoRange()
+        self.viewBox_SsIfr.setLimits(yMin=0., minYRange=0.)
         return 0
 
     def plot_cs_ifr_histogram(self):
@@ -429,29 +572,38 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_ifr_bins'],
                 self._workingDataBase['cs_ifr_hist'])
         self.viewBox_CsIfr.autoRange()
+        self.viewBox_CsIfr.setLimits(yMin=0., minYRange=0.)
         return 0
 
     def plot_ss_corr(self):
         self.pltData_SsCorr.\
             setData(
                 self._workingDataBase['ss_corr_span']*1000.,
-                self._workingDataBase['ss_corr'])
+                self._workingDataBase['ss_corr'],
+                connect="finite")
         self.viewBox_SsCorr.autoRange()
+        self.viewBox_SsCorr.setLimits(yMin=0., minYRange=0.)
         return 0
 
     def plot_cs_corr(self):
         self.pltData_CsCorr.\
             setData(
                 self._workingDataBase['cs_corr_span']*1000.,
-                self._workingDataBase['cs_corr'])
+                self._workingDataBase['cs_corr'],
+                connect="finite")
         self.viewBox_CsCorr.autoRange()
+        self.viewBox_CsCorr.setLimits(yMin=0., minYRange=0.)
         return 0
 
     def plot_ss_waveform(self):
         nan_array = np.full((self._workingDataBase['ss_wave'].shape[0]), np.NaN).reshape(-1, 1)
         ss_waveform = np.append(self._workingDataBase['ss_wave'], nan_array, axis=1)
         ss_wave_span = np.append(self._workingDataBase['ss_wave_span'], nan_array, axis=1)
-        self.pltData_SsWave.setData(ss_wave_span.ravel()*1000., ss_waveform.ravel(), connect="finite")
+        self.pltData_SsWave.\
+            setData(
+                ss_wave_span.ravel()*1000.,
+                ss_waveform.ravel(),
+                connect="finite")
         self.viewBox_SsWave.autoRange()
         return 0
 
@@ -459,7 +611,11 @@ class PsortGuiSignals(PsortGuiWidget):
         nan_array = np.full((self._workingDataBase['cs_wave'].shape[0]), np.NaN).reshape(-1, 1)
         cs_waveform = np.append(self._workingDataBase['cs_wave'], nan_array, axis=1)
         cs_wave_span = np.append(self._workingDataBase['cs_wave_span'], nan_array, axis=1)
-        self.pltData_CsWave.setData(cs_wave_span.ravel()*1000., cs_waveform.ravel(), connect="finite")
+        self.pltData_CsWave.\
+            setData(
+                cs_wave_span.ravel()*1000.,
+                cs_waveform.ravel(),
+                connect="finite")
         self.viewBox_CsWave.autoRange()
         return 0
 
@@ -547,23 +703,31 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_ss_waveform(self):
-        self._workingDataBase['ss_wave'], self._workingDataBase['ss_wave_span'] = \
-            psort_lib.extract_waveform(
-                self._workingDataBase['ch_data_hipass'],
-                self._workingDataBase['ss_index'],
-                sample_rate=self._workingDataBase['sample_rate'][0],
-                win_len_before=0.002,
-                win_len_after=0.004)
+        if self._workingDataBase['ss_index'].sum() > 0:
+            self._workingDataBase['ss_wave'], self._workingDataBase['ss_wave_span'] = \
+                psort_lib.extract_waveform(
+                    self._workingDataBase['ch_data_hipass'],
+                    self._workingDataBase['ss_index'],
+                    sample_rate=self._workingDataBase['sample_rate'][0],
+                    win_len_before=_MIN_X_RANGE_WAVE,
+                    win_len_after=_MAX_X_RANGE_WAVE)
+        else:
+            self._workingDataBase['ss_wave'] = np.zeros((0,0))
+            self._workingDataBase['ss_wave_span'] = np.zeros((0,0))
         return 0
 
     def extract_cs_waveform(self):
-        self._workingDataBase['cs_wave'], self._workingDataBase['cs_wave_span'] = \
-            psort_lib.extract_waveform(
-                self._workingDataBase['ch_data_hipass'],
-                self._workingDataBase['cs_index'],
-                sample_rate=self._workingDataBase['sample_rate'][0],
-                win_len_before=0.002,
-                win_len_after=0.004)
+        if self._workingDataBase['cs_index'].sum() > 0:
+            self._workingDataBase['cs_wave'], self._workingDataBase['cs_wave_span'] = \
+                psort_lib.extract_waveform(
+                    self._workingDataBase['ch_data_hipass'],
+                    self._workingDataBase['cs_index'],
+                    sample_rate=self._workingDataBase['sample_rate'][0],
+                    win_len_before=_MIN_X_RANGE_WAVE,
+                    win_len_after=_MAX_X_RANGE_WAVE)
+        else:
+            self._workingDataBase['cs_wave'] = np.zeros((0,0))
+            self._workingDataBase['cs_wave_span'] = np.zeros((0,0))
         return 0
 
     def extract_ss_ifr(self):
@@ -619,10 +783,10 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['ss_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
-                    bin_size=0.001,
-                    win_len=0.050)
-            _win_len_int = np.round(float(0.050) / float(0.001)).astype(int)
-            self._workingDataBase['ss_corr'][_win_len_int] = 0.
+                    bin_size=_BIN_SIZE_CORR,
+                    win_len=_X_RANGE_CORR)
+            _win_len_int = np.round(float(_X_RANGE_CORR) / float(_BIN_SIZE_CORR)).astype(int)
+            self._workingDataBase['ss_corr'][_win_len_int] = np.NaN
         else:
             self._workingDataBase['ss_corr'] = np.zeros((0))
             self._workingDataBase['ss_corr_span'] = np.zeros((0))
@@ -635,20 +799,34 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['cs_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
-                    bin_size=0.001,
-                    win_len=0.050)
+                    bin_size=_BIN_SIZE_CORR,
+                    win_len=_X_RANGE_CORR)
         else:
             self._workingDataBase['cs_corr'] = np.zeros((0))
             self._workingDataBase['cs_corr_span'] = np.zeros((0))
         return 0
 
     def extract_ss_pca(self):
+        # ss_wave is a nSpike-by-181 matrix
+        # slice the ss_wave using minPca and maxPca
+        # make sure the DataBase values has been updated
+        self.onInfLineSsWaveMinPca_positionChangeFinished()
+        self.onInfLineSsWaveMaxPca_positionChangeFinished()
+        _minPca = self._workingDataBase['ss_pca_bound_min'][0]
+        _maxPca = self._workingDataBase['ss_pca_bound_max'][0]
+        if _minPca > _maxPca:
+            _temp_min = self.infLine_SsWave_minPca.value()
+            _temp_max = self.infLine_SsWave_maxPca.value()
+            self.infLine_SsWave_minPca.setValue(_temp_max)
+            self.infLine_SsWave_maxPca.setValue(_temp_min)
+            self.onInfLineSsWaveMinPca_positionChangeFinished()
+            self.onInfLineSsWaveMaxPca_positionChangeFinished()
+            _minPca = self._workingDataBase['ss_pca_bound_min'][0]
+            _maxPca = self._workingDataBase['ss_pca_bound_max'][0]
         if (self._workingDataBase['ss_index'].sum() > 1):
             self._workingDataBase['ss_pca_mat'] = \
                 psort_lib.extract_pca(
-                    self._workingDataBase['ss_wave'].T,
-                    n_components=2)
-                    #n_components=self._workingDataBase['ss_wave'].shape[1])
+                    self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['ss_pca1'] = self._workingDataBase['ss_pca_mat'][0,:]
             self._workingDataBase['ss_pca2'] = self._workingDataBase['ss_pca_mat'][1,:]
         else:
@@ -658,12 +836,27 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_cs_pca(self):
+        # cs_wave is a nSpike-by-181 matrix
+        # slice the cs_wave using minPca and maxPca
+        # make sure the DataBase values has been updated
+        self.onInfLineCsWaveMinPca_positionChangeFinished()
+        self.onInfLineCsWaveMaxPca_positionChangeFinished()
+        _minPca = self._workingDataBase['cs_pca_bound_min'][0]
+        _maxPca = self._workingDataBase['cs_pca_bound_max'][0]
+        if _minPca > _maxPca:
+            _temp_min = self.infLine_CsWave_minPca.value()
+            _temp_max = self.infLine_CsWave_maxPca.value()
+            self.infLine_CsWave_minPca.setValue(_temp_max)
+            self.infLine_CsWave_maxPca.setValue(_temp_min)
+            self.onInfLineCsWaveMinPca_positionChangeFinished()
+            self.onInfLineCsWaveMaxPca_positionChangeFinished()
+            _minPca = self._workingDataBase['cs_pca_bound_min'][0]
+            _maxPca = self._workingDataBase['cs_pca_bound_max'][0]
+
         if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_pca_mat'] = \
                 psort_lib.extract_pca(
-                    self._workingDataBase['cs_wave'].T,
-                    n_components=2)
-                    #n_components=self._workingDataBase['cs_wave'].shape[1])
+                    self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['cs_pca1'] = self._workingDataBase['cs_pca_mat'][0,:]
             self._workingDataBase['cs_pca2'] = self._workingDataBase['cs_pca_mat'][1,:]
         else:

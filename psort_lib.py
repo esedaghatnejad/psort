@@ -157,9 +157,7 @@ def extract_waveform(data, spike_bool, sample_rate=None, win_len_before=0.002, w
     span = _span_int / float(sample_rate)
     return waveform, span
 
-def extract_pca(waveform, n_components=None):
-    if n_components is None:
-        n_components=waveform.shape[0]
-    _pca = PCA(n_components=n_components)
+def extract_pca(waveform):
+    _pca = PCA(svd_solver='full')
     _pca.fit(waveform)
     return _pca.components_
