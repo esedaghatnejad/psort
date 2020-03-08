@@ -197,22 +197,22 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_rawSignal_SsInedx =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="ssIndex", pen=None,
-                symbol='o', symbolSize=4, symbolBrush=(100,100,255,255), \
+                symbol='o', symbolSize=4, symbolBrush=(50,50,255,255), \
                 symbolPen=None)
         self.pltData_rawSignal_SsInedxSelected =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="ssIndexSelected", pen=None,
-                symbol='o', symbolSize=5, symbolBrush=None, \
-                symbolPen=pg.mkPen(color=(0,0,255,255), width=2) )
+                symbol='o', symbolSize=4, symbolBrush=None, \
+                symbolPen=pg.mkPen(color=(0,200,255,255), width=2) )
         self.pltData_rawSignal_CsInedx =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None,
-                symbol='o', symbolSize=7, symbolBrush=(255,100,100,255), symbolPen=None)
+                symbol='o', symbolSize=6, symbolBrush=(255,50,50,255), symbolPen=None)
         self.pltData_rawSignal_CsInedxSelected =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="csIndexSelected", pen=None,
-                symbol='o', symbolSize=8, symbolBrush=None, \
-                symbolPen=pg.mkPen(color=(255,0,0,255), width=2) )
+                symbol='o', symbolSize=6, symbolBrush=None, \
+                symbolPen=pg.mkPen(color=(255,200,0,255), width=2) )
             #infLine
         self.infLine_rawSignal_SsThresh = \
             pg.InfiniteLine(pos=-100., angle=0, pen=(100,100,255,255),
@@ -258,7 +258,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_SsWaveSelected =\
             self.plot_mainwin_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelected", \
-                pen=pg.mkPen(color=(0, 0, 255, 20), width=1, style=QtCore.Qt.SolidLine))
+                pen=pg.mkPen(color=(0, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveROI =\
             self.plot_mainwin_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveROI", \
@@ -296,7 +296,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_SsPcaSelected =\
             self.plot_mainwin_SsPanel_plots_SsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="ssPcaSelected", pen=None,
-                symbol='o', symbolSize=3, symbolBrush=None, \
+                symbol='o', symbolSize=2, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(0,0,255,255), width=2) )
         self.pltData_SsPcaROI =\
             self.plot_mainwin_SsPanel_plots_SsPca.\
@@ -315,15 +315,15 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_CsWave =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWave", \
-                pen=pg.mkPen(color=(0, 0, 0, 100), width=1, style=QtCore.Qt.SolidLine))
+                pen=pg.mkPen(color=(0, 0, 0, 200), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveSelected =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveSelected", \
-                pen=pg.mkPen(color=(255, 0, 0, 100), width=1, style=QtCore.Qt.SolidLine))
+                pen=pg.mkPen(color=(255, 0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveROI =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveROI", \
-                pen=pg.mkPen(color=(255, 0, 255, 100), width=1, style=QtCore.Qt.SolidLine))
+                pen=pg.mkPen(color=(255, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
         self.infLine_CsWave_minPca = \
             pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
@@ -377,11 +377,11 @@ class PsortGuiSignals(PsortGuiWidget):
 ## #############################################################################
 #%% CONNECT SIGNALS
     def connect_menubar_signals(self):
-        self.actionBtn_menubar_open.triggered.\
+        self.actionBtn_menubar_file_open.triggered.\
             connect(self.onToolbar_load_ButtonClick)
-        self.actionBtn_menubar_save.triggered.\
+        self.actionBtn_menubar_file_save.triggered.\
             connect(self.onToolbar_save_ButtonClick)
-        self.actionBtn_menubar_exit.triggered.\
+        self.actionBtn_menubar_file_exit.triggered.\
             connect(sys.exit)
         return 0
 
@@ -632,17 +632,25 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onSsPanel_refreshPcaData_Pressed(self):
+        self.init_ss_ROI()
         self.extract_ss_pca()
+        self.plot_rawSignal_SsInedxSelected()
+        self.plot_ss_waveform()
         self.plot_ss_pca()
         return 0
 
     def onCsPanel_refreshPcaData_Pressed(self):
+        self.init_cs_ROI()
         self.extract_cs_pca()
+        self.plot_rawSignal_CsInedxSelected()
+        self.plot_cs_waveform()
         self.plot_cs_pca()
         return 0
 
     def onSsPanel_selectPcaData_Pressed(self):
-        self._workingDataBase['popUp_mode'] = np.array('ss_pca')
+        if (self._workingDataBase['ss_index'].sum() < 2):
+            return 0
+        self._workingDataBase['popUp_mode'] = np.array('ss_pca', dtype=np.unicode)
         self.popUp_showWidget(True)
         self.pltData_popUpPlot.\
             setData(
@@ -657,7 +665,9 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onCsPanel_selectPcaData_Pressed(self):
-        self._workingDataBase['popUp_mode'] = np.array('cs_pca')
+        if (self._workingDataBase['cs_index'].sum() < 2):
+            return 0
+        self._workingDataBase['popUp_mode'] = np.array('cs_pca', dtype=np.unicode)
         self.popUp_showWidget(True)
         self.pltData_popUpPlot.\
             setData(
@@ -672,7 +682,9 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onSsPanel_selectWave_Pressed(self):
-        self._workingDataBase['popUp_mode'] = np.array('ss_wave')
+        if (self._workingDataBase['ss_index'].sum() < 2):
+            return 0
+        self._workingDataBase['popUp_mode'] = np.array('ss_wave', dtype=np.unicode)
         self.popUp_showWidget(True)
         nan_array = np.full((self._workingDataBase['ss_wave'].shape[0]), np.NaN).reshape(-1, 1)
         ss_waveform = np.append(self._workingDataBase['ss_wave'], nan_array, axis=1)
@@ -690,7 +702,9 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onCsPanel_selectWave_Pressed(self):
-        self._workingDataBase['popUp_mode'] = np.array('cs_wave')
+        if (self._workingDataBase['cs_index'].sum() < 2):
+            return 0
+        self._workingDataBase['popUp_mode'] = np.array('cs_wave', dtype=np.unicode)
         self.popUp_showWidget(True)
         nan_array = np.full((self._workingDataBase['cs_wave'].shape[0]), np.NaN).reshape(-1, 1)
         cs_waveform = np.append(self._workingDataBase['cs_wave'], nan_array, axis=1)
@@ -710,6 +724,15 @@ class PsortGuiSignals(PsortGuiWidget):
 ## #############################################################################
 #%% PLOTS
     def plot_rawSignal(self):
+        self.plot_rawSignal_waveforms()
+        self.plot_rawSignal_SsIndex()
+        self.plot_rawSignal_CsIncex()
+        self.plot_rawSignal_SsInedxSelected()
+        self.plot_rawSignal_CsInedxSelected()
+        self.viewBox_rawSignal.autoRange()
+        return 0
+
+    def plot_rawSignal_waveforms(self):
         self.pltData_rawSignal_Ss.\
             setData(
                 self._workingDataBase['ch_time'],
@@ -718,19 +741,44 @@ class PsortGuiSignals(PsortGuiWidget):
             setData(
                 self._workingDataBase['ch_time'],
                 self._workingDataBase['ch_data_cs'])
+        self.viewBox_rawSignal.autoRange()
+        return 0
+
+    def plot_rawSignal_SsIndex(self):
         self.pltData_rawSignal_SsInedx.\
             setData(
                 self._workingDataBase['ch_time'][self._workingDataBase['ss_index']],
                 self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']])
+        return 0
+
+    def plot_rawSignal_CsIncex(self):
         self.pltData_rawSignal_CsInedx.\
             setData(
                 self._workingDataBase['ch_time'][self._workingDataBase['cs_index']],
                 self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index']])
-        self.viewBox_rawSignal.autoRange()
+        return 0
+
+    def plot_rawSignal_SsInedxSelected(self):
+        _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
+        _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
+        self.pltData_rawSignal_SsInedxSelected.\
+            setData(
+                self._workingDataBase['ch_time'][_ss_index_selected_int],
+                self._workingDataBase['ch_data_ss'][_ss_index_selected_int])
+        return 0
+
+    def plot_rawSignal_CsInedxSelected(self):
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
+        self.pltData_rawSignal_CsInedxSelected.\
+            setData(
+                self._workingDataBase['ch_time'][_cs_index_selected_int],
+                self._workingDataBase['ch_data_cs'][_cs_index_selected_int])
         return 0
 
     def plot_ss_peaks_histogram(self):
-        ss_peak_hist, ss_peak_bin_edges = np.histogram(self._workingDataBase['ss_peak'], bins='auto')
+        ss_peak_hist, ss_peak_bin_edges = \
+            np.histogram(self._workingDataBase['ss_peak'], bins='auto')
         self.pltData_SsPeak.setData(ss_peak_bin_edges, ss_peak_hist)
         self.onRawSignal_SsThresh_ValueChanged()
         self.viewBox_SsPeak.autoRange()
@@ -738,7 +786,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_cs_peaks_histogram(self):
-        cs_peak_hist, cs_peak_bin_edges = np.histogram(self._workingDataBase['cs_peak'], bins='auto')
+        cs_peak_hist, cs_peak_bin_edges = \
+            np.histogram(self._workingDataBase['cs_peak'], bins='auto')
         self.pltData_CsPeak.setData(cs_peak_bin_edges, cs_peak_hist)
         self.onRawSignal_CsThresh_ValueChanged()
         self.viewBox_CsPeak.autoRange()
@@ -906,6 +955,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     setData(self._workingDataBase['popUp_ROI_x'],
                             self._workingDataBase['popUp_ROI_y'])
                 if self._workingDataBase['popUp_ROI_x'].size > 2:
+                    self.pushBtn_popup_ok.setEnabled(True)
                     self.pltData_popUpPlot_ROI2.\
                         setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
                                 self._workingDataBase['popUp_ROI_y'][[0,-1],])
@@ -916,6 +966,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def popUp_showWidget(self, showPopUp=False):
+        self.popUp_reset_ROI()
         if showPopUp:
             self.layout_grand.setCurrentIndex(1)
         else:
@@ -928,63 +979,104 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def popUp_task_completed(self):
-        if   self._workingDataBase['popUp_mode'] == np.array('ss_pca'):
+        if self._workingDataBase['popUp_ROI_x'].size < 3:
+            self.popUp_task_cancelled()
+            return 0
+        if   self._workingDataBase['popUp_mode'] == np.array('ss_pca', dtype=np.unicode):
             self._workingDataBase['ss_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
             self._workingDataBase['ss_pca2_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_y'],
                         self._workingDataBase['popUp_ROI_y'][0])
-            self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0))
-            self._workingDataBase['ss_wave_ROI'] = np.zeros((0))
+            self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_index_selected'] = \
+                psort_lib.inpolygon(self._workingDataBase['ss_pca1'],
+                                    self._workingDataBase['ss_pca2'],
+                                    self._workingDataBase['ss_pca1_ROI'],
+                                    self._workingDataBase['ss_pca2_ROI'])
             self.plot_ss_pca()
             self.plot_ss_waveform()
-        elif self._workingDataBase['popUp_mode'] == np.array('cs_pca'):
+            self.plot_rawSignal()
+        elif self._workingDataBase['popUp_mode'] == np.array('cs_pca', dtype=np.unicode):
             self._workingDataBase['cs_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
             self._workingDataBase['cs_pca2_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_y'],
                         self._workingDataBase['popUp_ROI_y'][0])
-            self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0))
-            self._workingDataBase['cs_wave_ROI'] = np.zeros((0))
+            self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_index_selected'] = \
+                psort_lib.inpolygon(self._workingDataBase['cs_pca1'],
+                                    self._workingDataBase['cs_pca2'],
+                                    self._workingDataBase['cs_pca1_ROI'],
+                                    self._workingDataBase['cs_pca2_ROI'])
             self.plot_cs_pca()
             self.plot_cs_waveform()
-        elif self._workingDataBase['popUp_mode'] == np.array('ss_wave'):
+            self.plot_rawSignal()
+        elif self._workingDataBase['popUp_mode'] == np.array('ss_wave', dtype=np.unicode):
             self._workingDataBase['ss_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
             self._workingDataBase['ss_wave_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_y'],
                         self._workingDataBase['popUp_ROI_y'][0])
-            self._workingDataBase['ss_pca1_ROI'] = np.zeros((0))
-            self._workingDataBase['ss_pca2_ROI'] = np.zeros((0))
+            # Loop over each waveform and inspect if any of its point are inside ROI
+            self._workingDataBase['ss_index_selected'] = \
+                np.zeros((self._workingDataBase['ss_wave'].shape[0]),dtype=np.bool)
+            for counter_ss in range(self._workingDataBase['ss_wave'].shape[0]):
+                _ss_wave_single = self._workingDataBase['ss_wave'][counter_ss,:]
+                _ss_wave_span_single = self._workingDataBase['ss_wave_span'][counter_ss,:]
+                _ss_wave_single_inpolygon = \
+                    psort_lib.inpolygon(_ss_wave_span_single * 1000.,
+                                        _ss_wave_single,
+                                        self._workingDataBase['ss_wave_span_ROI'],
+                                        self._workingDataBase['ss_wave_ROI'])
+                self._workingDataBase['ss_index_selected'][counter_ss,] = \
+                    (_ss_wave_single_inpolygon.sum() > 0)
+            self._workingDataBase['ss_pca1_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_pca2_ROI'] = np.zeros((0), dtype=np.float32)
             self.plot_ss_waveform()
             self.plot_ss_pca()
-        elif self._workingDataBase['popUp_mode'] == np.array('cs_wave'):
+            self.plot_rawSignal()
+        elif self._workingDataBase['popUp_mode'] == np.array('cs_wave', dtype=np.unicode):
             self._workingDataBase['cs_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
             self._workingDataBase['cs_wave_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_y'],
                         self._workingDataBase['popUp_ROI_y'][0])
-            self._workingDataBase['cs_pca1_ROI'] = np.zeros((0))
-            self._workingDataBase['cs_pca2_ROI'] = np.zeros((0))
+            # Loop over each waveform and inspect if any of its point are inside ROI
+            self._workingDataBase['cs_index_selected'] = \
+                np.zeros((self._workingDataBase['cs_wave'].shape[0]),dtype=np.bool)
+            for counter_cs in range(self._workingDataBase['cs_wave'].shape[0]):
+                _cs_wave_single = self._workingDataBase['cs_wave'][counter_cs,:]
+                _cs_wave_span_single = self._workingDataBase['cs_wave_span'][counter_cs,:]
+                _cs_wave_single_inpolygon = \
+                    psort_lib.inpolygon(_cs_wave_span_single * 1000.,
+                                        _cs_wave_single,
+                                        self._workingDataBase['cs_wave_span_ROI'],
+                                        self._workingDataBase['cs_wave_ROI'])
+                self._workingDataBase['cs_index_selected'][counter_cs] = \
+                    (_cs_wave_single_inpolygon.sum() > 0)
+            self._workingDataBase['cs_pca1_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_pca2_ROI'] = np.zeros((0), dtype=np.float32)
             self.plot_cs_waveform()
             self.plot_cs_pca()
+            self.plot_rawSignal()
         else:
             pass
-        #isInside = psort_lib.inpolygon(xq, yq, xv, yv)
-        self.popUp_reset_ROI()
         return 0
 
     def popUp_task_cancelled(self):
-        self.popUp_reset_ROI()
         return 0
 
     def popUp_reset_ROI(self):
-        self._workingDataBase['popUp_ROI_x'] = np.zeros((0))
-        self._workingDataBase['popUp_ROI_y'] = np.zeros((0))
+        self.pushBtn_popup_ok.setEnabled(False)
+        self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
         self.pltData_popUpPlot_ROI.\
             setData(self._workingDataBase['popUp_ROI_x'],
                     self._workingDataBase['popUp_ROI_y'])
@@ -1038,6 +1130,7 @@ class PsortGuiSignals(PsortGuiWidget):
             deepcopy(self._workingDataBase['ss_index_notFinalized'])
         self._workingDataBase['ss_peak'] = \
             self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
+        self.init_ss_ROI()
         return 0
 
     def detect_cs_index(self):
@@ -1056,6 +1149,7 @@ class PsortGuiSignals(PsortGuiWidget):
             deepcopy(self._workingDataBase['cs_index_notFinalized'])
         self._workingDataBase['cs_peak'] = \
             self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index']]
+        self.init_cs_ROI()
         return 0
 
     def resolve_ss_cs_conflicts(self):
@@ -1072,8 +1166,8 @@ class PsortGuiSignals(PsortGuiWidget):
                     win_len_before=_MIN_X_RANGE_WAVE,
                     win_len_after=_MAX_X_RANGE_WAVE)
         else:
-            self._workingDataBase['ss_wave'] = np.zeros((0,0))
-            self._workingDataBase['ss_wave_span'] = np.zeros((0,0))
+            self._workingDataBase['ss_wave'] = np.zeros((0,0), dtype=np.float32)
+            self._workingDataBase['ss_wave_span'] = np.zeros((0,0), dtype=np.float32)
         return 0
 
     def extract_cs_waveform(self):
@@ -1086,8 +1180,8 @@ class PsortGuiSignals(PsortGuiWidget):
                     win_len_before=_MIN_X_RANGE_WAVE,
                     win_len_after=_MAX_X_RANGE_WAVE)
         else:
-            self._workingDataBase['cs_wave'] = np.zeros((0,0))
-            self._workingDataBase['cs_wave_span'] = np.zeros((0,0))
+            self._workingDataBase['cs_wave'] = np.zeros((0,0), dtype=np.float32)
+            self._workingDataBase['cs_wave_span'] = np.zeros((0,0), dtype=np.float32)
         return 0
 
     def extract_ss_ifr(self):
@@ -1101,15 +1195,15 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0])
             self._workingDataBase['ss_ifr_bins'] = \
-                np.linspace(0., 200., 50, endpoint=True)
+                np.linspace(0., 200., 50, endpoint=True, dtype=np.float32)
             self._workingDataBase['ss_ifr_hist'], _ = \
                 np.histogram(
                     self._workingDataBase['ss_ifr'],
                     bins=self._workingDataBase['ss_ifr_bins'])
         else:
-            self._workingDataBase['ss_ifr'] = np.zeros((0))
+            self._workingDataBase['ss_ifr'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_ifr_bins'] = np.arange(2)
-            self._workingDataBase['ss_ifr_hist'] = np.zeros((1))
+            self._workingDataBase['ss_ifr_hist'] = np.zeros((1), dtype=np.float32)
             self._workingDataBase['ss_ifr_mean'][0] = 0.
         return 0
 
@@ -1124,15 +1218,15 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['cs_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0])
             self._workingDataBase['cs_ifr_bins'] = \
-                np.linspace(0., 2.0, 25, endpoint=True)
+                np.linspace(0., 2.0, 25, endpoint=True, dtype=np.float32)
             self._workingDataBase['cs_ifr_hist'], _ = \
                 np.histogram(
                     self._workingDataBase['cs_ifr'],
                     bins=self._workingDataBase['cs_ifr_bins'])
         else:
-            self._workingDataBase['cs_ifr'] = np.zeros((0))
+            self._workingDataBase['cs_ifr'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_ifr_bins'] = np.arange(2)
-            self._workingDataBase['cs_ifr_hist'] = np.zeros((1))
+            self._workingDataBase['cs_ifr_hist'] = np.zeros((1), dtype=np.float32)
             self._workingDataBase['cs_ifr_mean'][0] = 0.
         return 0
 
@@ -1148,8 +1242,8 @@ class PsortGuiSignals(PsortGuiWidget):
             _win_len_int = np.round(float(_X_RANGE_CORR) / float(_BIN_SIZE_CORR)).astype(int)
             self._workingDataBase['ss_corr'][_win_len_int] = np.NaN
         else:
-            self._workingDataBase['ss_corr'] = np.zeros((0))
-            self._workingDataBase['ss_corr_span'] = np.zeros((0))
+            self._workingDataBase['ss_corr'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_corr_span'] = np.zeros((0), dtype=np.float32)
         return 0
 
     def extract_cs_corr(self):
@@ -1162,14 +1256,14 @@ class PsortGuiSignals(PsortGuiWidget):
                     bin_size=_BIN_SIZE_CORR,
                     win_len=_X_RANGE_CORR)
         else:
-            self._workingDataBase['cs_corr'] = np.zeros((0))
-            self._workingDataBase['cs_corr_span'] = np.zeros((0))
+            self._workingDataBase['cs_corr'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_corr_span'] = np.zeros((0), dtype=np.float32)
         return 0
 
     def extract_ss_pca(self):
-        # ss_wave is a nSpike-by-181 matrix
-        # slice the ss_wave using minPca and maxPca
-        # make sure the DataBase values has been updated
+        """ -> ss_wave is a nSpike-by-181 matrix
+        -> slice the ss_wave using minPca and maxPca
+        -> make sure the DataBase values has been updated """
         self.onInfLineSsWaveMinPca_positionChangeFinished()
         self.onInfLineSsWaveMaxPca_positionChangeFinished()
         _minPca = self._workingDataBase['ss_pca_bound_min'][0]
@@ -1190,15 +1284,15 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_pca1'] = self._workingDataBase['ss_pca_mat'][0,:]
             self._workingDataBase['ss_pca2'] = self._workingDataBase['ss_pca_mat'][1,:]
         else:
-            self._workingDataBase['ss_pca_mat'] = np.zeros((0, 0))
-            self._workingDataBase['ss_pca1'] = np.zeros((0))
-            self._workingDataBase['ss_pca2'] = np.zeros((0))
+            self._workingDataBase['ss_pca_mat'] = np.zeros((0, 0), dtype=np.float32)
+            self._workingDataBase['ss_pca1'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_pca2'] = np.zeros((0), dtype=np.float32)
         return 0
 
     def extract_cs_pca(self):
-        # cs_wave is a nSpike-by-181 matrix
-        # slice the cs_wave using minPca and maxPca
-        # make sure the DataBase values has been updated
+        """ -> cs_wave is a nSpike-by-181 matrix
+        -> slice the cs_wave using minPca and maxPca
+        -> make sure the DataBase values has been updated """
         self.onInfLineCsWaveMinPca_positionChangeFinished()
         self.onInfLineCsWaveMaxPca_positionChangeFinished()
         _minPca = self._workingDataBase['cs_pca_bound_min'][0]
@@ -1220,9 +1314,33 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca1'] = self._workingDataBase['cs_pca_mat'][0,:]
             self._workingDataBase['cs_pca2'] = self._workingDataBase['cs_pca_mat'][1,:]
         else:
-            self._workingDataBase['cs_pca_mat'] = np.zeros((0, 0))
-            self._workingDataBase['cs_pca1'] = np.zeros((0))
-            self._workingDataBase['cs_pca2'] = np.zeros((0))
+            self._workingDataBase['cs_pca_mat'] = np.zeros((0, 0), dtype=np.float32)
+            self._workingDataBase['cs_pca1'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_pca2'] = np.zeros((0), dtype=np.float32)
+        return 0
+
+    def init_ss_ROI(self):
+        self._workingDataBase['ss_pca1_ROI'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['ss_pca2_ROI'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
+        if self._workingDataBase['ss_index'].sum() > 1:
+            self._workingDataBase['ss_index_selected'] = \
+                np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
+        else:
+            self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
+        return 0
+
+    def init_cs_ROI(self):
+        self._workingDataBase['cs_pca1_ROI'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['cs_pca2_ROI'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
+        if self._workingDataBase['cs_index'].sum() > 1:
+            self._workingDataBase['cs_index_selected'] = \
+                np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
+        else:
+            self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
         return 0
 
 ## #############################################################################

@@ -213,10 +213,8 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setDecimals(0)
         self.setFont(self.txtedit_mainwin_rawSignalPanel_SsThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue(100.0)
-        self.pushBtn_mainwin_rawSignalPanel_SsRefresh = QPushButton(None)
+        self.pushBtn_mainwin_rawSignalPanel_SsRefresh = QPushButton("Auto")
         self.setFont(self.pushBtn_mainwin_rawSignalPanel_SsRefresh, color="blue")
-        self.pushBtn_mainwin_rawSignalPanel_SsRefresh.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'refresh-button-blue.png')))
 
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
             addWidget(self.txtlabel_mainwin_rawSignalPanel_SsThresh)
@@ -260,10 +258,8 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setDecimals(0)
         self.setFont(self.txtedit_mainwin_rawSignalPanel_CsThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue(100.0)
-        self.pushBtn_mainwin_rawSignalPanel_CsRefresh = QPushButton(None)
+        self.pushBtn_mainwin_rawSignalPanel_CsRefresh = QPushButton("Auto")
         self.setFont(self.pushBtn_mainwin_rawSignalPanel_CsRefresh, color="red")
-        self.pushBtn_mainwin_rawSignalPanel_CsRefresh.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'refresh-button-red.png')))
 
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
             addWidget(self.txtlabel_mainwin_rawSignalPanel_CsThresh)
@@ -593,21 +589,23 @@ class PsortGuiWidget(QMainWindow):
         return 0
 
     def build_menubar(self):
-        self.actionBtn_menubar_exit = QAction("Exit", self)
-        self.actionBtn_menubar_exit.setStatusTip("Exit application")
-        self.actionBtn_menubar_open = QAction("Open...", self)
-        self.actionBtn_menubar_open.setStatusTip("Open file")
-        self.actionBtn_menubar_save = QAction("Save", self)
-        self.actionBtn_menubar_save.setStatusTip("Save file")
-
-
         self.menubar = self.menuBar()
 
         self.menu_menubar_file = self.menubar.addMenu("File")
+        self.actionBtn_menubar_file_exit = QAction("Exit", self)
+        self.actionBtn_menubar_file_exit.setStatusTip("Exit application")
+        self.actionBtn_menubar_file_open = QAction("Open...", self)
+        self.actionBtn_menubar_file_open.setStatusTip("Open file")
+        self.actionBtn_menubar_file_save = QAction("Save", self)
+        self.actionBtn_menubar_file_save.setStatusTip("Save file")
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_open)
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_save)
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_exit)
 
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_open)
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_save)
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_exit)
+        self.menu_menubar_tools = self.menubar.addMenu("Tools")
+        self.actionBtn_menubar_tools_csTune = QAction("CS Tuning", self)
+        self.actionBtn_menubar_tools_csTune.setStatusTip("Extract CS Tuning")
+        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_csTune)
 
         self.menubar.setNativeMenuBar(False)
         return 0
