@@ -8,6 +8,7 @@ from scipy import signal
 from sklearn.decomposition import PCA
 import numpy as np
 import matplotlib as plt
+from matplotlib import path
 import sys
 
 def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=None):
@@ -161,3 +162,21 @@ def extract_pca(waveform):
     _pca = PCA(svd_solver='full')
     _pca.fit(waveform)
     return _pca.components_
+
+def inpolygon(xq, yq, xv, yv):
+    """
+    returns np.bool array indicating if the query points specified by xq and yq
+    are inside of the polygon area defined by xv and yv.
+    xv: np.array([xv1, xv2, xv3, ..., xvN, xv1])
+    yv: np.array([yv1, yv2, yv3, ..., yvN, yv1])
+    xq: np.array([xq1, xq2, xq3, ..., xqN])
+    yq: np.array([yq1, yq2, yq3, ..., yqN])
+    """
+    shape = xq.shape
+    xq = xq.reshape(-1)
+    yq = yq.reshape(-1)
+    xv = xv.reshape(-1)
+    yv = yv.reshape(-1)
+    q = [(xq[i], yq[i]) for i in range(xq.shape[0])]
+    p = path.Path([(xv[i], yv[i]) for i in range(xv.shape[0])])
+    return p.contains_points(q).reshape(shape)
