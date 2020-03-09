@@ -21,6 +21,9 @@ import decorator
 ## #############################################################################
 #%% GLOBAL VARIABLES
 _workingDataBase = {
+    'isAnalyzed':             np.zeros((1), dtype=np.bool),
+    'index_start_on_ch_data': np.zeros((1), dtype=np.uint32),
+    'index_end_on_ch_data':   np.zeros((1), dtype=np.uint32),
     'total_slot_num': (       np.full( (1), 30, dtype=np.uint8)),
     'current_slot_num':       np.zeros((1), dtype=np.uint8),
     'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint8),
@@ -80,8 +83,12 @@ _workingDataBase = {
     'cs_pca_bound_max':       np.zeros((1), dtype=np.uint32),
     'cs_pca1_ROI':            np.zeros((0), dtype=np.float32),
     'cs_pca2_ROI':            np.zeros((0), dtype=np.float32),
-    'csAlign_mode':           np.array('ss_index', dtype=np.unicode),
-    'popUp_mode':             np.array('ss_pca',   dtype=np.unicode),
+    'ssPeak_mode':            np.array(['min'], dtype=np.unicode),
+    'csPeak_mode':            np.array(['max'], dtype=np.unicode),
+    'csAlign_mode':           np.array(['ss_index'], dtype=np.unicode),
+    'ssLearnTemp_mode':       np.zeros((1), dtype=np.bool),
+    'csLearnTemp_mode':       np.zeros((1), dtype=np.bool),
+    'popUp_mode':             np.array(['ss_pca'],   dtype=np.unicode),
     'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
 }
@@ -132,14 +139,18 @@ class PsortGuiSignals(PsortGuiWidget):
 
 ## #############################################################################
 #%% HIGH LEVEL FUNCTIONS
-    @showWaitCursor
     def refresh_workingDataBase(self):
+        if self._workingDataBase['isAnalyzed'][0]:
+            self.update_gui_widgets_from_dataBase()
+        self.update_dataBase_from_gui_widgets()
         self.filter_data()
         self.detect_ss_index()
-        self.detect_cs_index()
-        self.resolve_ss_cs_conflicts()
-        self.init_cs_ROI()
-        self.init_ss_ROI()
+        self.detect_cs_index_slow()
+        self.align_cs()
+        self.reset_cs_ROI()
+        self.reset_ss_ROI()
+        self.extract_ss_peak()
+        self.extract_cs_peak()
         self.extract_ss_waveform()
         self.extract_cs_waveform()
         self.extract_ss_ifr()
@@ -159,6 +170,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_waveform()
         self.plot_ss_pca()
         self.plot_cs_pca()
+        self._workingDataBase['isAnalyzed'][0] = True
         return 0
 
 ## #############################################################################
@@ -474,8 +486,20 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_filterPanel_signals(self):
+        self.comboBx_mainwin_filterPanel_SsFast.currentIndexChanged.\
+            connect(self.onfilterPanel_SsFast_IndexChanged)
+        self.comboBx_mainwin_filterPanel_CsSlow.currentIndexChanged.\
+            connect(self.onfilterPanel_CsSlow_IndexChanged)
         self.comboBx_mainwin_filterPanel_CsAlign.currentIndexChanged.\
             connect(self.onfilterPanel_CsAlign_IndexChanged)
+        self.txtedit_mainwin_filterPanel_ssFilter_min.valueChanged.\
+            connect(self.onfilterPanel_ssFilterMin_ValueChanged)
+        self.txtedit_mainwin_filterPanel_ssFilter_max.valueChanged.\
+            connect(self.onfilterPanel_ssFilterMax_ValueChanged)
+        self.txtedit_mainwin_filterPanel_csFilter_min.valueChanged.\
+            connect(self.onfilterPanel_csFilterMin_ValueChanged)
+        self.txtedit_mainwin_filterPanel_csFilter_max.valueChanged.\
+            connect(self.onfilterPanel_csFilterMax_ValueChanged)
         return 0
 
     def connect_rawSignalPanel_signals(self):
@@ -494,6 +518,12 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onSsPanel_selectWave_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
             connect(self.onSsPanel_learnWave_Clicked)
+        self.pushBtn_mainwin_SsPanel_buttons_SsDelete.clicked.\
+            connect(self.onSsPanel_delete_Clicked)
+        self.pushBtn_mainwin_SsPanel_buttons_SsKeep.clicked.\
+            connect(self.onSsPanel_keep_Clicked)
+        self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.clicked.\
+            connect(self.onSsPanel_moveToCs_Clicked)
         return 0
 
     def connect_csPanel_signals(self):
@@ -505,36 +535,48 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onCsPanel_selectWave_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
             connect(self.onCsPanel_learnWave_Clicked)
+        self.pushBtn_mainwin_CsPanel_buttons_CsDelete.clicked.\
+            connect(self.onCsPanel_delete_Clicked)
+        self.pushBtn_mainwin_CsPanel_buttons_CsKeep.clicked.\
+            connect(self.onCsPanel_keep_Clicked)
+        self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.clicked.\
+            connect(self.onCsPanel_moveToSs_Clicked)
         return 0
 
 ## #############################################################################
 #%% SIGNALS
+    @showWaitCursor
     def onToolbar_next_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num += 1
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         return 0
 
+    @showWaitCursor
     def onToolbar_previous_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num -= 1
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         return 0
 
+    @showWaitCursor
     def onToolbar_refresh_ButtonClick(self):
-        self.psortDataBase.refreshCurrentSlot()
         self.refresh_workingDataBase()
         return 0
 
+    @showWaitCursor
     def onToolbar_slotNumCurrent_ValueChanged(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        self.transfer_data_from_guiSignals_to_dataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self.txtlabel_toolbar_slotNumTotal.\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
             "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
+        self.transfer_data_from_dataBase_to_guiSignals()
         self.refresh_workingDataBase()
         return 0
 
+    @showWaitCursor
     def onToolbar_load_ButtonClick(self):
         _, file_path, _, _, file_name_without_ext = self.psortDataBase.get_file_fullPath()
         if not(os.path.isdir(file_path)):
@@ -543,8 +585,8 @@ class PsortGuiSignals(PsortGuiWidget):
             getOpenFileName(self, "Open File", file_path,
                             filter="Data file (*.psort *.mat *.continuous)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
-            QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             self.psortDataBase.load_dataBase(file_fullPath)
+            self.transfer_data_from_dataBase_to_guiSignals()
             _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
             self.txtlabel_toolbar_fileName.setText(file_name)
             self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
@@ -553,53 +595,42 @@ class PsortGuiSignals(PsortGuiWidget):
             self.txtedit_toolbar_slotNumCurrent.setValue(1)
             self.onToolbar_slotNumCurrent_ValueChanged()
             self.setEnableWidgets(True)
-            QApplication.restoreOverrideCursor()
         return 0
 
+    @showWaitCursor
     def onToolbar_save_ButtonClick(self):
+        self.onToolbar_slotNumCurrent_ValueChanged()
         if not(self.psortDataBase.is_all_slots_analyzed()):
             # TODO: Warning Dialog
-            False
+            pass
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath()
         if not(os.path.isdir(file_path)):
             file_path = os.getcwd()
         file_fullPath, _ = QFileDialog.\
             getSaveFileName(self, "Save DataBase", file_path,
                             filter="psort DataBase (*.psort)")
-        # TODO: Check the existance of the folder
-        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        self.psortDataBase.save_dataBase(file_fullPath)
-        QApplication.restoreOverrideCursor()
+        file_path = os.path.dirname(file_fullPath)
+        if os.path.isdir(file_path):
+            self.psortDataBase.save_dataBase(file_fullPath)
         return 0
 
+    @showWaitCursor
     def onPopUp_Cancel_Clicked(self):
         self.popUp_task_cancelled()
         self.popUp_showWidget(False)
         return 0
 
+    @showWaitCursor
     def onPopUp_Ok_Clicked(self):
         self.popUp_task_completed()
         self.popUp_showWidget(False)
         return 0
 
-    def onfilterPanel_CsAlign_IndexChanged(self):
-        if self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked():
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
-            self._workingDataBase['csAlign_mode'] = \
-                np.array('cs_temp', dtype=np.unicode)
-        elif self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked():
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
-            self._workingDataBase['csAlign_mode'] = \
-                np.array('ss_temp', dtype=np.unicode)
-        else:
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
-            self._workingDataBase['csAlign_mode'] = \
-                np.array('ss_index', dtype=np.unicode)
-        return 0
-
     def onInfLineSsThresh_positionChangeFinished(self):
         self.txtedit_mainwin_rawSignalPanel_SsThresh.\
             setValue(abs(self.infLine_rawSignal_SsThresh.value()))
+        self._workingDataBase['ss_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
         return 0
 
     def onInfLineSsThresh_positionChanged(self):
@@ -609,6 +640,8 @@ class PsortGuiSignals(PsortGuiWidget):
     def onInfLineSsPeak_positionChangeFinished(self):
         self.txtedit_mainwin_rawSignalPanel_SsThresh.\
             setValue(abs(self.infLine_SsPeak.value()))
+        self._workingDataBase['ss_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
         return 0
 
     def onInfLineSsPeak_positionChanged(self):
@@ -618,6 +651,8 @@ class PsortGuiSignals(PsortGuiWidget):
     def onInfLineCsThresh_positionChangeFinished(self):
         self.txtedit_mainwin_rawSignalPanel_CsThresh.\
             setValue(abs(self.infLine_rawSignal_CsThresh.value()))
+        self._workingDataBase['cs_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
         return 0
 
     def onInfLineCsThresh_positionChanged(self):
@@ -627,6 +662,8 @@ class PsortGuiSignals(PsortGuiWidget):
     def onInfLineCsPeak_positionChangeFinished(self):
         self.txtedit_mainwin_rawSignalPanel_CsThresh.\
             setValue(abs(self.infLine_CsPeak.value()))
+        self._workingDataBase['cs_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
         return 0
 
     def onInfLineCsPeak_positionChanged(self):
@@ -673,48 +710,106 @@ class PsortGuiSignals(PsortGuiWidget):
             * self._workingDataBase['sample_rate'][0] )
         return 0
 
-    def onRawSignal_SsThresh_ValueChanged(self):
+    def onfilterPanel_SsFast_IndexChanged(self):
         if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
-            _sign = -1
+            self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
         elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
+            self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
+        self.onRawSignal_SsThresh_ValueChanged()
+        return 0
+
+    def onfilterPanel_CsSlow_IndexChanged(self):
+        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
+            self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
+        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
+            self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
+        self.onRawSignal_CsThresh_ValueChanged()
+        return 0
+
+    def onfilterPanel_CsAlign_IndexChanged(self):
+        if self._workingDataBase['csLearnTemp_mode'][0]:
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
+            self._workingDataBase['csAlign_mode'] = \
+                np.array(['cs_temp'], dtype=np.unicode)
+        elif self._workingDataBase['ssLearnTemp_mode'][0]:
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
+            self._workingDataBase['csAlign_mode'] = \
+                np.array(['ss_temp'], dtype=np.unicode)
+        else:
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+            self._workingDataBase['csAlign_mode'] = \
+                np.array(['ss_index'], dtype=np.unicode)
+        return 0
+
+    def onfilterPanel_ssFilterMin_ValueChanged(self):
+        self._workingDataBase['ss_min_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_ssFilter_min.value()
+        return 0
+
+    def onfilterPanel_ssFilterMax_ValueChanged(self):
+        self._workingDataBase['ss_max_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_ssFilter_max.value()
+        return 0
+
+    def onfilterPanel_csFilterMin_ValueChanged(self):
+        self._workingDataBase['cs_min_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_csFilter_min.value()
+        return 0
+
+    def onfilterPanel_csFilterMax_ValueChanged(self):
+        self._workingDataBase['cs_max_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_csFilter_max.value()
+        return 0
+
+    def onRawSignal_SsThresh_ValueChanged(self):
+        self._workingDataBase['ss_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
+        if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            _sign = -1
+        elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _sign = +1
         self.infLine_rawSignal_SsThresh.\
-            setValue(self.txtedit_mainwin_rawSignalPanel_SsThresh.value()*_sign)
+            setValue(self._workingDataBase['ss_threshold'][0]*_sign)
         self.infLine_SsPeak.\
-            setValue(self.txtedit_mainwin_rawSignalPanel_SsThresh.value()*_sign)
+            setValue(self._workingDataBase['ss_threshold'][0]*_sign)
         return 0
 
     def onRawSignal_CsThresh_ValueChanged(self):
-        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
+        self._workingDataBase['cs_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _sign = +1
-        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
+        elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
             _sign = -1
         self.infLine_rawSignal_CsThresh.\
-            setValue(self.txtedit_mainwin_rawSignalPanel_CsThresh.value()*_sign)
+            setValue(self._workingDataBase['cs_threshold'][0]*_sign)
         self.infLine_CsPeak.\
-            setValue(self.txtedit_mainwin_rawSignalPanel_CsThresh.value()*_sign)
+            setValue(self._workingDataBase['cs_threshold'][0]*_sign)
         return 0
 
+    @showWaitCursor
     def onSsPanel_refreshPcaData_Clicked(self):
-        self.init_ss_ROI()
+        self.reset_ss_ROI()
         self.extract_ss_pca()
-        self.plot_rawSignal_SsInedxSelected()
+        self.plot_rawSignal_SsIndexSelected()
         self.plot_ss_waveform()
         self.plot_ss_pca()
         return 0
 
+    @showWaitCursor
     def onCsPanel_refreshPcaData_Clicked(self):
-        self.init_cs_ROI()
+        self.reset_cs_ROI()
         self.extract_cs_pca()
-        self.plot_rawSignal_CsInedxSelected()
+        self.plot_rawSignal_CsIndexSelected()
         self.plot_cs_waveform()
         self.plot_cs_pca()
         return 0
 
+    @showWaitCursor
     def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array('ss_pca', dtype=np.unicode)
+        self._workingDataBase['popUp_mode'] = np.array(['ss_pca'], dtype=np.unicode)
         self.popUp_showWidget(True)
         self.pltData_popUpPlot.\
             setData(
@@ -728,10 +823,11 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: SS_PCA2(au) | X: SS_PCA1(au)", color='k', size='12')
         return 0
 
+    @showWaitCursor
     def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array('cs_pca', dtype=np.unicode)
+        self._workingDataBase['popUp_mode'] = np.array(['cs_pca'], dtype=np.unicode)
         self.popUp_showWidget(True)
         self.pltData_popUpPlot.\
             setData(
@@ -745,10 +841,11 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: CS_PCA2(au) | X: CS_PCA1(au)", color='k', size='12')
         return 0
 
+    @showWaitCursor
     def onSsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array('ss_wave', dtype=np.unicode)
+        self._workingDataBase['popUp_mode'] = np.array(['ss_wave'], dtype=np.unicode)
         self.popUp_showWidget(True)
         nan_array = np.full((self._workingDataBase['ss_wave'].shape[0]), np.NaN).reshape(-1, 1)
         ss_waveform = np.append(self._workingDataBase['ss_wave'], nan_array, axis=1)
@@ -765,10 +862,11 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: SS_Waveform(uV) | X: Time(ms)", color='k', size='12')
         return 0
 
+    @showWaitCursor
     def onCsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array('cs_wave', dtype=np.unicode)
+        self._workingDataBase['popUp_mode'] = np.array(['cs_wave'], dtype=np.unicode)
         self.popUp_showWidget(True)
         nan_array = np.full((self._workingDataBase['cs_wave'].shape[0]), np.NaN).reshape(-1, 1)
         cs_waveform = np.append(self._workingDataBase['cs_wave'], nan_array, axis=1)
@@ -785,16 +883,129 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: CS_Waveform(uV) | X: Time(ms)", color='k', size='12')
         return 0
 
+    @showWaitCursor
     def onSsPanel_learnWave_Clicked(self):
+        self._workingDataBase['ssLearnTemp_mode'][0] = \
+            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
         self.extract_ss_template()
         self.onfilterPanel_CsAlign_IndexChanged()
         self.plot_ss_waveform()
         return 0
 
+    @showWaitCursor
     def onCsPanel_learnWave_Clicked(self):
+        self._workingDataBase['csLearnTemp_mode'][0] = \
+            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         self.extract_cs_template()
         self.onfilterPanel_CsAlign_IndexChanged()
         self.plot_cs_waveform()
+        return 0
+
+    @showWaitCursor
+    def onSsPanel_delete_Clicked(self):
+        if self._workingDataBase['ss_index_selected'].sum() < 1:
+            return 0
+        _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
+        _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
+        self._workingDataBase['ss_index'][_ss_index_selected_int] = False
+        self.reset_ss_ROI(forced_reset = True)
+        self.extract_ss_peak()
+        self.extract_ss_waveform()
+        self.extract_ss_ifr()
+        self.extract_ss_corr()
+        self.extract_ss_pca()
+        self.plot_rawSignal()
+        self.plot_ss_peaks_histogram()
+        self.plot_ss_ifr_histogram()
+        self.plot_ss_corr()
+        self.plot_ss_waveform()
+        self.plot_ss_pca()
+        return 0
+
+    @showWaitCursor
+    def onCsPanel_delete_Clicked(self):
+        if self._workingDataBase['cs_index_selected'].sum() < 1:
+            return 0
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
+        self._workingDataBase['cs_index'][_cs_index_selected_int] = False
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        _cs_index_slow_selected_int = _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
+        self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
+        self.reset_cs_ROI(forced_reset = True)
+        self.extract_cs_peak()
+        self.extract_cs_waveform()
+        self.extract_cs_ifr()
+        self.extract_cs_corr()
+        self.extract_cs_pca()
+        self.plot_rawSignal()
+        self.plot_cs_peaks_histogram()
+        self.plot_cs_ifr_histogram()
+        self.plot_cs_corr()
+        self.plot_cs_waveform()
+        self.plot_cs_pca()
+        return 0
+
+    @showWaitCursor
+    def onSsPanel_keep_Clicked(self):
+        if self._workingDataBase['ss_index_selected'].sum() < 1:
+            return 0
+        _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
+        _ss_index_selected_int = _ss_index_int[\
+                    np.logical_not(self._workingDataBase['ss_index_selected'])]
+        self._workingDataBase['ss_index'][_ss_index_selected_int] = False
+        self.reset_ss_ROI(forced_reset = True)
+        self.extract_ss_peak()
+        self.extract_ss_waveform()
+        self.extract_ss_ifr()
+        self.extract_ss_corr()
+        self.extract_ss_pca()
+        self.plot_rawSignal()
+        self.plot_ss_peaks_histogram()
+        self.plot_ss_ifr_histogram()
+        self.plot_ss_corr()
+        self.plot_ss_waveform()
+        self.plot_ss_pca()
+        return 0
+
+    @showWaitCursor
+    def onCsPanel_keep_Clicked(self):
+        if self._workingDataBase['cs_index_selected'].sum() < 1:
+            return 0
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _cs_index_selected_int = _cs_index_int[\
+                    np.logical_not(self._workingDataBase['cs_index_selected'])]
+        self._workingDataBase['cs_index'][_cs_index_selected_int] = False
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        _cs_index_slow_selected_int = _cs_index_slow_int[\
+                    np.logical_not(self._workingDataBase['cs_index_selected'])]
+        self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
+        self.reset_cs_ROI(forced_reset = True)
+        self.extract_cs_peak()
+        self.extract_cs_waveform()
+        self.extract_cs_ifr()
+        self.extract_cs_corr()
+        self.extract_cs_pca()
+        self.plot_rawSignal()
+        self.plot_cs_peaks_histogram()
+        self.plot_cs_ifr_histogram()
+        self.plot_cs_corr()
+        self.plot_cs_waveform()
+        self.plot_cs_pca()
+        return 0
+
+    @showWaitCursor
+    def onSsPanel_moveToCs_Clicked(self):
+        if self._workingDataBase['ss_index_selected'].sum() < 1:
+            return 0
+
+        return 0
+
+    @showWaitCursor
+    def onCsPanel_moveToSs_Clicked(self):
+        if self._workingDataBase['cs_index_selected'].sum() < 1:
+            return 0
+
         return 0
 
 ## #############################################################################
@@ -802,9 +1013,9 @@ class PsortGuiSignals(PsortGuiWidget):
     def plot_rawSignal(self):
         self.plot_rawSignal_waveforms()
         self.plot_rawSignal_SsIndex()
-        self.plot_rawSignal_CsIncex()
-        self.plot_rawSignal_SsInedxSelected()
-        self.plot_rawSignal_CsInedxSelected()
+        self.plot_rawSignal_CsIndex()
+        self.plot_rawSignal_SsIndexSelected()
+        self.plot_rawSignal_CsIndexSelected()
         self.viewBox_rawSignal.autoRange()
         return 0
 
@@ -827,14 +1038,14 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']])
         return 0
 
-    def plot_rawSignal_CsIncex(self):
+    def plot_rawSignal_CsIndex(self):
         self.pltData_rawSignal_CsInedx.\
             setData(
                 self._workingDataBase['ch_time'][self._workingDataBase['cs_index']],
                 self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']])
         return 0
 
-    def plot_rawSignal_SsInedxSelected(self):
+    def plot_rawSignal_SsIndexSelected(self):
         _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
         _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
         self.pltData_rawSignal_SsInedxSelected.\
@@ -843,7 +1054,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ch_data_ss'][_ss_index_selected_int])
         return 0
 
-    def plot_rawSignal_CsInedxSelected(self):
+    def plot_rawSignal_CsIndexSelected(self):
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
         _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
@@ -1075,7 +1286,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['popUp_ROI_x'].size < 3:
             self.popUp_task_cancelled()
             return 0
-        if   self._workingDataBase['popUp_mode'] == np.array('ss_pca', dtype=np.unicode):
+        if   self._workingDataBase['popUp_mode'] == np.array(['ss_pca'], dtype=np.unicode):
             self._workingDataBase['ss_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1092,7 +1303,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
             self.plot_ss_waveform()
             self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array('cs_pca', dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca'], dtype=np.unicode):
             self._workingDataBase['cs_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1109,7 +1320,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_pca()
             self.plot_cs_waveform()
             self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array('ss_wave', dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['ss_wave'], dtype=np.unicode):
             self._workingDataBase['ss_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1134,7 +1345,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_waveform()
             self.plot_ss_pca()
             self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array('cs_wave', dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_wave'], dtype=np.unicode):
             self._workingDataBase['cs_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1181,18 +1392,6 @@ class PsortGuiSignals(PsortGuiWidget):
 ## #############################################################################
 #%% DATA MANAGEMENT
     def filter_data(self):
-        self._workingDataBase['ch_data'], self._workingDataBase['ch_time'] = \
-            self.psortDataBase.get_current_slot_data_time()
-        self._workingDataBase['sample_rate'][0] = \
-            self.psortDataBase.get_sample_rate()
-        self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.txtedit_mainwin__filterPanel_ssFilter_min.value()
-        self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.txtedit_mainwin__filterPanel_ssFilter_max.value()
-        self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.txtedit_mainwin__filterPanel_csFilter_min.value()
-        self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.txtedit_mainwin__filterPanel_csFilter_max.value()
         self._workingDataBase['ch_data_ss'] = \
             psort_lib.bandpass_filter(
                 self._workingDataBase['ch_data'],
@@ -1208,43 +1407,32 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def detect_ss_index(self):
-        if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
-            _peakType = 'min'
-        elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
-            _peakType = 'max'
-        self._workingDataBase['ss_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
         self._workingDataBase['ss_index'] = \
             psort_lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=self._workingDataBase['ss_threshold'][0],
-                peakType=_peakType)
-        self._workingDataBase['ss_peak'] = \
-            self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
+                peakType=self._workingDataBase['ssPeak_mode'][0])
+        self.resolve_ss_ss_conflicts()
         return 0
 
-    def detect_cs_index(self):
-        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
-            _peakType = 'max'
-        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
-            _peakType = 'min'
-        self._workingDataBase['cs_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+    def detect_cs_index_slow(self):
         self._workingDataBase['cs_index_slow'] = \
             psort_lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=self._workingDataBase['cs_threshold'][0],
-                peakType=_peakType)
-        # self._workingDataBase['cs_index'] = \
-        #     deepcopy(self._workingDataBase['cs_index_slow'])
-        self._workingDataBase['cs_peak'] = \
-            self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
-        if self._workingDataBase['csAlign_mode'] == np.array('ss_index', dtype=np.unicode):
+                peakType=self._workingDataBase['csPeak_mode'][0])
+        self.resolve_cs_cs_slow_conflicts()
+        return 0
+
+    def align_cs(self):
+        if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
             self.align_cs_wrt_ss_index()
-        elif self._workingDataBase['csAlign_mode'] == np.array('ss_temp', dtype=np.unicode):
+        elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
             self.align_cs_wrt_ss_temp()
-        elif self._workingDataBase['csAlign_mode'] == np.array('cs_temp', dtype=np.unicode):
+        elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
             self.align_cs_wrt_cs_temp()
+        self.resolve_cs_cs_conflicts()
+        self.resolve_cs_ss_conflicts()
         return 0
 
     def align_cs_wrt_ss_index(self):
@@ -1330,7 +1518,122 @@ class PsortGuiSignals(PsortGuiWidget):
             _cs_index[cs_ind] = True
         return 0
 
-    def resolve_ss_cs_conflicts(self):
+    def resolve_ss_ss_conflicts(self):
+        if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            _peakType = 'min'
+        elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            _peakType = 'max'
+        window_len = int(0.0005 * self._workingDataBase['sample_rate'][0])
+        _data_ss  = self._workingDataBase['ch_data_ss']
+        _ss_index = self._workingDataBase['ss_index']
+        _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
+        for counter_ss in range(_ss_index_int.size):
+            _ss_index_local = _ss_index_int[counter_ss]
+            # if there is not enough data window before the potential CS, then skip it
+            if _ss_index_local < window_len:
+                _ss_index[_ss_index_local] = False
+                continue
+            # if there is not enough data window after the potential CS, then skip it
+            if _ss_index_local > (_ss_index.size - window_len):
+                _ss_index[_ss_index_local] = False
+                continue
+            search_win_inds = np.arange(_ss_index_local-window_len, \
+                                        _ss_index_local+window_len, 1)
+            ss_search_win_bool = _ss_index[search_win_inds]
+            ss_search_win_int  = np.where(ss_search_win_bool)[0]
+            ss_search_win_data = _data_ss[search_win_inds]
+            # if there is just one SS in window, then all is OK
+            if ss_search_win_int.size < 2:
+                continue
+            if ss_search_win_int.size > 1:
+                if _peakType == 'min':
+                    valid_ind = np.argmin(ss_search_win_data)
+                elif _peakType == 'max':
+                    valid_ind = np.argmax(ss_search_win_data)
+                ss_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
+                ss_search_win_bool[valid_ind] = True
+                _ss_index[search_win_inds] = deepcopy(ss_search_win_bool)
+        return 0
+
+    def resolve_cs_cs_slow_conflicts(self):
+        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            _peakType = 'max'
+        elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            _peakType = 'min'
+        window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        _data_cs  = self._workingDataBase['ch_data_cs']
+        _cs_index_slow = self._workingDataBase['cs_index_slow']
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        for counter_cs in range(_cs_index_slow_int.size):
+            _cs_index_slow_local = _cs_index_slow_int[counter_cs]
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_index_slow_local < window_len:
+                _cs_index_slow[_cs_index_slow_local] = False
+                continue
+            # if there is not enough data window after the potential CS, then skip it
+            if _cs_index_slow_local > (_cs_index_slow.size - window_len):
+                _cs_index_slow[_cs_index_slow_local] = False
+                continue
+            search_win_inds = np.arange(_cs_index_slow_local-window_len, \
+                                        _cs_index_slow_local+window_len, 1)
+            cs_search_win_bool = _cs_index_slow[search_win_inds]
+            cs_search_win_int  = np.where(cs_search_win_bool)[0]
+            cs_search_win_data = _data_cs[search_win_inds]
+            # if there is just one SS in window, then all is OK
+            if cs_search_win_int.size < 2:
+                continue
+            if cs_search_win_int.size > 1:
+                if _peakType == 'min':
+                    valid_ind = np.argmin(cs_search_win_data)
+                elif _peakType == 'max':
+                    valid_ind = np.argmax(cs_search_win_data)
+                cs_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
+                cs_search_win_bool[valid_ind] = True
+                _cs_index_slow[search_win_inds] = deepcopy(cs_search_win_bool)
+        return 0
+
+    def resolve_cs_cs_conflicts(self):
+        # TODO: this function needs more work:
+        # when an index gets removed from cs_index the corresponding index
+        # should get removed from cs_index_slow as well.
+
+        # if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+        #     _peakType = 'min'
+        # elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
+        #     _peakType = 'max'
+        # window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        # _data_ss  = self._workingDataBase['ch_data_ss']
+        # _cs_index = self._workingDataBase['cs_index']
+        # _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        # for counter_cs in range(_cs_index_int.size):
+        #     _cs_index_local = _cs_index_int[counter_cs]
+        #     # if there is not enough data window before the potential CS, then skip it
+        #     if _cs_index_local < window_len:
+        #         _cs_index[_cs_index_local] = False
+        #         continue
+        #     # if there is not enough data window after the potential CS, then skip it
+        #     if _cs_index_local > (_cs_index.size - window_len):
+        #         _cs_index[_cs_index_local] = False
+        #         continue
+        #     search_win_inds = np.arange(_cs_index_local-window_len, \
+        #                                 _cs_index_local+window_len, 1)
+        #     cs_search_win_bool = _cs_index[search_win_inds]
+        #     cs_search_win_int  = np.where(cs_search_win_bool)[0]
+        #     cs_search_win_data = _data_ss[search_win_inds]
+        #     # if there is just one SS in window, then all is OK
+        #     if cs_search_win_int.size < 2:
+        #         continue
+        #     if cs_search_win_int.size > 1:
+        #         if _peakType == 'min':
+        #             valid_ind = np.argmin(cs_search_win_data)
+        #         elif _peakType == 'max':
+        #             valid_ind = np.argmax(cs_search_win_data)
+        #         cs_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
+        #         cs_search_win_bool[valid_ind] = True
+        #         _cs_index[search_win_inds] = deepcopy(cs_search_win_bool)
+        return 0
+
+    def resolve_cs_ss_conflicts(self):
         window_len_back = int(0.0005 * self._workingDataBase['sample_rate'][0])
         window_len_front = int(0.0005 * self._workingDataBase['sample_rate'][0])
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
@@ -1344,6 +1647,16 @@ class PsortGuiSignals(PsortGuiWidget):
             if ss_search_win_int.size > 0:
                 _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
                 _ss_index[_ss_ind_invalid] = False
+        return 0
+
+    def extract_ss_peak(self):
+        self._workingDataBase['ss_peak'] = \
+            self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
+        return 0
+
+    def extract_cs_peak(self):
+        self._workingDataBase['cs_peak'] = \
+            self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
         return 0
 
     def extract_ss_waveform(self):
@@ -1510,7 +1823,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_ss_template(self):
-        if self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked():
+        if self._workingDataBase['ssLearnTemp_mode'][0]:
             _ind_begin = int((_MIN_X_RANGE_WAVE-_MIN_X_RANGE_SS_WAVE_TEMP) \
                                 * self._workingDataBase['sample_rate'][0])
             _ind_end = int((_MIN_X_RANGE_WAVE+_MAX_X_RANGE_SS_WAVE_TEMP) \
@@ -1526,7 +1839,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_cs_template(self):
-        if self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked():
+        if self._workingDataBase['csLearnTemp_mode'][0]:
             _ind_begin = int((_MIN_X_RANGE_WAVE-_MIN_X_RANGE_CS_WAVE_TEMP) \
                                 * self._workingDataBase['sample_rate'][0])
             _ind_end = int((_MIN_X_RANGE_WAVE+_MAX_X_RANGE_CS_WAVE_TEMP) \
@@ -1541,28 +1854,185 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_wave_span_template'] = np.zeros((0),dtype=np.float32)
         return 0
 
-    def init_ss_ROI(self):
-        self._workingDataBase['ss_pca1_ROI'] = np.zeros((0), dtype=np.float32)
-        self._workingDataBase['ss_pca2_ROI'] = np.zeros((0), dtype=np.float32)
-        self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
-        self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
-        if self._workingDataBase['ss_index'].sum() > 1:
-            self._workingDataBase['ss_index_selected'] = \
-                np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
-        else:
-            self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
+    def reset_ss_ROI(self, forced_reset = False):
+        is_reset_necessary = not(self._workingDataBase['ss_index'].sum() \
+                                == self._workingDataBase['ss_index_selected'].size)
+        if is_reset_necessary or forced_reset:
+            self._workingDataBase['ss_pca1_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_pca2_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
+            if self._workingDataBase['ss_index'].sum() > 1:
+                self._workingDataBase['ss_index_selected'] = \
+                    np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
+            else:
+                self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
         return 0
 
-    def init_cs_ROI(self):
-        self._workingDataBase['cs_pca1_ROI'] = np.zeros((0), dtype=np.float32)
-        self._workingDataBase['cs_pca2_ROI'] = np.zeros((0), dtype=np.float32)
-        self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
-        self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
-        if self._workingDataBase['cs_index'].sum() > 1:
-            self._workingDataBase['cs_index_selected'] = \
-                np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
-        else:
-            self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+    def reset_cs_ROI(self, forced_reset = False):
+        is_reset_necessary = not(self._workingDataBase['cs_index'].sum() \
+                                == self._workingDataBase['cs_index_selected'].size)
+        if is_reset_necessary or forced_reset:
+            self._workingDataBase['cs_pca1_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_pca2_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
+            if self._workingDataBase['cs_index'].sum() > 1:
+                self._workingDataBase['cs_index_selected'] = \
+                    np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
+            else:
+                self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+        return 0
+
+## #############################################################################
+#%% BIND PSORT_GUI_SIGNALS TO PSORT_DATABASE
+    def transfer_data_from_dataBase_to_guiSignals(self):
+        psortDataBase_currentSlot = \
+            self.psortDataBase.get_currentSlotDataBase()
+        self._workingDataBase['isAnalyzed'] = \
+            psortDataBase_currentSlot['isAnalyzed']
+        self._workingDataBase['index_start_on_ch_data'] = \
+            psortDataBase_currentSlot['index_start_on_ch_data']
+        self._workingDataBase['index_end_on_ch_data'] = \
+            psortDataBase_currentSlot['index_end_on_ch_data']
+
+        psortDataBase_topLevel = \
+            self.psortDataBase.get_topLevelDataBase()
+        index_start_on_ch_data = self._workingDataBase['index_start_on_ch_data'][0]
+        index_end_on_ch_data = self._workingDataBase['index_end_on_ch_data'][0]
+        self._workingDataBase['ch_data'] = \
+            psortDataBase_topLevel['ch_data'][index_start_on_ch_data:index_end_on_ch_data]
+        self._workingDataBase['ch_time'] = \
+            psortDataBase_topLevel['ch_time'][index_start_on_ch_data:index_end_on_ch_data]
+        self._workingDataBase['ss_index'] = \
+            psortDataBase_topLevel['ss_index'][index_start_on_ch_data:index_end_on_ch_data]
+        self._workingDataBase['cs_index'] = \
+            psortDataBase_topLevel['cs_index'][index_start_on_ch_data:index_end_on_ch_data]
+        self._workingDataBase['cs_index_slow'] = \
+            psortDataBase_topLevel['cs_index_slow'][index_start_on_ch_data:index_end_on_ch_data]
+        self._workingDataBase['sample_rate'][0] = \
+            psortDataBase_topLevel['sample_rate'][0]
+
+        if self._workingDataBase['isAnalyzed'][0]:
+            for key in psortDataBase_currentSlot.keys():
+                self._workingDataBase[key] = psortDataBase_currentSlot[key]
+        return 0
+
+    def transfer_data_from_guiSignals_to_dataBase(self):
+        self.psortDataBase.update_dataBase_based_on_psort_gui_signals(\
+            deepcopy(self._workingDataBase))
+        return 0
+
+    def update_gui_widgets_from_dataBase(self):
+        # Filter values
+        self.txtedit_mainwin_filterPanel_ssFilter_min.setValue(
+            self._workingDataBase['ss_min_cutoff_freq'][0])
+        self.txtedit_mainwin_filterPanel_ssFilter_max.setValue(
+            self._workingDataBase['ss_max_cutoff_freq'][0])
+        self.txtedit_mainwin_filterPanel_csFilter_min.setValue(
+            self._workingDataBase['cs_min_cutoff_freq'][0])
+        self.txtedit_mainwin_filterPanel_csFilter_max.setValue(
+            self._workingDataBase['cs_max_cutoff_freq'][0])
+        # Threshold
+        self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue(
+            self._workingDataBase['ss_threshold'][0])
+        self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue(
+            self._workingDataBase['cs_threshold'][0])
+        # csAlign_mode
+        if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+        elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
+        elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
+        # ssPeak_mode
+        if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
+        elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(1)
+        # csPeak_mode
+        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
+        elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(1)
+        # ssLearnTemp_mode
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(
+            self._workingDataBase['ssLearnTemp_mode'][0])
+        # ssLearnTemp_mode
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(
+            self._workingDataBase['csLearnTemp_mode'][0])
+        # ss_pca_bound
+        self.infLine_SsWave_minPca.setValue(
+            ((self._workingDataBase['ss_pca_bound_min'][0] \
+            / self._workingDataBase['sample_rate'][0])
+            - _MIN_X_RANGE_WAVE) * 1000.)
+        self.infLine_SsWave_maxPca.setValue(
+            ((self._workingDataBase['ss_pca_bound_max'][0] \
+            / self._workingDataBase['sample_rate'][0])
+            - _MIN_X_RANGE_WAVE) * 1000.)
+        # cs_pca_bound
+        self.infLine_CsWave_minPca.setValue(
+            ((self._workingDataBase['cs_pca_bound_min'][0] \
+            / self._workingDataBase['sample_rate'][0])
+            - _MIN_X_RANGE_WAVE) * 1000.)
+        self.infLine_CsWave_maxPca.setValue(
+            ((self._workingDataBase['cs_pca_bound_max'][0] \
+            / self._workingDataBase['sample_rate'][0])
+            - _MIN_X_RANGE_WAVE) * 1000.)
+        return 0
+
+    def update_dataBase_from_gui_widgets(self):
+        # Filter values
+        self._workingDataBase['ss_min_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_ssFilter_min.value()
+        self._workingDataBase['ss_max_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_ssFilter_max.value()
+        self._workingDataBase['cs_min_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_csFilter_min.value()
+        self._workingDataBase['cs_max_cutoff_freq'][0] = \
+            self.txtedit_mainwin_filterPanel_csFilter_max.value()
+        # Threshold
+        self._workingDataBase['ss_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
+        self._workingDataBase['cs_threshold'][0] = \
+            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+        # csAlign_mode
+        if self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 0:
+            self._workingDataBase['csAlign_mode'] = np.array(['ss_index'], dtype=np.unicode)
+        elif self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 1:
+            self._workingDataBase['csAlign_mode'] = np.array(['ss_temp'], dtype=np.unicode)
+        elif self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 2:
+            self._workingDataBase['csAlign_mode'] = np.array(['cs_temp'], dtype=np.unicode)
+        # ssPeak_mode
+        if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
+            self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
+        elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
+            self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
+        # csPeak_mode
+        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
+            self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
+        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
+            self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
+        # ssLearnTemp_mode
+        self._workingDataBase['ssLearnTemp_mode'][0] = \
+            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
+        # ssLearnTemp_mode
+        self._workingDataBase['csLearnTemp_mode'][0] = \
+            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
+        # ss_pca_bound
+        self._workingDataBase['ss_pca_bound_min'][0] = \
+            int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        self._workingDataBase['ss_pca_bound_max'][0] = \
+            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        # cs_pca_bound
+        self._workingDataBase['cs_pca_bound_min'][0] = \
+            int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        self._workingDataBase['cs_pca_bound_max'][0] = \
+            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
         return 0
 
 ## #############################################################################
