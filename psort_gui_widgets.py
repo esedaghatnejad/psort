@@ -24,7 +24,8 @@ class PsortGuiWidget(QMainWindow):
         self.build_toolbar()
         # Set up menu bar
         self.build_menubar()
-        # the grand window consist of a main_window and a pop up window for complementary actions stacked over each other
+        # the grand window consist of a main_window
+        # and a pop up window for complementary actions stacked over each other
         self.layout_grand = QStackedLayout()
         self.widget_mainwin = QWidget()
         self.widget_popup = QWidget()
@@ -106,9 +107,10 @@ class PsortGuiWidget(QMainWindow):
         return 0
 
     def build_mainwin_filterPanel(self):
-        self.comboBx_mainwin_filterPanel_CsFast = QComboBox()
-        self.comboBx_mainwin_filterPanel_CsFast.addItems(["Neg(-) CS_Fast", "Pos(+) CS_Fast"])
-        self.setFont(self.comboBx_mainwin_filterPanel_CsFast, color="red")
+        self.comboBx_mainwin_filterPanel_CsAlign = QComboBox()
+        self.comboBx_mainwin_filterPanel_CsAlign.\
+            addItems(["Align CS wrt SS_Index", "Align CS wrt SS_Temp", "Align CS wrt CS_Temp"])
+        self.setFont(self.comboBx_mainwin_filterPanel_CsAlign, color="red")
         self.comboBx_mainwin_filterPanel_CsSlow = QComboBox()
         self.comboBx_mainwin_filterPanel_CsSlow.addItems(["Pos(+) CS_Slow", "Neg(-) CS_Slow"])
         self.setFont(self.comboBx_mainwin_filterPanel_CsSlow, color="red")
@@ -157,9 +159,9 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_filterPanel.\
             addWidget(self.comboBx_mainwin_filterPanel_SsFast)
         self.layout_mainwin_filterPanel.\
-            addWidget(self.comboBx_mainwin_filterPanel_CsFast)
-        self.layout_mainwin_filterPanel.\
             addWidget(self.comboBx_mainwin_filterPanel_CsSlow)
+        self.layout_mainwin_filterPanel.\
+            addWidget(self.comboBx_mainwin_filterPanel_CsAlign)
         self.layout_mainwin_filterPanel.\
             addStretch()
         self.layout_mainwin_filterPanel.\
@@ -328,8 +330,9 @@ class PsortGuiWidget(QMainWindow):
 
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select Waveform")
         self.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform = QPushButton("Learn Waveform")
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform = QPushButton("Learn Template")
         self.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform, color="blue")
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
@@ -430,8 +433,9 @@ class PsortGuiWidget(QMainWindow):
 
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select Waveform")
         self.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform = QPushButton("Learn Waveform")
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform = QPushButton("Learn Template")
         self.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform, color="red")
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\

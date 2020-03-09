@@ -16,6 +16,7 @@ import numpy as np
 from copy import deepcopy
 import os
 import sys
+import decorator
 
 ## #############################################################################
 #%% GLOBAL VARIABLES
@@ -36,6 +37,7 @@ _workingDataBase = {
     'ch_data_ss':         np.zeros((0), dtype=np.float64),
     'ss_index':               np.zeros((0), dtype=np.bool),
     'ss_index_selected':      np.zeros((0), dtype=np.bool),
+    'cs_index_slow':          np.zeros((0), dtype=np.bool),
     'cs_index':               np.zeros((0), dtype=np.bool),
     'cs_index_selected':      np.zeros((0), dtype=np.bool),
     'ss_peak':                np.zeros((0), dtype=np.float32),
@@ -44,10 +46,14 @@ _workingDataBase = {
     'ss_wave_span':           np.zeros((0, 0), dtype=np.float32),
     'ss_wave_ROI':            np.zeros((0), dtype=np.float32),
     'ss_wave_span_ROI':       np.zeros((0), dtype=np.float32),
+    'ss_wave_template':       np.zeros((0), dtype=np.float32),
+    'ss_wave_span_template':  np.zeros((0), dtype=np.float32),
     'cs_wave':                np.zeros((0, 0), dtype=np.float32),
     'cs_wave_span':           np.zeros((0, 0), dtype=np.float32),
     'cs_wave_ROI':            np.zeros((0), dtype=np.float32),
     'cs_wave_span_ROI':       np.zeros((0), dtype=np.float32),
+    'cs_wave_template':       np.zeros((0), dtype=np.float32),
+    'cs_wave_span_template':  np.zeros((0), dtype=np.float32),
     'ss_ifr':                 np.zeros((0), dtype=np.float32),
     'ss_ifr_mean':            np.zeros((1), dtype=np.float32),
     'ss_ifr_hist':            np.zeros((0), dtype=np.float32),
@@ -74,22 +80,36 @@ _workingDataBase = {
     'cs_pca_bound_max':       np.zeros((1), dtype=np.uint32),
     'cs_pca1_ROI':            np.zeros((0), dtype=np.float32),
     'cs_pca2_ROI':            np.zeros((0), dtype=np.float32),
-    'ss_index_notFinalized':  np.zeros((0), dtype=np.bool),
-    'cs_index_notFinalized':  np.zeros((0), dtype=np.bool),
-    'ss_pca1_notFinalized':   np.zeros((0), dtype=np.float32),
-    'ss_pca2_notFinalized':   np.zeros((0), dtype=np.float32),
-    'cs_pca1_notFinalized':   np.zeros((0), dtype=np.float32),
-    'cs_pca2_notFinalized':   np.zeros((0), dtype=np.float32),
-    'popUp_mode':             np.empty((0), dtype=np.unicode),
+    'csAlign_mode':           np.array('ss_index', dtype=np.unicode),
+    'popUp_mode':             np.array('ss_pca',   dtype=np.unicode),
     'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
 }
 
 _MIN_X_RANGE_WAVE = 0.002
 _MAX_X_RANGE_WAVE = 0.004
+_MIN_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MIN_X_RANGE_WAVE
+_MAX_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MAX_X_RANGE_WAVE
+_MIN_X_RANGE_CS_WAVE_TEMP = 0.0005 # should be lees than _MIN_X_RANGE_WAVE
+_MAX_X_RANGE_CS_WAVE_TEMP = 0.0030 # should be lees than _MAX_X_RANGE_WAVE
 _X_RANGE_CORR = 0.050
 _BIN_SIZE_CORR = 0.001
-_NUM_POPUP_POINTS = int(6)
+if  _MIN_X_RANGE_SS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
+    _MIN_X_RANGE_SS_WAVE_TEMP = _MIN_X_RANGE_WAVE
+if  _MIN_X_RANGE_CS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
+    _MIN_X_RANGE_CS_WAVE_TEMP = _MIN_X_RANGE_WAVE
+if  _MAX_X_RANGE_SS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
+    _MAX_X_RANGE_SS_WAVE_TEMP = _MAX_X_RANGE_WAVE
+if  _MAX_X_RANGE_CS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
+    _MAX_X_RANGE_CS_WAVE_TEMP = _MAX_X_RANGE_WAVE
+
+@decorator.decorator
+def showWaitCursor(func, *args, **kwargs):
+    QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+    try:
+        return func(*args, **kwargs)
+    finally:
+        QtWidgets.QApplication.restoreOverrideCursor()
 
 ## #############################################################################
 #%% CLASS PsortGuiSignals
@@ -103,7 +123,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.connect_toolbar_signals()
         self.connect_popup_signals()
         self.connect_plot_signals()
-        self.connect_rawSignal_signals()
+        self.connect_filterPanel_signals()
+        self.connect_rawSignalPanel_signals()
         self.connect_ssPanel_signals()
         self.connect_csPanel_signals()
         self.setEnableWidgets(False)
@@ -111,11 +132,14 @@ class PsortGuiSignals(PsortGuiWidget):
 
 ## #############################################################################
 #%% HIGH LEVEL FUNCTIONS
+    @showWaitCursor
     def refresh_workingDataBase(self):
         self.filter_data()
         self.detect_ss_index()
         self.detect_cs_index()
         self.resolve_ss_cs_conflicts()
+        self.init_cs_ROI()
+        self.init_ss_ROI()
         self.extract_ss_waveform()
         self.extract_cs_waveform()
         self.extract_ss_ifr()
@@ -152,6 +176,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.actionBtn_toolbar_refresh.setEnabled(isEnable)
         self.actionBtn_toolbar_next.setEnabled(isEnable)
         self.actionBtn_toolbar_save.setEnabled(isEnable)
+        self.actionBtn_menubar_file_save.setEnabled(isEnable)
         return 0
 
     def init_plots(self):
@@ -199,15 +224,15 @@ class PsortGuiSignals(PsortGuiWidget):
             plot(np.zeros((0)), np.zeros((0)), name="ssIndex", pen=None,
                 symbol='o', symbolSize=4, symbolBrush=(50,50,255,255), \
                 symbolPen=None)
+        self.pltData_rawSignal_CsInedx =\
+            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None,
+                symbol='o', symbolSize=6, symbolBrush=(255,50,50,255), symbolPen=None)
         self.pltData_rawSignal_SsInedxSelected =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="ssIndexSelected", pen=None,
                 symbol='o', symbolSize=4, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(0,200,255,255), width=2) )
-        self.pltData_rawSignal_CsInedx =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None,
-                symbol='o', symbolSize=6, symbolBrush=(255,50,50,255), symbolPen=None)
         self.pltData_rawSignal_CsInedxSelected =\
             self.plot_mainwin_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="csIndexSelected", pen=None,
@@ -235,7 +260,7 @@ class PsortGuiSignals(PsortGuiWidget):
             pg.InfiniteLine(pos=-100., angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='ssThresh', labelOpts={'position':0.90})
         self.plot_mainwin_rawSignalPanel_SsPeak.\
-            addItem(self.infLine_SsPeak, ignoreBounds=True)
+            addItem(self.infLine_SsPeak, ignoreBounds=False)
         self.viewBox_SsPeak = self.plot_mainwin_rawSignalPanel_SsPeak.getViewBox()
         self.viewBox_SsPeak.autoRange()
         # csPeak
@@ -247,7 +272,7 @@ class PsortGuiSignals(PsortGuiWidget):
             pg.InfiniteLine(pos=+100., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='csThresh', labelOpts={'position':0.90})
         self.plot_mainwin_rawSignalPanel_CsPeak.\
-            addItem(self.infLine_CsPeak, ignoreBounds=True)
+            addItem(self.infLine_CsPeak, ignoreBounds=False)
         self.viewBox_CsPeak = self.plot_mainwin_rawSignalPanel_CsPeak.getViewBox()
         self.viewBox_CsPeak.autoRange()
         # ssWave
@@ -259,6 +284,10 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_mainwin_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelected", \
                 pen=pg.mkPen(color=(0, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
+        self.pltData_SsWaveTemplate =\
+            self.plot_mainwin_SsPanel_plots_SsWave.\
+            plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemp", \
+                pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveROI =\
             self.plot_mainwin_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveROI", \
@@ -267,12 +296,12 @@ class PsortGuiSignals(PsortGuiWidget):
             pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
         self.plot_mainwin_SsPanel_plots_SsWave.\
-            addItem(self.infLine_SsWave_minPca, ignoreBounds=True)
+            addItem(self.infLine_SsWave_minPca, ignoreBounds=False)
         self.infLine_SsWave_maxPca = \
             pg.InfiniteLine(pos=_MAX_X_RANGE_WAVE*1000./2., angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
         self.plot_mainwin_SsPanel_plots_SsWave.\
-            addItem(self.infLine_SsWave_maxPca, ignoreBounds=True)
+            addItem(self.infLine_SsWave_maxPca, ignoreBounds=False)
         self.viewBox_SsWave = self.plot_mainwin_SsPanel_plots_SsWave.getViewBox()
         self.viewBox_SsWave.autoRange()
         # ssIfr
@@ -285,7 +314,7 @@ class PsortGuiSignals(PsortGuiWidget):
                         pen=pg.mkPen(color=(0,0,255,255), width=2, style=QtCore.Qt.SolidLine),
                         movable=False, hoverPen='g', label='ssIfr', labelOpts={'position':0.90})
         self.plot_mainwin_SsPanel_plots_SsIfr.\
-            addItem(self.infLine_SsIfr, ignoreBounds=True)
+            addItem(self.infLine_SsIfr, ignoreBounds=False)
         self.viewBox_SsIfr = self.plot_mainwin_SsPanel_plots_SsIfr.getViewBox()
         self.viewBox_SsIfr.autoRange()
         # ssPca
@@ -320,6 +349,10 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_mainwin_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveSelected", \
                 pen=pg.mkPen(color=(255, 0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
+        self.pltData_CsWaveTemplate =\
+            self.plot_mainwin_CsPanel_plots_CsWave.\
+            plot(np.zeros((0)), np.zeros((0)), name="csWaveTemp", \
+                pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveROI =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveROI", \
@@ -328,12 +361,12 @@ class PsortGuiSignals(PsortGuiWidget):
             pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
         self.plot_mainwin_CsPanel_plots_CsWave.\
-            addItem(self.infLine_CsWave_minPca, ignoreBounds=True)
+            addItem(self.infLine_CsWave_minPca, ignoreBounds=False)
         self.infLine_CsWave_maxPca = \
             pg.InfiniteLine(pos=_MAX_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
         self.plot_mainwin_CsPanel_plots_CsWave.\
-            addItem(self.infLine_CsWave_maxPca, ignoreBounds=True)
+            addItem(self.infLine_CsWave_maxPca, ignoreBounds=False)
         self.viewBox_CsWave = self.plot_mainwin_CsPanel_plots_CsWave.getViewBox()
         self.viewBox_CsWave.autoRange()
         # csIfr
@@ -346,7 +379,7 @@ class PsortGuiSignals(PsortGuiWidget):
                         pen=pg.mkPen(color=(255,0,0,255), width=2, style=QtCore.Qt.SolidLine),
                         movable=False, hoverPen='g', label='csIfr', labelOpts={'position':0.90})
         self.plot_mainwin_CsPanel_plots_CsIfr.\
-            addItem(self.infLine_CsIfr, ignoreBounds=True)
+            addItem(self.infLine_CsIfr, ignoreBounds=False)
         self.viewBox_CsIfr = self.plot_mainwin_CsPanel_plots_CsIfr.getViewBox()
         self.viewBox_CsIfr.autoRange()
         # csPca
@@ -401,13 +434,15 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_popup_signals(self):
-        self.pushBtn_popup_cancel.pressed.\
-            connect(self.onPopUp_Cancel_Pressed)
-        self.pushBtn_popup_ok.pressed.\
-            connect(self.onPopUp_Ok_Pressed)
-        self.proxy_MouseMoved = pg.SignalProxy(self.plot_popup_mainPlot.scene().sigMouseMoved, \
+        self.pushBtn_popup_cancel.clicked.\
+            connect(self.onPopUp_Cancel_Clicked)
+        self.pushBtn_popup_ok.clicked.\
+            connect(self.onPopUp_Ok_Clicked)
+        self.proxy_MouseMoved = \
+            pg.SignalProxy(self.plot_popup_mainPlot.scene().sigMouseMoved, \
             rateLimit=60, slot=self.popUpPlot_mouseMoved)
-        self.proxy_MouseClicked = pg.SignalProxy(self.plot_popup_mainPlot.scene().sigMouseClicked, \
+        self.proxy_MouseClicked = \
+            pg.SignalProxy(self.plot_popup_mainPlot.scene().sigMouseClicked, \
             rateLimit=60, slot=self.popUpPlot_mouseDoubleClicked)
         return 0
 
@@ -438,7 +473,12 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onInfLineCsWaveMaxPca_positionChangeFinished)
         return 0
 
-    def connect_rawSignal_signals(self):
+    def connect_filterPanel_signals(self):
+        self.comboBx_mainwin_filterPanel_CsAlign.currentIndexChanged.\
+            connect(self.onfilterPanel_CsAlign_IndexChanged)
+        return 0
+
+    def connect_rawSignalPanel_signals(self):
         self.txtedit_mainwin_rawSignalPanel_SsThresh.valueChanged.\
             connect(self.onRawSignal_SsThresh_ValueChanged)
         self.txtedit_mainwin_rawSignalPanel_CsThresh.valueChanged.\
@@ -446,21 +486,25 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_ssPanel_signals(self):
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData.pressed.\
-            connect(self.onSsPanel_refreshPcaData_Pressed)
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData.pressed.\
-            connect(self.onSsPanel_selectPcaData_Pressed)
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave.pressed.\
-            connect(self.onSsPanel_selectWave_Pressed)
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData.clicked.\
+            connect(self.onSsPanel_refreshPcaData_Clicked)
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData.clicked.\
+            connect(self.onSsPanel_selectPcaData_Clicked)
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave.clicked.\
+            connect(self.onSsPanel_selectWave_Clicked)
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
+            connect(self.onSsPanel_learnWave_Clicked)
         return 0
 
     def connect_csPanel_signals(self):
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData.pressed.\
-            connect(self.onCsPanel_refreshPcaData_Pressed)
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData.pressed.\
-            connect(self.onCsPanel_selectPcaData_Pressed)
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave.pressed.\
-            connect(self.onCsPanel_selectWave_Pressed)
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData.clicked.\
+            connect(self.onCsPanel_refreshPcaData_Clicked)
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData.clicked.\
+            connect(self.onCsPanel_selectPcaData_Clicked)
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave.clicked.\
+            connect(self.onCsPanel_selectWave_Clicked)
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
+            connect(self.onCsPanel_learnWave_Clicked)
         return 0
 
 ## #############################################################################
@@ -499,6 +543,7 @@ class PsortGuiSignals(PsortGuiWidget):
             getOpenFileName(self, "Open File", file_path,
                             filter="Data file (*.psort *.mat *.continuous)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
+            QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             self.psortDataBase.load_dataBase(file_fullPath)
             _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
             self.txtlabel_toolbar_fileName.setText(file_name)
@@ -508,6 +553,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.txtedit_toolbar_slotNumCurrent.setValue(1)
             self.onToolbar_slotNumCurrent_ValueChanged()
             self.setEnableWidgets(True)
+            QApplication.restoreOverrideCursor()
         return 0
 
     def onToolbar_save_ButtonClick(self):
@@ -520,17 +566,35 @@ class PsortGuiSignals(PsortGuiWidget):
         file_fullPath, _ = QFileDialog.\
             getSaveFileName(self, "Save DataBase", file_path,
                             filter="psort DataBase (*.psort)")
+        # TODO: Check the existance of the folder
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.psortDataBase.save_dataBase(file_fullPath)
+        QApplication.restoreOverrideCursor()
         return 0
 
-    def onPopUp_Cancel_Pressed(self):
+    def onPopUp_Cancel_Clicked(self):
         self.popUp_task_cancelled()
         self.popUp_showWidget(False)
         return 0
 
-    def onPopUp_Ok_Pressed(self):
+    def onPopUp_Ok_Clicked(self):
         self.popUp_task_completed()
         self.popUp_showWidget(False)
+        return 0
+
+    def onfilterPanel_CsAlign_IndexChanged(self):
+        if self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked():
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
+            self._workingDataBase['csAlign_mode'] = \
+                np.array('cs_temp', dtype=np.unicode)
+        elif self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked():
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
+            self._workingDataBase['csAlign_mode'] = \
+                np.array('ss_temp', dtype=np.unicode)
+        else:
+            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+            self._workingDataBase['csAlign_mode'] = \
+                np.array('ss_index', dtype=np.unicode)
         return 0
 
     def onInfLineSsThresh_positionChangeFinished(self):
@@ -631,7 +695,7 @@ class PsortGuiSignals(PsortGuiWidget):
             setValue(self.txtedit_mainwin_rawSignalPanel_CsThresh.value()*_sign)
         return 0
 
-    def onSsPanel_refreshPcaData_Pressed(self):
+    def onSsPanel_refreshPcaData_Clicked(self):
         self.init_ss_ROI()
         self.extract_ss_pca()
         self.plot_rawSignal_SsInedxSelected()
@@ -639,7 +703,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         return 0
 
-    def onCsPanel_refreshPcaData_Pressed(self):
+    def onCsPanel_refreshPcaData_Clicked(self):
         self.init_cs_ROI()
         self.extract_cs_pca()
         self.plot_rawSignal_CsInedxSelected()
@@ -647,7 +711,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_pca()
         return 0
 
-    def onSsPanel_selectPcaData_Pressed(self):
+    def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
         self._workingDataBase['popUp_mode'] = np.array('ss_pca', dtype=np.unicode)
@@ -664,7 +728,7 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: SS_PCA2(au) | X: SS_PCA1(au)", color='k', size='12')
         return 0
 
-    def onCsPanel_selectPcaData_Pressed(self):
+    def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
         self._workingDataBase['popUp_mode'] = np.array('cs_pca', dtype=np.unicode)
@@ -681,7 +745,7 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: CS_PCA2(au) | X: CS_PCA1(au)", color='k', size='12')
         return 0
 
-    def onSsPanel_selectWave_Pressed(self):
+    def onSsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
         self._workingDataBase['popUp_mode'] = np.array('ss_wave', dtype=np.unicode)
@@ -701,7 +765,7 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: SS_Waveform(uV) | X: Time(ms)", color='k', size='12')
         return 0
 
-    def onCsPanel_selectWave_Pressed(self):
+    def onCsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
         self._workingDataBase['popUp_mode'] = np.array('cs_wave', dtype=np.unicode)
@@ -719,6 +783,18 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_popUpPlot.autoRange()
         self.plot_popup_mainPlot.setTitle(
             "Y: CS_Waveform(uV) | X: Time(ms)", color='k', size='12')
+        return 0
+
+    def onSsPanel_learnWave_Clicked(self):
+        self.extract_ss_template()
+        self.onfilterPanel_CsAlign_IndexChanged()
+        self.plot_ss_waveform()
+        return 0
+
+    def onCsPanel_learnWave_Clicked(self):
+        self.extract_cs_template()
+        self.onfilterPanel_CsAlign_IndexChanged()
+        self.plot_cs_waveform()
         return 0
 
 ## #############################################################################
@@ -755,7 +831,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pltData_rawSignal_CsInedx.\
             setData(
                 self._workingDataBase['ch_time'][self._workingDataBase['cs_index']],
-                self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index']])
+                self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']])
         return 0
 
     def plot_rawSignal_SsInedxSelected(self):
@@ -770,10 +846,12 @@ class PsortGuiSignals(PsortGuiWidget):
     def plot_rawSignal_CsInedxSelected(self):
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
         _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        _cs_index_slow_selected_int = _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
         self.pltData_rawSignal_CsInedxSelected.\
             setData(
                 self._workingDataBase['ch_time'][_cs_index_selected_int],
-                self._workingDataBase['ch_data_cs'][_cs_index_selected_int])
+                self._workingDataBase['ch_data_cs'][_cs_index_slow_selected_int])
         return 0
 
     def plot_ss_peaks_histogram(self):
@@ -826,6 +904,8 @@ class PsortGuiSignals(PsortGuiWidget):
                 connect="finite")
         self.viewBox_SsCorr.autoRange()
         self.viewBox_SsCorr.setLimits(yMin=0., minYRange=0.)
+        vb_range = self.viewBox_SsCorr.viewRange()
+        self.viewBox_SsCorr.setYRange(0., vb_range[1][1])
         return 0
 
     def plot_cs_corr(self):
@@ -836,6 +916,8 @@ class PsortGuiSignals(PsortGuiWidget):
                 connect="finite")
         self.viewBox_CsCorr.autoRange()
         self.viewBox_CsCorr.setLimits(yMin=0., minYRange=0.)
+        vb_range = self.viewBox_CsCorr.viewRange()
+        self.viewBox_CsCorr.setYRange(0., vb_range[1][1])
         return 0
 
     def plot_ss_waveform(self):
@@ -863,6 +945,11 @@ class PsortGuiSignals(PsortGuiWidget):
             setData(
                 self._workingDataBase['ss_wave_span_ROI'],
                 self._workingDataBase['ss_wave_ROI'],
+                connect="finite")
+        self.pltData_SsWaveTemplate.\
+            setData(
+                self._workingDataBase['ss_wave_span_template']*1000.,
+                self._workingDataBase['ss_wave_template'],
                 connect="finite")
         self.viewBox_SsWave.autoRange()
         return 0
@@ -892,6 +979,11 @@ class PsortGuiSignals(PsortGuiWidget):
             setData(
                 self._workingDataBase['cs_wave_span_ROI'],
                 self._workingDataBase['cs_wave_ROI'],
+                connect="finite")
+        self.pltData_CsWaveTemplate.\
+            setData(
+                self._workingDataBase['cs_wave_span_template']*1000.,
+                self._workingDataBase['cs_wave_template'],
                 connect="finite")
         self.viewBox_CsWave.autoRange()
         return 0
@@ -967,6 +1059,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def popUp_showWidget(self, showPopUp=False):
         self.popUp_reset_ROI()
+        self.toolbar.setEnabled(not(showPopUp))
         if showPopUp:
             self.layout_grand.setCurrentIndex(1)
         else:
@@ -1121,39 +1214,136 @@ class PsortGuiSignals(PsortGuiWidget):
             _peakType = 'max'
         self._workingDataBase['ss_threshold'][0] = \
             self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
-        self._workingDataBase['ss_index_notFinalized'] = \
+        self._workingDataBase['ss_index'] = \
             psort_lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=self._workingDataBase['ss_threshold'][0],
                 peakType=_peakType)
-        self._workingDataBase['ss_index'] = \
-            deepcopy(self._workingDataBase['ss_index_notFinalized'])
         self._workingDataBase['ss_peak'] = \
             self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
-        self.init_ss_ROI()
         return 0
 
     def detect_cs_index(self):
-        if self.comboBx_mainwin_filterPanel_CsFast.currentIndex() == 0:
+        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
             _peakType = 'max'
-        elif self.comboBx_mainwin_filterPanel_CsFast.currentIndex() == 1:
+        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
             _peakType = 'min'
         self._workingDataBase['cs_threshold'][0] = \
             self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
-        self._workingDataBase['cs_index_notFinalized'] = \
+        self._workingDataBase['cs_index_slow'] = \
             psort_lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=self._workingDataBase['cs_threshold'][0],
                 peakType=_peakType)
-        self._workingDataBase['cs_index'] = \
-            deepcopy(self._workingDataBase['cs_index_notFinalized'])
+        # self._workingDataBase['cs_index'] = \
+        #     deepcopy(self._workingDataBase['cs_index_slow'])
         self._workingDataBase['cs_peak'] = \
-            self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index']]
-        self.init_cs_ROI()
+            self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
+        if self._workingDataBase['csAlign_mode'] == np.array('ss_index', dtype=np.unicode):
+            self.align_cs_wrt_ss_index()
+        elif self._workingDataBase['csAlign_mode'] == np.array('ss_temp', dtype=np.unicode):
+            self.align_cs_wrt_ss_temp()
+        elif self._workingDataBase['csAlign_mode'] == np.array('cs_temp', dtype=np.unicode):
+            self.align_cs_wrt_cs_temp()
+        return 0
+
+    def align_cs_wrt_ss_index(self):
+        window_len_4ms_back = int(0.004 * self._workingDataBase['sample_rate'][0])
+        _cs_index_slow = self._workingDataBase['cs_index_slow']
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        self._workingDataBase['cs_index'] = \
+            np.zeros((_cs_index_slow.size), dtype=np.bool)
+        _cs_index = self._workingDataBase['cs_index']
+        _ss_index = self._workingDataBase['ss_index']
+        for counter_cs in range(_cs_index_slow_int.size):
+            _cs_slow_index = _cs_index_slow_int[counter_cs]
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_slow_index < window_len_4ms_back:
+                _cs_index_slow[_cs_slow_index] = False
+                continue
+            search_win_inds = np.arange(_cs_slow_index-window_len_4ms_back, _cs_slow_index, 1)
+            ss_search_win_bool = _ss_index[search_win_inds]
+            ss_search_win_int  = np.where(ss_search_win_bool)[0]
+            # if there is no SS in window before the potential CS, then skip it
+            if ss_search_win_int.size < 1:
+                _cs_index_slow[_cs_slow_index] = False
+                continue
+            cs_ind_search_win = np.max(ss_search_win_int)
+            cs_ind = cs_ind_search_win + _cs_slow_index - window_len_4ms_back
+            _cs_index[cs_ind] = True
+            _ss_index[cs_ind] = False
+        return 0
+
+    def align_cs_wrt_ss_temp(self):
+        window_len_4ms_back = int(0.004 * self._workingDataBase['sample_rate'][0])
+        window_len_ss_temp = int( (_MAX_X_RANGE_SS_WAVE_TEMP \
+                                * self._workingDataBase['sample_rate'][0])-1)
+        _cs_index_slow = self._workingDataBase['cs_index_slow']
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        self._workingDataBase['cs_index'] = \
+            np.zeros((_cs_index_slow.size), dtype=np.bool)
+        _cs_index = self._workingDataBase['cs_index']
+        _data_ss  = self._workingDataBase['ch_data_ss']
+        _ss_temp = self._workingDataBase['ss_wave_template']
+        for counter_cs in range(_cs_index_slow_int.size):
+            _cs_slow_index = _cs_index_slow_int[counter_cs]
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_slow_index < window_len_4ms_back:
+                _cs_index_slow[_cs_slow_index] = False
+                continue
+            search_win_inds = np.arange(_cs_slow_index-window_len_4ms_back, _cs_slow_index, 1)
+            ss_data_search_win = _data_ss[search_win_inds]
+            corr = np.correlate(ss_data_search_win, _ss_temp, 'full')
+            cs_ind_search_win = np.argmax(corr) - window_len_ss_temp
+            cs_ind = cs_ind_search_win + _cs_slow_index - window_len_4ms_back
+            _cs_index[cs_ind] = True
+        return 0
+
+    def align_cs_wrt_cs_temp(self):
+        window_len_5ms_back = int(0.005 * self._workingDataBase['sample_rate'][0])
+        window_len_5ms_front = int(0.005 * self._workingDataBase['sample_rate'][0])
+        window_len_cs_temp = int( (_MAX_X_RANGE_CS_WAVE_TEMP \
+                                * self._workingDataBase['sample_rate'][0])-1)
+        _cs_index_slow = self._workingDataBase['cs_index_slow']
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        self._workingDataBase['cs_index'] = \
+            np.zeros((_cs_index_slow.size), dtype=np.bool)
+        _cs_index = self._workingDataBase['cs_index']
+        _data_ss  = self._workingDataBase['ch_data_ss']
+        _cs_temp = self._workingDataBase['cs_wave_template']
+        for counter_cs in range(_cs_index_slow_int.size):
+            _cs_slow_index = _cs_index_slow_int[counter_cs]
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_slow_index < window_len_5ms_back:
+                _cs_index_slow[_cs_slow_index] = False
+                continue
+            # if there is not enough data window after the potential CS, then skip it
+            if _cs_slow_index > (_data_ss.size - window_len_5ms_front):
+                _cs_index_slow[_cs_slow_index] = False
+                continue
+            search_win_inds = np.arange(_cs_slow_index-window_len_5ms_back, \
+                                        _cs_slow_index+window_len_5ms_front, 1)
+            ss_data_search_win = _data_ss[search_win_inds]
+            corr = np.correlate(ss_data_search_win, _cs_temp, 'full')
+            cs_ind_search_win = np.argmax(corr) - window_len_cs_temp
+            cs_ind = cs_ind_search_win + _cs_slow_index - window_len_5ms_back
+            _cs_index[cs_ind] = True
         return 0
 
     def resolve_ss_cs_conflicts(self):
-        # TODO: this function should get implemented
+        window_len_back = int(0.0005 * self._workingDataBase['sample_rate'][0])
+        window_len_front = int(0.0005 * self._workingDataBase['sample_rate'][0])
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _ss_index = self._workingDataBase['ss_index']
+        for counter_cs in range(_cs_index_int.size):
+            _cs_index_local = _cs_index_int[counter_cs]
+            search_win_inds = np.arange(_cs_index_local-window_len_back, \
+                                        _cs_index_local+window_len_front, 1)
+            ss_search_win_bool = _ss_index[search_win_inds]
+            ss_search_win_int  = np.where(ss_search_win_bool)[0]
+            if ss_search_win_int.size > 0:
+                _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
+                _ss_index[_ss_ind_invalid] = False
         return 0
 
     def extract_ss_waveform(self):
@@ -1317,6 +1507,38 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_mat'] = np.zeros((0, 0), dtype=np.float32)
             self._workingDataBase['cs_pca1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_pca2'] = np.zeros((0), dtype=np.float32)
+        return 0
+
+    def extract_ss_template(self):
+        if self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked():
+            _ind_begin = int((_MIN_X_RANGE_WAVE-_MIN_X_RANGE_SS_WAVE_TEMP) \
+                                * self._workingDataBase['sample_rate'][0])
+            _ind_end = int((_MIN_X_RANGE_WAVE+_MAX_X_RANGE_SS_WAVE_TEMP) \
+                                * self._workingDataBase['sample_rate'][0])
+            _window = np.arange(_ind_begin, _ind_end, 1)
+            self._workingDataBase['ss_wave_template'] = \
+                np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
+            self._workingDataBase['ss_wave_span_template'] = \
+                np.mean(self._workingDataBase['ss_wave_span'][:,_window],axis=0)
+        else:
+            self._workingDataBase['ss_wave_template'] = np.zeros((0),dtype=np.float32)
+            self._workingDataBase['ss_wave_span_template'] = np.zeros((0),dtype=np.float32)
+        return 0
+
+    def extract_cs_template(self):
+        if self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked():
+            _ind_begin = int((_MIN_X_RANGE_WAVE-_MIN_X_RANGE_CS_WAVE_TEMP) \
+                                * self._workingDataBase['sample_rate'][0])
+            _ind_end = int((_MIN_X_RANGE_WAVE+_MAX_X_RANGE_CS_WAVE_TEMP) \
+                                * self._workingDataBase['sample_rate'][0])
+            _window = np.arange(_ind_begin, _ind_end, 1)
+            self._workingDataBase['cs_wave_template'] = \
+                np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
+            self._workingDataBase['cs_wave_span_template'] = \
+                np.mean(self._workingDataBase['cs_wave_span'][:,_window],axis=0)
+        else:
+            self._workingDataBase['cs_wave_template'] = np.zeros((0),dtype=np.float32)
+            self._workingDataBase['cs_wave_span_template'] = np.zeros((0),dtype=np.float32)
         return 0
 
     def init_ss_ROI(self):
