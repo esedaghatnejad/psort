@@ -83,14 +83,14 @@ _workingDataBase = {
     'cs_pca_bound_max':       np.zeros((1), dtype=np.uint32),
     'cs_pca1_ROI':            np.zeros((0), dtype=np.float32),
     'cs_pca2_ROI':            np.zeros((0), dtype=np.float32),
+    'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
+    'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
     'ssPeak_mode':            np.array(['min'], dtype=np.unicode),
     'csPeak_mode':            np.array(['max'], dtype=np.unicode),
     'csAlign_mode':           np.array(['ss_index'], dtype=np.unicode),
     'ssLearnTemp_mode':       np.zeros((1), dtype=np.bool),
     'csLearnTemp_mode':       np.zeros((1), dtype=np.bool),
     'popUp_mode':             np.array(['ss_pca'],   dtype=np.unicode),
-    'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
-    'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
 }
 
 _MIN_X_RANGE_WAVE = 0.002
@@ -601,8 +601,13 @@ class PsortGuiSignals(PsortGuiWidget):
     def onToolbar_save_ButtonClick(self):
         self.onToolbar_slotNumCurrent_ValueChanged()
         if not(self.psortDataBase.is_all_slots_analyzed()):
-            # TODO: Warning Dialog
-            pass
+            _reply = QMessageBox.question(
+                                self, 'Save warning',
+                                'Some slots are not analyzed. Continue?',
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if _reply == QtGui.QMessageBox.No:
+                return 0
+
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath()
         if not(os.path.isdir(file_path)):
             file_path = os.getcwd()
