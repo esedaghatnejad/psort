@@ -4,7 +4,7 @@ import numpy as np
 import tables
 import warnings
 from scipy import sparse
-from deepdish import conf
+from .. import conf
 try:
     import pandas as pd
     _pandas = True
@@ -17,7 +17,7 @@ try:
 except ImportError:
     _sns = False
 
-from deepdish import six
+from .. import six
 
 IO_VERSION = 12
 DEEPDISH_IO_PREFIX = 'DEEPDISH_IO'

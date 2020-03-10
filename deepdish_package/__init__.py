@@ -1,7 +1,7 @@
 from __future__ import print_function, division, absolute_import
 
 # Load the following modules by default
-from deepdish.core import (
+from .deepdish.core import (
                    bytesize,
                    humanize_bytesize,
                    memsize,
@@ -13,11 +13,11 @@ from deepdish.core import (
                    aslice,
                    )
 
-from deepdish import io
-from deepdish import util
-from deepdish import image
-from deepdish import parallel
-from deepdish.conf import config
+from .deepdish import io
+from .deepdish import util
+from .deepdish import image
+from .deepdish import parallel
+from .deepdish.conf import config
 
 
 class MovedPackage(object):

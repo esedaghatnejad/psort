@@ -1,5 +1,5 @@
 from __future__ import division, print_function, absolute_import
-from deepdish import io
+from .. import io
 
 _ERR_STR = "Must override load_from_dict for Saveable interface"
 
