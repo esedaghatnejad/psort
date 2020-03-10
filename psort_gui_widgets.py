@@ -117,7 +117,13 @@ class PsortGuiWidget(QMainWindow):
         self.comboBx_mainwin_filterPanel_SsFast = QComboBox()
         self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS_Fast", "Pos(+) SS_Fast"])
         self.setFont(self.comboBx_mainwin_filterPanel_SsFast, color="blue")
+        self.line_mainwin_filterPanel_l1 = QtGui.QFrame()
+        self.line_mainwin_filterPanel_l1.setFrameShape(QFrame.VLine)
+        self.line_mainwin_filterPanel_l1.setFrameShadow(QFrame.Sunken)
 
+        self.line_mainwin_filterPanel_l2 = QtGui.QFrame()
+        self.line_mainwin_filterPanel_l2.setFrameShape(QFrame.VLine)
+        self.line_mainwin_filterPanel_l2.setFrameShadow(QFrame.Sunken)
         self.txtlabel_mainwin_filterPanel_csFilter = QLabel("CS Filter (Hz):")
         self.setFont(self.txtlabel_mainwin_filterPanel_csFilter, color="red")
         self.txtlabel_mainwin_filterPanel_csFilter_dash = QLabel("-")
@@ -137,6 +143,9 @@ class PsortGuiWidget(QMainWindow):
         self.setFont(self.txtedit_mainwin_filterPanel_csFilter_max, color="red")
         self.txtedit_mainwin_filterPanel_csFilter_max.setValue(200.0)
 
+        self.line_mainwin_filterPanel_l3 = QtGui.QFrame()
+        self.line_mainwin_filterPanel_l3.setFrameShape(QFrame.VLine)
+        self.line_mainwin_filterPanel_l3.setFrameShadow(QFrame.Sunken)
         self.txtlabel_mainwin_filterPanel_ssFilter = QLabel("SS Filter (Hz):")
         self.setFont(self.txtlabel_mainwin_filterPanel_ssFilter, color="blue")
         self.txtlabel_mainwin_filterPanel_ssFilter_dash = QLabel("-")
@@ -163,7 +172,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_filterPanel.\
             addWidget(self.comboBx_mainwin_filterPanel_CsAlign)
         self.layout_mainwin_filterPanel.\
+            addWidget(self.line_mainwin_filterPanel_l1)
+        self.layout_mainwin_filterPanel.\
             addStretch()
+        self.layout_mainwin_filterPanel.\
+            addWidget(self.line_mainwin_filterPanel_l2)
         self.layout_mainwin_filterPanel.\
             addWidget(self.txtlabel_mainwin_filterPanel_ssFilter)
         self.layout_mainwin_filterPanel.\
@@ -172,6 +185,8 @@ class PsortGuiWidget(QMainWindow):
             addWidget(self.txtlabel_mainwin_filterPanel_ssFilter_dash)
         self.layout_mainwin_filterPanel.\
             addWidget(self.txtedit_mainwin_filterPanel_ssFilter_max)
+        self.layout_mainwin_filterPanel.\
+            addWidget(self.line_mainwin_filterPanel_l3)
         self.layout_mainwin_filterPanel.\
             addWidget(self.txtlabel_mainwin_filterPanel_csFilter)
         self.layout_mainwin_filterPanel.\
@@ -215,6 +230,12 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setDecimals(0)
         self.setFont(self.txtedit_mainwin_rawSignalPanel_SsThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue(100.0)
+        self.line_mainwin_rawSignalPanel_SsL1 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_SsL1.setFrameShape(QFrame.VLine)
+        self.line_mainwin_rawSignalPanel_SsL1.setFrameShadow(QFrame.Sunken)
+        self.line_mainwin_rawSignalPanel_SsL2 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_SsL2.setFrameShape(QFrame.VLine)
+        self.line_mainwin_rawSignalPanel_SsL2.setFrameShadow(QFrame.Sunken)
         self.pushBtn_mainwin_rawSignalPanel_SsRefresh = QPushButton("Auto")
         self.setFont(self.pushBtn_mainwin_rawSignalPanel_SsRefresh, color="blue")
 
@@ -223,10 +244,13 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
             addWidget(self.txtedit_mainwin_rawSignalPanel_SsThresh)
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
+            addWidget(self.line_mainwin_rawSignalPanel_SsL1)
+        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
+            addStretch()
+        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
+            addWidget(self.line_mainwin_rawSignalPanel_SsL2)
+        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
             addWidget(self.pushBtn_mainwin_rawSignalPanel_SsRefresh)
-        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setStretch(0, 0)
-        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setStretch(1, 1)
-        self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setStretch(2, 0)
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setSpacing(1)
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
 
@@ -260,6 +284,12 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setDecimals(0)
         self.setFont(self.txtedit_mainwin_rawSignalPanel_CsThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue(100.0)
+        self.line_mainwin_rawSignalPanel_CsL1 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_CsL1.setFrameShape(QFrame.VLine)
+        self.line_mainwin_rawSignalPanel_CsL1.setFrameShadow(QFrame.Sunken)
+        self.line_mainwin_rawSignalPanel_CsL2 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_CsL2.setFrameShape(QFrame.VLine)
+        self.line_mainwin_rawSignalPanel_CsL2.setFrameShadow(QFrame.Sunken)
         self.pushBtn_mainwin_rawSignalPanel_CsRefresh = QPushButton("Auto")
         self.setFont(self.pushBtn_mainwin_rawSignalPanel_CsRefresh, color="red")
 
@@ -268,10 +298,13 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
             addWidget(self.txtedit_mainwin_rawSignalPanel_CsThresh)
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
+            addWidget(self.line_mainwin_rawSignalPanel_CsL1)
+        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
+            addStretch()
+        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
+            addWidget(self.line_mainwin_rawSignalPanel_CsL2)
+        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
             addWidget(self.pushBtn_mainwin_rawSignalPanel_CsRefresh)
-        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setStretch(0, 0)
-        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setStretch(1, 1)
-        self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setStretch(2, 0)
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setSpacing(1)
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
 

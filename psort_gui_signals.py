@@ -998,14 +998,60 @@ class PsortGuiSignals(PsortGuiWidget):
     def onSsPanel_moveToCs_Clicked(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
-
+        self.move_selected_from_ss_to_cs()
+        self.reset_ss_ROI(forced_reset = True)
+        self.reset_cs_ROI(forced_reset = True)
+        self.extract_ss_peak()
+        self.extract_cs_peak()
+        self.extract_ss_waveform()
+        self.extract_cs_waveform()
+        self.extract_ss_ifr()
+        self.extract_cs_ifr()
+        self.extract_ss_corr()
+        self.extract_cs_corr()
+        self.extract_ss_pca()
+        self.extract_cs_pca()
+        self.plot_rawSignal()
+        self.plot_ss_peaks_histogram()
+        self.plot_cs_peaks_histogram()
+        self.plot_ss_ifr_histogram()
+        self.plot_cs_ifr_histogram()
+        self.plot_ss_corr()
+        self.plot_cs_corr()
+        self.plot_ss_waveform()
+        self.plot_cs_waveform()
+        self.plot_ss_pca()
+        self.plot_cs_pca()
         return 0
 
     @showWaitCursor
     def onCsPanel_moveToSs_Clicked(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
-
+        self.move_selected_from_cs_to_ss()
+        self.reset_ss_ROI(forced_reset = True)
+        self.reset_cs_ROI(forced_reset = True)
+        self.extract_ss_peak()
+        self.extract_cs_peak()
+        self.extract_ss_waveform()
+        self.extract_cs_waveform()
+        self.extract_ss_ifr()
+        self.extract_cs_ifr()
+        self.extract_ss_corr()
+        self.extract_cs_corr()
+        self.extract_ss_pca()
+        self.extract_cs_pca()
+        self.plot_rawSignal()
+        self.plot_ss_peaks_histogram()
+        self.plot_cs_peaks_histogram()
+        self.plot_ss_ifr_histogram()
+        self.plot_cs_ifr_histogram()
+        self.plot_ss_corr()
+        self.plot_cs_corr()
+        self.plot_ss_waveform()
+        self.plot_cs_waveform()
+        self.plot_ss_pca()
+        self.plot_cs_pca()
         return 0
 
 ## #############################################################################
@@ -1421,7 +1467,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ch_data_cs'],
                 threshold=self._workingDataBase['cs_threshold'][0],
                 peakType=self._workingDataBase['csPeak_mode'][0])
-        self.resolve_cs_cs_slow_conflicts()
+        self.resolve_cs_slow_cs_slow_conflicts()
         return 0
 
     def align_cs(self):
@@ -1432,6 +1478,7 @@ class PsortGuiSignals(PsortGuiWidget):
         elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
             self.align_cs_wrt_cs_temp()
         self.resolve_cs_cs_conflicts()
+        self.resolve_cs_cs_slow_conflicts()
         self.resolve_cs_ss_conflicts()
         return 0
 
@@ -1529,11 +1576,11 @@ class PsortGuiSignals(PsortGuiWidget):
         _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
         for counter_ss in range(_ss_index_int.size):
             _ss_index_local = _ss_index_int[counter_ss]
-            # if there is not enough data window before the potential CS, then skip it
+            # if there is not enough data window before the potential SS, then skip it
             if _ss_index_local < window_len:
                 _ss_index[_ss_index_local] = False
                 continue
-            # if there is not enough data window after the potential CS, then skip it
+            # if there is not enough data window after the potential SS, then skip it
             if _ss_index_local > (_ss_index.size - window_len):
                 _ss_index[_ss_index_local] = False
                 continue
@@ -1555,7 +1602,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 _ss_index[search_win_inds] = deepcopy(ss_search_win_bool)
         return 0
 
-    def resolve_cs_cs_slow_conflicts(self):
+    def resolve_cs_slow_cs_slow_conflicts(self):
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _peakType = 'max'
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
@@ -1579,7 +1626,7 @@ class PsortGuiSignals(PsortGuiWidget):
             cs_search_win_bool = _cs_index_slow[search_win_inds]
             cs_search_win_int  = np.where(cs_search_win_bool)[0]
             cs_search_win_data = _data_cs[search_win_inds]
-            # if there is just one SS in window, then all is OK
+            # if there is just one CS in window, then all is OK
             if cs_search_win_int.size < 2:
                 continue
             if cs_search_win_int.size > 1:
@@ -1593,44 +1640,60 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def resolve_cs_cs_conflicts(self):
-        # TODO: this function needs more work:
-        # when an index gets removed from cs_index the corresponding index
-        # should get removed from cs_index_slow as well.
+        window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        _cs_index = self._workingDataBase['cs_index']
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        for counter_cs in range(_cs_index_int.size):
+            _cs_index_local = _cs_index_int[counter_cs]
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_index_local < window_len:
+                _cs_index[_cs_index_local] = False
+                continue
+            # if there is not enough data window after the potential CS, then skip it
+            if _cs_index_local > (_cs_index.size - window_len):
+                _cs_index[_cs_index_local] = False
+                continue
+            search_win_inds = np.arange(_cs_index_local-window_len, \
+                                        _cs_index_local+window_len, 1)
+            cs_search_win_bool = _cs_index[search_win_inds]
+            cs_search_win_int  = np.where(cs_search_win_bool)[0]
+            # if there is just one CS in window, then all is OK
+            if cs_search_win_int.size < 2:
+                continue
+            if cs_search_win_int.size > 1:
+                # just accept the first index and reject the rest
+                cs_search_win_int = cs_search_win_int + _cs_index_local - window_len
+                valid_ind = cs_search_win_int[0]
+                _cs_index[cs_search_win_int] = False
+                _cs_index[valid_ind] = True
+        return 0
 
-        # if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
-        #     _peakType = 'min'
-        # elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
-        #     _peakType = 'max'
-        # window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
-        # _data_ss  = self._workingDataBase['ch_data_ss']
-        # _cs_index = self._workingDataBase['cs_index']
-        # _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
-        # for counter_cs in range(_cs_index_int.size):
-        #     _cs_index_local = _cs_index_int[counter_cs]
-        #     # if there is not enough data window before the potential CS, then skip it
-        #     if _cs_index_local < window_len:
-        #         _cs_index[_cs_index_local] = False
-        #         continue
-        #     # if there is not enough data window after the potential CS, then skip it
-        #     if _cs_index_local > (_cs_index.size - window_len):
-        #         _cs_index[_cs_index_local] = False
-        #         continue
-        #     search_win_inds = np.arange(_cs_index_local-window_len, \
-        #                                 _cs_index_local+window_len, 1)
-        #     cs_search_win_bool = _cs_index[search_win_inds]
-        #     cs_search_win_int  = np.where(cs_search_win_bool)[0]
-        #     cs_search_win_data = _data_ss[search_win_inds]
-        #     # if there is just one SS in window, then all is OK
-        #     if cs_search_win_int.size < 2:
-        #         continue
-        #     if cs_search_win_int.size > 1:
-        #         if _peakType == 'min':
-        #             valid_ind = np.argmin(cs_search_win_data)
-        #         elif _peakType == 'max':
-        #             valid_ind = np.argmax(cs_search_win_data)
-        #         cs_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
-        #         cs_search_win_bool[valid_ind] = True
-        #         _cs_index[search_win_inds] = deepcopy(cs_search_win_bool)
+    def resolve_cs_cs_slow_conflicts(self):
+        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            _peakType = 'max'
+        elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            _peakType = 'min'
+        window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        _data_cs  = self._workingDataBase['ch_data_cs']
+        _cs_index = self._workingDataBase['cs_index']
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        self._workingDataBase['cs_index_slow'] = np.zeros((_cs_index.size),dtype=np.bool)
+        _cs_index_slow = self._workingDataBase['cs_index_slow']
+        for counter_cs in range(_cs_index_int.size):
+            _cs_index_local = _cs_index_int[counter_cs]
+            # if there is not enough data window after the potential CS, then skip it
+            if _cs_index_local > (_cs_index.size - window_len):
+                _cs_index[_cs_index_local] = False
+                continue
+            search_win_inds = np.arange(_cs_index_local, \
+                                        _cs_index_local+window_len, 1)
+            cs_search_win_data = _data_cs[search_win_inds]
+            if _peakType == 'max':
+                _cs_index_slow_local = np.argmax(cs_search_win_data)
+            elif _peakType == 'min':
+                _cs_index_slow_local = np.argmin(cs_search_win_data)
+            _cs_index_slow_local = _cs_index_slow_local + _cs_index_local
+            _cs_index_slow[_cs_index_slow_local] = True
         return 0
 
     def resolve_cs_ss_conflicts(self):
@@ -1647,6 +1710,36 @@ class PsortGuiSignals(PsortGuiWidget):
             if ss_search_win_int.size > 0:
                 _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
                 _ss_index[_ss_ind_invalid] = False
+        return 0
+
+    def move_selected_from_ss_to_cs(self):
+        _cs_index_bool = self._workingDataBase['cs_index']
+        _ss_index_bool = self._workingDataBase['ss_index']
+        _ss_index_int = np.where(_ss_index_bool)[0]
+        _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
+        if _ss_index_selected_int.size < 1:
+            return 0
+        _ss_index_bool[_ss_index_selected_int] = False
+        _cs_index_bool[_ss_index_selected_int] = True
+        self.resolve_ss_ss_conflicts()
+        self.resolve_cs_cs_conflicts()
+        self.resolve_cs_cs_slow_conflicts()
+        self.resolve_cs_ss_conflicts()
+        return 0
+
+    def move_selected_from_cs_to_ss(self):
+        _cs_index_bool = self._workingDataBase['cs_index']
+        _ss_index_bool = self._workingDataBase['ss_index']
+        _cs_index_int = np.where(_cs_index_bool)[0]
+        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
+        if _cs_index_selected_int.size < 1:
+            return 0
+        _cs_index_bool[_cs_index_selected_int] = False
+        _ss_index_bool[_cs_index_selected_int] = True
+        self.resolve_ss_ss_conflicts()
+        self.resolve_cs_cs_conflicts()
+        self.resolve_cs_cs_slow_conflicts()
+        self.resolve_cs_ss_conflicts()
         return 0
 
     def extract_ss_peak(self):
