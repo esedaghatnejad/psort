@@ -576,7 +576,6 @@ class PsortGuiSignals(PsortGuiWidget):
         self.refresh_workingDataBase()
         return 0
 
-    @showWaitCursor
     def onToolbar_load_ButtonClick(self):
         _, file_path, _, _, file_name_without_ext = self.psortDataBase.get_file_fullPath()
         if not(os.path.isdir(file_path)):
@@ -585,18 +584,23 @@ class PsortGuiSignals(PsortGuiWidget):
             getOpenFileName(self, "Open File", file_path,
                             filter="Data file (*.psort *.mat *.continuous)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             self.psortDataBase.load_dataBase(file_fullPath, isCommonAverage=False)
+            QtWidgets.QApplication.restoreOverrideCursor()
             _reply = QMessageBox.question(
                                 self, 'Save warning',
                                 "Do you want to load 'Common Average' Data?",
-                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
             if _reply == QtGui.QMessageBox.Yes:
                 # LOAD COMMON AVERAGE
-                _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
-                file_fullPath, _ = QFileDialog.\
+                _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath()
+                cmn_file_fullPath, _ = QFileDialog.\
                     getOpenFileName(self, "Open File", file_path,
                                     filter="Data file (*.mat *.continuous)")
-                self.psortDataBase.load_dataBase(file_fullPath, isCommonAverage=True)
+                if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
+                    QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+                    self.psortDataBase.load_dataBase(cmn_file_fullPath, isCommonAverage=True)
+                    QtWidgets.QApplication.restoreOverrideCursor()
             self.transfer_data_from_dataBase_to_guiSignals()
             _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
             self.txtlabel_toolbar_fileName.setText(file_name)
@@ -608,7 +612,6 @@ class PsortGuiSignals(PsortGuiWidget):
             self.setEnableWidgets(True)
         return 0
 
-    @showWaitCursor
     def onToolbar_save_ButtonClick(self):
         self.onToolbar_slotNumCurrent_ValueChanged()
         if not(self.psortDataBase.is_all_slots_analyzed()):
@@ -627,7 +630,9 @@ class PsortGuiSignals(PsortGuiWidget):
                             filter="psort DataBase (*.psort)")
         file_path = os.path.dirname(file_fullPath)
         if os.path.isdir(file_path):
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             self.psortDataBase.save_dataBase(file_fullPath)
+            QtWidgets.QApplication.restoreOverrideCursor()
         return 0
 
     @showWaitCursor
