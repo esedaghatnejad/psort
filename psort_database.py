@@ -49,6 +49,7 @@ _singleSlotDataBase = {
 
 _topLevelDataBase = {
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
+        'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
         'file_path':              np.array([''], dtype=np.unicode),
         'file_name':              np.array([''], dtype=np.unicode),
@@ -130,23 +131,23 @@ class PsortDataBase():
             file_fullPath = file_fullPath + '.psort'
         file_path = os.path.dirname(file_fullPath)
         if not(os.path.isdir(file_path)):
-            return 'class PsortDataBase, func save_dataBase: file_path is not valid'
+            return 'Error: <psort_database.save_dataBase: file_path is not valid>'
         deepdish_package.io.save(file_fullPath, self._grandDataBase, 'zlib')
         return 'Saved dataBase: ' + file_fullPath
 
-    def load_dataBase(self, file_fullPath):
+    def load_dataBase(self, file_fullPath, isCommonAverage=False):
         file_fullPath = os.path.realpath(file_fullPath)
         if not(os.path.isfile(file_fullPath)):
-            return 'class PsortDataBase, func load_dataBase: file_fullPath is not valid'
+            return 'Error: <psort_database.load_dataBase: file_fullPath is not valid>'
         _, file_ext = os.path.splitext(file_fullPath)
         if file_ext == '.psort':
             self.load_psort_dataBase(file_fullPath)
         elif file_ext == '.mat':
-            self.load_mat_dataBase(file_fullPath)
+            self.load_mat_dataBase(file_fullPath, isCommonAverage)
         elif file_ext == '.continuous':
-            self.load_continuous_dataBase(file_fullPath)
+            self.load_continuous_dataBase(file_fullPath, isCommonAverage)
         else:
-            return 'class PsortDataBase, func load_dataBase: file extension is not valid'
+            return 'Error: <psort_database.load_dataBase: file extension is not valid>'
         self.set_file_fullPath(file_fullPath)
         return 'Loaded dataBase: ' + file_fullPath
 
@@ -156,58 +157,80 @@ class PsortDataBase():
         self._topLevelDataBase = self._grandDataBase[-1]
         return 0
 
-    def load_mat_dataBase(self, file_fullPath):
-        self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
-        data_mat = pymatreader_package.pymatreader.read_mat(file_fullPath)
-        data_size = data_mat['ch_data'].size
-        sample_rate = int(data_mat['ch_info']['header']['sampleRate'])
-        total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / 60.))
-        index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
-                                    endpoint=True)).astype(int)
-        self.init_slotsDataBase(total_slot_num, index_slot_edges)
-        self._topLevelDataBase['ch_data'] = deepcopy(data_mat['ch_data'])
-        self._topLevelDataBase['ch_time'] = deepcopy(data_mat['ch_time'])
-        self._topLevelDataBase['ss_index'] = \
-            np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
-        self._topLevelDataBase['cs_index'] = \
-            np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
-        self._topLevelDataBase['cs_index_slow'] = \
-            np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
-        self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
-        self._topLevelDataBase['sample_rate'][0] = int(data_mat['ch_info']['header']['sampleRate'])
-        del data_mat, index_slot_edges
+    def load_mat_dataBase(self, file_fullPath, isCommonAverage = False):
+        if not(isCommonAverage):
+            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
+            data_mat = pymatreader_package.pymatreader.read_mat(file_fullPath)
+            data_size = data_mat['ch_data'].size
+            sample_rate = int(data_mat['ch_info']['header']['sampleRate'])
+            total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / 60.))
+            index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
+                                        endpoint=True)).astype(int)
+            self.init_slotsDataBase(total_slot_num, index_slot_edges)
+            self._topLevelDataBase['ch_data'] = deepcopy(data_mat['ch_data'])
+            self._topLevelDataBase['ch_time'] = deepcopy(data_mat['ch_time'])
+            self._topLevelDataBase['ss_index'] = \
+                np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
+            self._topLevelDataBase['cs_index'] = \
+                np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
+            self._topLevelDataBase['cs_index_slow'] = \
+                np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
+            self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
+            self._topLevelDataBase['sample_rate'][0] = int(data_mat['ch_info']['header']['sampleRate'])
+            del data_mat, index_slot_edges
+        else:
+            data_mat = pymatreader_package.pymatreader.read_mat(file_fullPath)
+            _data_cmn = data_mat['ch_data']
+            # check _data_cmn size
+            if _data_cmn.size == self._topLevelDataBase['ch_data'].size:
+                self._topLevelDataBase['file_fullPathCommonAvg'] = np.array([file_fullPath], dtype=np.unicode)
+                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _data_cmn
+                del _data_cmn, data_mat
+            else:
+                print('Error: <psort_database.load_mat_dataBase: size of common average data does not match main data.>')
         return 0
 
-    def load_continuous_dataBase(self, file_fullPath):
-        self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
-        data_continuous = openephys_package.OpenEphys.load(file_fullPath)
-        ch_time_first_element = float(data_continuous['timestamps'][0])\
-                                /float(data_continuous['header']['sampleRate'])
-        ch_time_size = data_continuous['data'].size
-        sample_rate = int(data_continuous['header']['sampleRate'])
-        time_step = 1. / float(sample_rate)
-        time_range = time_step * ch_time_size
-        ch_time_last_element = ch_time_first_element + time_range - time_step
-        ch_time = np.arange(ch_time_first_element, ch_time_last_element, time_step, dtype=np.float)
-        if not(ch_time.size == data_continuous['data'].size):
-            print('load_continuous_dataBase: size of ch_time and ch_data are not the same.')
-        data_size = data_continuous['data'].size
-        sample_rate = int(data_continuous['header']['sampleRate'])
-        total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / 60.))
-        index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
-                                    endpoint=True)).astype(int)
-        self.init_slotsDataBase(total_slot_num, index_slot_edges)
-        self._topLevelDataBase['ch_data'] = deepcopy(data_continuous['data'])
-        self._topLevelDataBase['ch_time'] = deepcopy(ch_time)
-        self._topLevelDataBase['ss_index'] = \
-            np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
-        self._topLevelDataBase['cs_index'] = \
-            np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
-        self._topLevelDataBase['cs_index_slow'] = \
-            np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
-        self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
-        self._topLevelDataBase['sample_rate'][0] = int(data_continuous['header']['sampleRate'])
-        del data_continuous, ch_time
+    def load_continuous_dataBase(self, file_fullPath, isCommonAverage = False):
+        if not(isCommonAverage):
+            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
+            data_continuous = openephys_package.OpenEphys.load(file_fullPath)
+            ch_time_first_element = float(data_continuous['timestamps'][0])\
+                                    /float(data_continuous['header']['sampleRate'])
+            ch_time_size = data_continuous['data'].size
+            sample_rate = int(data_continuous['header']['sampleRate'])
+            time_step = 1. / float(sample_rate)
+            time_range = time_step * ch_time_size
+            ch_time_last_element = ch_time_first_element + time_range - time_step
+            ch_time = np.arange(ch_time_first_element, ch_time_last_element, time_step, dtype=np.float)
+            if not(ch_time.size == data_continuous['data'].size):
+                print('load_continuous_dataBase: size of ch_time and ch_data are not the same.')
+            data_size = data_continuous['data'].size
+            sample_rate = int(data_continuous['header']['sampleRate'])
+            total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / 60.))
+            index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
+                                        endpoint=True)).astype(int)
+            self.init_slotsDataBase(total_slot_num, index_slot_edges)
+            self._topLevelDataBase['ch_data'] = deepcopy(data_continuous['data'])
+            self._topLevelDataBase['ch_time'] = deepcopy(ch_time)
+            self._topLevelDataBase['ss_index'] = \
+                np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
+            self._topLevelDataBase['cs_index'] = \
+                np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
+            self._topLevelDataBase['cs_index_slow'] = \
+                np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
+            self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
+            self._topLevelDataBase['sample_rate'][0] = int(data_continuous['header']['sampleRate'])
+            del data_continuous, ch_time
+        else:
+            data_continuous = openephys_package.OpenEphys.load(file_fullPath)
+            _data_cmn = data_continuous['data']
+            # check _data_cmn size
+            if _data_cmn.size == self._topLevelDataBase['ch_data'].size:
+                self._topLevelDataBase['file_fullPathCommonAvg'] = np.array([file_fullPath], dtype=np.unicode)
+                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _data_cmn
+                del _data_cmn, data_continuous
+            else:
+                print('Error: <psort_database.load_continuous_dataBase: size of common average data does not match main data.>')
         return 0
 
     def is_all_slots_analyzed(self):

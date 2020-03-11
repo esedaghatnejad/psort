@@ -585,7 +585,18 @@ class PsortGuiSignals(PsortGuiWidget):
             getOpenFileName(self, "Open File", file_path,
                             filter="Data file (*.psort *.mat *.continuous)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
-            self.psortDataBase.load_dataBase(file_fullPath)
+            self.psortDataBase.load_dataBase(file_fullPath, isCommonAverage=False)
+            _reply = QMessageBox.question(
+                                self, 'Save warning',
+                                "Do you want to load 'Common Average' Data?",
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if _reply == QtGui.QMessageBox.Yes:
+                # LOAD COMMON AVERAGE
+                _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
+                file_fullPath, _ = QFileDialog.\
+                    getOpenFileName(self, "Open File", file_path,
+                                    filter="Data file (*.mat *.continuous)")
+                self.psortDataBase.load_dataBase(file_fullPath, isCommonAverage=True)
             self.transfer_data_from_dataBase_to_guiSignals()
             _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
             self.txtlabel_toolbar_fileName.setText(file_name)
@@ -964,11 +975,13 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_waveform()
         self.extract_ss_ifr()
         self.extract_ss_corr()
+        self.extract_cs_corr()
         self.extract_ss_pca()
         self.plot_rawSignal()
         self.plot_ss_peaks_histogram()
         self.plot_ss_ifr_histogram()
         self.plot_ss_corr()
+        self.plot_cs_corr()
         self.plot_ss_waveform()
         self.plot_ss_pca()
         return 0
