@@ -17,6 +17,7 @@ from copy import deepcopy
 import os
 import sys
 import decorator
+import psort_tools_commonAvg
 
 ## #############################################################################
 #%% GLOBAL VARIABLES
@@ -177,6 +178,11 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(_workingDataBase)
+        self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
+        self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
+        self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
         return 0
 
     def setEnableWidgets(self, isEnable):
@@ -428,6 +434,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onToolbar_save_ButtonClick)
         self.actionBtn_menubar_file_exit.triggered.\
             connect(sys.exit)
+        self.actionBtn_menubar_tools_commonAvg.triggered.\
+            connect(self.onMenubar_commonAvg_ButtonClick)
         return 0
 
     def connect_toolbar_signals(self):
@@ -510,8 +518,6 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_ssPanel_signals(self):
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData.clicked.\
-            connect(self.onSsPanel_refreshPcaData_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData.clicked.\
             connect(self.onSsPanel_selectPcaData_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave.clicked.\
@@ -527,8 +533,6 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_csPanel_signals(self):
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData.clicked.\
-            connect(self.onCsPanel_refreshPcaData_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData.clicked.\
             connect(self.onCsPanel_selectPcaData_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave.clicked.\
@@ -577,32 +581,35 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onToolbar_load_ButtonClick(self):
-        _, file_path, _, _, file_name_without_ext = self.psortDataBase.get_file_fullPath()
+        _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
         if not(os.path.isdir(file_path)):
             file_path = os.getcwd()
         file_fullPath, _ = QFileDialog.\
             getOpenFileName(self, "Open File", file_path,
-                            filter="Data file (*.psort *.mat *.continuous)")
+                            filter="Data file (*.psort *.mat *.continuous *.h5)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+            self.init_workingDataBase()
             self.psortDataBase.load_dataBase(file_fullPath, isCommonAverage=False)
             QtWidgets.QApplication.restoreOverrideCursor()
-            _reply = QMessageBox.question(
-                                self, 'Save warning',
-                                "Do you want to load 'Common Average' Data?",
-                                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-            if _reply == QtGui.QMessageBox.Yes:
-                # LOAD COMMON AVERAGE
-                _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath()
-                cmn_file_fullPath, _ = QFileDialog.\
-                    getOpenFileName(self, "Open File", file_path,
-                                    filter="Data file (*.mat *.continuous)")
-                if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
-                    QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-                    self.psortDataBase.load_dataBase(cmn_file_fullPath, isCommonAverage=True)
-                    QtWidgets.QApplication.restoreOverrideCursor()
+            _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+            if not(file_ext=='.psort'):
+                _reply = QMessageBox.question(
+                                    self, 'Load Common Average',
+                                    "Do you want to load 'Common Average' Data?",
+                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+                if _reply == QtGui.QMessageBox.Yes:
+                    # LOAD COMMON AVERAGE
+                    _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
+                    cmn_file_fullPath, _ = QFileDialog.\
+                        getOpenFileName(self, "Open File", file_path,
+                                        filter="Data file (*.mat *.continuous *.h5)")
+                    if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
+                        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+                        self.psortDataBase.load_dataBase(cmn_file_fullPath, isCommonAverage=True)
+                        QtWidgets.QApplication.restoreOverrideCursor()
             self.transfer_data_from_dataBase_to_guiSignals()
-            _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath()
+            _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath_components()
             self.txtlabel_toolbar_fileName.setText(file_name)
             self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
             self.txtedit_toolbar_slotNumCurrent.\
@@ -622,7 +629,7 @@ class PsortGuiSignals(PsortGuiWidget):
             if _reply == QtGui.QMessageBox.No:
                 return 0
 
-        _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath()
+        _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
         if not(os.path.isdir(file_path)):
             file_path = os.getcwd()
         file_fullPath, _ = QFileDialog.\
@@ -633,6 +640,11 @@ class PsortGuiSignals(PsortGuiWidget):
             QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             self.psortDataBase.save_dataBase(file_fullPath)
             QtWidgets.QApplication.restoreOverrideCursor()
+        return 0
+
+    def onMenubar_commonAvg_ButtonClick(self):
+        self.menubar_commonAvg = psort_tools_commonAvg.CommonAvgSignals()
+        self.menubar_commonAvg.show()
         return 0
 
     @showWaitCursor
@@ -692,43 +704,103 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineSsWaveMinPca_positionChangeFinished(self):
+        # minPca should not be less than -_MIN_X_RANGE_WAVE
         if self.infLine_SsWave_minPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
             self.infLine_SsWave_minPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        # minPca should not be more than +_MAX_X_RANGE_WAVE
         if self.infLine_SsWave_minPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
             self.infLine_SsWave_minPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # minPca should not be more than maxPca
+        # if minPca is more than maxPca then switch them
+        _minPca = self.infLine_SsWave_minPca.value()
+        _maxPca = self.infLine_SsWave_maxPca.value()
+        if _minPca > _maxPca:
+            self.infLine_SsWave_minPca.setValue(_maxPca)
+            self.infLine_SsWave_maxPca.setValue(_minPca)
+        # update _workingDataBase
         self._workingDataBase['ss_pca_bound_min'][0] = \
             int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
-        return 0
-
-    def onInfLineSsWaveMaxPca_positionChangeFinished(self):
-        if self.infLine_SsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
-            self.infLine_SsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
-        if self.infLine_SsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
-            self.infLine_SsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
         self._workingDataBase['ss_pca_bound_max'][0] = \
             int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
+        self.extract_ss_pca()
+        self.plot_ss_pca()
+        return 0
+
+    def onInfLineSsWaveMaxPca_positionChangeFinished(self):
+        # maxPca should not be less than -_MIN_X_RANGE_WAVE
+        if self.infLine_SsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        # maxPca should not be more than +_MAX_X_RANGE_WAVE
+        if self.infLine_SsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # minPca should not be more than maxPca
+        # if minPca is more than maxPca then switch them
+        _minPca = self.infLine_SsWave_minPca.value()
+        _maxPca = self.infLine_SsWave_maxPca.value()
+        if _minPca > _maxPca:
+            self.infLine_SsWave_minPca.setValue(_maxPca)
+            self.infLine_SsWave_maxPca.setValue(_minPca)
+        # update _workingDataBase
+        self._workingDataBase['ss_pca_bound_min'][0] = \
+            int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        self._workingDataBase['ss_pca_bound_max'][0] = \
+            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        self.extract_ss_pca()
+        self.plot_ss_pca()
         return 0
 
     def onInfLineCsWaveMinPca_positionChangeFinished(self):
+        # minPca should not be less than -_MIN_X_RANGE_WAVE
         if self.infLine_CsWave_minPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
             self.infLine_CsWave_minPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        # minPca should not be more than +_MAX_X_RANGE_WAVE
         if self.infLine_CsWave_minPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
             self.infLine_CsWave_minPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # minPca should not be more than maxPca
+        # if minPca is more than maxPca then switch them
+        _minPca = self.infLine_CsWave_minPca.value()
+        _maxPca = self.infLine_CsWave_maxPca.value()
+        if _minPca > _maxPca:
+            self.infLine_CsWave_minPca.setValue(_maxPca)
+            self.infLine_CsWave_maxPca.setValue(_minPca)
+        # update _workingDataBase
         self._workingDataBase['cs_pca_bound_min'][0] = \
             int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
-        return 0
-
-    def onInfLineCsWaveMaxPca_positionChangeFinished(self):
-        if self.infLine_CsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
-            self.infLine_CsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
-        if self.infLine_CsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
-            self.infLine_CsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
         self._workingDataBase['cs_pca_bound_max'][0] = \
             int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
+        self.extract_cs_pca()
+        self.plot_cs_pca()
+        return 0
+
+    def onInfLineCsWaveMaxPca_positionChangeFinished(self):
+        # maxPca should not be less than -_MIN_X_RANGE_WAVE
+        if self.infLine_CsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
+        # maxPca should not be more than +_MAX_X_RANGE_WAVE
+        if self.infLine_CsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # minPca should not be more than maxPca
+        # if minPca is more than maxPca then switch them
+        _minPca = self.infLine_CsWave_minPca.value()
+        _maxPca = self.infLine_CsWave_maxPca.value()
+        if _minPca > _maxPca:
+            self.infLine_CsWave_minPca.setValue(_maxPca)
+            self.infLine_CsWave_maxPca.setValue(_minPca)
+        # update _workingDataBase
+        self._workingDataBase['cs_pca_bound_min'][0] = \
+            int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        self._workingDataBase['cs_pca_bound_max'][0] = \
+            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            * self._workingDataBase['sample_rate'][0] )
+        self.extract_cs_pca()
+        self.plot_cs_pca()
         return 0
 
     def onfilterPanel_SsFast_IndexChanged(self):
@@ -806,24 +878,6 @@ class PsortGuiSignals(PsortGuiWidget):
             setValue(self._workingDataBase['cs_threshold'][0]*_sign)
         self.infLine_CsPeak.\
             setValue(self._workingDataBase['cs_threshold'][0]*_sign)
-        return 0
-
-    @showWaitCursor
-    def onSsPanel_refreshPcaData_Clicked(self):
-        self.reset_ss_ROI()
-        self.extract_ss_pca()
-        self.plot_rawSignal_SsIndexSelected()
-        self.plot_ss_waveform()
-        self.plot_ss_pca()
-        return 0
-
-    @showWaitCursor
-    def onCsPanel_refreshPcaData_Clicked(self):
-        self.reset_cs_ROI()
-        self.extract_cs_pca()
-        self.plot_rawSignal_CsIndexSelected()
-        self.plot_cs_waveform()
-        self.plot_cs_pca()
         return 0
 
     @showWaitCursor
@@ -1880,22 +1934,13 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_ss_pca(self):
-        """ -> ss_wave is a nSpike-by-181 matrix
+        """
+        -> ss_wave is a nSpike-by-181 matrix
         -> slice the ss_wave using minPca and maxPca
-        -> make sure the DataBase values has been updated """
-        self.onInfLineSsWaveMinPca_positionChangeFinished()
-        self.onInfLineSsWaveMaxPca_positionChangeFinished()
+        -> make sure the DataBase values has been updated
+        """
         _minPca = self._workingDataBase['ss_pca_bound_min'][0]
         _maxPca = self._workingDataBase['ss_pca_bound_max'][0]
-        if _minPca > _maxPca:
-            _temp_min = self.infLine_SsWave_minPca.value()
-            _temp_max = self.infLine_SsWave_maxPca.value()
-            self.infLine_SsWave_minPca.setValue(_temp_max)
-            self.infLine_SsWave_maxPca.setValue(_temp_min)
-            self.onInfLineSsWaveMinPca_positionChangeFinished()
-            self.onInfLineSsWaveMaxPca_positionChangeFinished()
-            _minPca = self._workingDataBase['ss_pca_bound_min'][0]
-            _maxPca = self._workingDataBase['ss_pca_bound_max'][0]
         if (self._workingDataBase['ss_index'].sum() > 1):
             self._workingDataBase['ss_pca_mat'] = \
                 psort_lib.extract_pca(
@@ -1909,23 +1954,13 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_cs_pca(self):
-        """ -> cs_wave is a nSpike-by-181 matrix
+        """
+        -> cs_wave is a nSpike-by-181 matrix
         -> slice the cs_wave using minPca and maxPca
-        -> make sure the DataBase values has been updated """
-        self.onInfLineCsWaveMinPca_positionChangeFinished()
-        self.onInfLineCsWaveMaxPca_positionChangeFinished()
+        -> make sure the DataBase values has been updated
+        """
         _minPca = self._workingDataBase['cs_pca_bound_min'][0]
         _maxPca = self._workingDataBase['cs_pca_bound_max'][0]
-        if _minPca > _maxPca:
-            _temp_min = self.infLine_CsWave_minPca.value()
-            _temp_max = self.infLine_CsWave_maxPca.value()
-            self.infLine_CsWave_minPca.setValue(_temp_max)
-            self.infLine_CsWave_maxPca.setValue(_temp_min)
-            self.onInfLineCsWaveMinPca_positionChangeFinished()
-            self.onInfLineCsWaveMaxPca_positionChangeFinished()
-            _minPca = self._workingDataBase['cs_pca_bound_min'][0]
-            _maxPca = self._workingDataBase['cs_pca_bound_max'][0]
-
         if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_pca_mat'] = \
                 psort_lib.extract_pca(
@@ -2074,7 +2109,7 @@ class PsortGuiSignals(PsortGuiWidget):
         # ssLearnTemp_mode
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(
             self._workingDataBase['ssLearnTemp_mode'][0])
-        # ssLearnTemp_mode
+        # csLearnTemp_mode
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(
             self._workingDataBase['csLearnTemp_mode'][0])
         # ss_pca_bound
@@ -2132,7 +2167,7 @@ class PsortGuiSignals(PsortGuiWidget):
         # ssLearnTemp_mode
         self._workingDataBase['ssLearnTemp_mode'][0] = \
             self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
-        # ssLearnTemp_mode
+        # csLearnTemp_mode
         self._workingDataBase['csLearnTemp_mode'][0] = \
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         # ss_pca_bound

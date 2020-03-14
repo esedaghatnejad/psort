@@ -7,9 +7,110 @@
 from scipy import signal
 from sklearn.decomposition import PCA
 import numpy as np
+import deepdish_package
+import pymatreader_package
+import openephys_package
 import matplotlib as plt
 from matplotlib import path
+from copy import deepcopy
 import sys
+import os
+
+def get_fullPath_components(file_fullPath):
+    file_fullPath = os.path.realpath(file_fullPath)
+    file_fullPath_without_ext, file_ext = os.path.splitext(file_fullPath)
+    file_path = os.path.dirname(file_fullPath)
+    file_name = os.path.basename(file_fullPath)
+    file_name_without_ext = os.path.basename(file_fullPath_without_ext)
+    return file_fullPath, file_path, file_name, file_ext, file_name_without_ext
+
+def load_file_continuous(file_fullPath):
+    _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext=='.continuous'):
+        print('Error: <psort_lib.load_file_continuous: file extension is not .continuous.>')
+        return 0, 0, 0
+    if not(os.path.isfile(file_fullPath)):
+        print('Error: <psort_lib.load_file_continuous: file_fullPath is not valid>')
+        return 0, 0, 0
+    data_continuous = openephys_package.OpenEphys.load(file_fullPath)
+    ch_data = deepcopy(data_continuous['data'])
+    sample_rate = int(data_continuous['header']['sampleRate'])
+    ch_time_first_element = float(data_continuous['timestamps'][0])\
+                            /float(data_continuous['header']['sampleRate'])
+    ch_time_size = ch_data.size
+    time_step = 1. / float(sample_rate)
+    time_range = time_step * ch_time_size
+    ch_time_last_element = ch_time_first_element + time_range - time_step
+    ch_time = np.arange(ch_time_first_element, ch_time_last_element, time_step, dtype=np.float)
+    if not(ch_time.size == ch_data.size):
+        print('Error: <psort_lib.load_file_continuous: size of ch_time and ch_data are not the same.>')
+    del data_continuous
+    return ch_data, ch_time, sample_rate
+
+def load_file_matlab(file_fullPath):
+    _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext=='.mat'):
+        print('Error: <psort_lib.load_file_matlab: file extension is not .mat.>')
+        return 0, 0, 0
+    if not(os.path.isfile(file_fullPath)):
+        print('Error: <psort_lib.load_file_matlab: file_fullPath is not valid>')
+        return 0, 0, 0
+    data_mat = pymatreader_package.pymatreader.read_mat(file_fullPath)
+    ch_data = deepcopy(data_mat['ch_data'])
+    ch_time = deepcopy(data_mat['ch_time'])
+    sample_rate = int(data_mat['ch_info']['header']['sampleRate'])
+    del data_mat
+    return ch_data, ch_time, sample_rate
+
+def load_file_h5(file_fullPath):
+    _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext=='.h5'):
+        print('Error: <psort_lib.load_file_h5: file extension is not .h5.>')
+        return 0, 0, 0
+    if not(os.path.isfile(file_fullPath)):
+        print('Error: <psort_lib.load_file_h5: file_fullPath is not valid>')
+        return 0, 0, 0
+    load_dict = deepdish_package.io.load(file_fullPath)
+    ch_data = deepcopy(load_dict['ch_data'])
+    ch_time = deepcopy(load_dict['ch_time'])
+    sample_rate = load_dict['sample_rate'][0]
+    del load_dict
+    return ch_data, ch_time, sample_rate
+
+def load_file_psort(file_fullPath):
+    _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext=='.psort'):
+        print('Error: <psort_lib.load_file_psort: file extension is not .psort.>')
+        return 0
+    if not(os.path.isfile(file_fullPath)):
+        print('Error: <psort_lib.load_file_psort: file_fullPath is not valid>')
+        return 0
+    grandDataBase = deepdish_package.io.load(file_fullPath)
+    return grandDataBase
+
+def save_file_h5(file_fullPath, ch_data, ch_time, sample_rate):
+    _, file_path, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext == '.h5'):
+        file_fullPath = file_fullPath + '.h5'
+    if not(os.path.isdir(file_path)):
+        return 'Error: <psort_lib.save_file_h5: file_path is not valid>'
+    save_dict = {
+        'ch_data': ch_data,
+        'ch_time': ch_time,
+        'sample_rate': np.array([sample_rate]),
+        }
+    deepdish_package.io.save(file_fullPath, save_dict, 'zlib')
+    del save_dict
+    return 0
+
+def save_file_psort(file_fullPath, grandDataBase):
+    _, file_path, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext == '.psort'):
+        file_fullPath = file_fullPath + '.psort'
+    if not(os.path.isdir(file_path)):
+        return 'Error: <psort_lib.save_file_psort: file_path is not valid>'
+    deepdish_package.io.save(file_fullPath, grandDataBase, 'zlib')
+    return 0
 
 def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=None):
     if sample_rate is None:
@@ -49,7 +150,8 @@ def find_peaks(data, threshold=None, peakType=None):
     peak_index_boolean = np.concatenate(([False], peak_index_boolean, [False]))
     _threshold = abs(float(threshold))
     peak_index_below_threshold = np.where(peak_index_boolean)[0]
-    peak_index_below_threshold = peak_index_below_threshold[data[peak_index_below_threshold] < _threshold]
+    peak_index_below_threshold = peak_index_below_threshold[data[peak_index_below_threshold] \
+                                < _threshold]
     peak_index_boolean[peak_index_below_threshold] = False
     # revert the data back to its original form
     if ((peakType == 'min') or (peakType == 'Min')):
@@ -64,9 +166,12 @@ def inter_spike_interval_from_index(index_bool, sample_rate=None):
     elif index_bool.dtype == np.int:
         pass
     elif index_bool.dtype == np.float:
-        print('Warning: <psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float.>')
+        print(
+        'Warning: <psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float.>')
     else:
-        print('Error: <psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid.>', file=sys.stderr)
+        print(
+        'Error: <psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid.>',
+        file=sys.stderr)
     inter_spike_interval = np.diff(index_value) / float(sample_rate)
     np.append(inter_spike_interval, inter_spike_interval[-1])  # ISI in sec
     return inter_spike_interval
@@ -79,9 +184,12 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
     elif index_bool.dtype == np.int:
         pass
     elif index_bool.dtype == np.float:
-        print('Warning: <psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float.>')
+        print(
+        'Warning: <psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float.>')
     else:
-        print('Error: <psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid.>', file=sys.stderr)
+        print(
+        'Error: <psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid.>',
+        file=sys.stderr)
     inter_spike_interval = np.diff(index_value) / float(sample_rate)
     np.append(inter_spike_interval, inter_spike_interval[-1])  # ISI in sec
     instant_firing_rate = 1. / inter_spike_interval # IFR in Hz
@@ -100,16 +208,24 @@ def cross_correlogram(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001
     if win_len is None:
         win_len = 0.050 # window length in sec, the default is 50ms
     if spike1_bool.size != spike2_bool.size:
-        print('Error: <psort_lib.cross_correlogram: size of spike1 and spike2 should be the same.>', file=sys.stderr)
+        print(
+        'Error: <psort_lib.cross_correlogram: size of spike1 and spike2 should be the same.>',
+        file=sys.stderr)
     if spike1_bool.dtype != np.bool:
-        print('Error: <psort_lib.cross_correlogram: spike1 should be np.bool array.>', file=sys.stderr)
+        print(
+        'Error: <psort_lib.cross_correlogram: spike1 should be np.bool array.>',
+        file=sys.stderr)
     if spike2_bool.dtype != np.bool:
-        print('Error: <psort_lib.cross_correlogram: spike2 should be np.bool array.>', file=sys.stderr)
+        print(
+        'Error: <psort_lib.cross_correlogram: spike2 should be np.bool array.>',
+        file=sys.stderr)
     spike1_time = np.where(spike1_bool)[0] / float(sample_rate)
     spike1_int = np.round(spike1_time/float(bin_size)).astype(int)
     spike2_time = np.where(spike2_bool)[0] / float(sample_rate)
     spike2_index = np.round(spike2_time/float(bin_size)).astype(int)
-    spike2_bool_size = np.round(float(spike1_bool.size) / float(sample_rate) / float(bin_size)).astype(int)
+    spike2_bool_size = np.round(float(spike1_bool.size) \
+                                / float(sample_rate) / float(bin_size)\
+                                ).astype(int)
     _spike2_bool = np.zeros((spike2_bool_size), dtype=np.int8)
     _spike2_bool[spike2_index] = 1
 
@@ -130,7 +246,8 @@ def cross_correlogram(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001
     output_span = span_int * float(bin_size)
     return output_S1xS2, output_span
 
-def extract_waveform(data, spike_bool, sample_rate=None, win_len_before=0.002, win_len_after=0.004):
+def extract_waveform(data, spike_bool, sample_rate=None, \
+                        win_len_before=0.002, win_len_after=0.004):
     # output is a matrix
     if sample_rate is None:
         sample_rate = 30000. # sample_rate in Hz

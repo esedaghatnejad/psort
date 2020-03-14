@@ -9,7 +9,7 @@ from psort_gui_signals import PsortGuiSignals
 import os
 import sys # We need sys so that we can pass argv to QApplication
 
-VERSION = (0, 3, 27)
+VERSION = (0, 3, 28)
 ISRELEASED = False
 __version__ = '{0}.{1}.{2}'.format(*VERSION)
 if not ISRELEASED:

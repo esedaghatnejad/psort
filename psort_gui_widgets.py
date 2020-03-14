@@ -373,15 +373,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setSpacing(1)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData = QPushButton("Refresh")
-        self.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
         self.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
         self.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
-        self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
-            addWidget(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_refreshPcaData)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
@@ -476,15 +472,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setSpacing(1)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData = QPushButton("Refresh")
-        self.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
         self.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
         self.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
-        self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
-            addWidget(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_refreshPcaData)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
@@ -642,7 +634,10 @@ class PsortGuiWidget(QMainWindow):
         self.menu_menubar_tools = self.menubar.addMenu("Tools")
         self.actionBtn_menubar_tools_csTune = QAction("CS Tuning", self)
         self.actionBtn_menubar_tools_csTune.setStatusTip("Extract CS Tuning")
+        self.actionBtn_menubar_tools_commonAvg = QAction("Common Average", self)
+        self.actionBtn_menubar_tools_commonAvg.setStatusTip("Common Average")
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_csTune)
+        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_commonAvg)
 
         self.menubar.setNativeMenuBar(False)
         return 0
