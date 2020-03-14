@@ -3,7 +3,7 @@
 """
 @author: Ehsan Sedaghat-Nejad (esedaghatnejad@gmail.com)
 """
-
+from PyQt5 import QtWidgets, QtCore, QtGui
 from scipy import signal
 from sklearn.decomposition import PCA
 import numpy as np
@@ -16,6 +16,8 @@ from copy import deepcopy
 import sys
 import os
 
+## #############################################################################
+#%% get_fullPath_components
 def get_fullPath_components(file_fullPath):
     file_fullPath = os.path.realpath(file_fullPath)
     file_fullPath_without_ext, file_ext = os.path.splitext(file_fullPath)
@@ -23,6 +25,36 @@ def get_fullPath_components(file_fullPath):
     file_name = os.path.basename(file_fullPath)
     file_name_without_ext = os.path.basename(file_fullPath_without_ext)
     return file_fullPath, file_path, file_name, file_ext, file_name_without_ext
+## #############################################################################
+#%% load and save procedure as QThread
+class LoadFileContinuous(QtCore.QThread):
+    def __init__(self):
+        super(LoadFileContinuous, self).__init__()
+        self.file_fullPath = ''
+
+    def run(self):
+        file_fullPath = self.file_fullPath
+        _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+        if not(file_ext=='.continuous'):
+            print('Error: <psort_lib.load_file_continuous: file extension is not .continuous.>')
+            return 0, 0, 0
+        if not(os.path.isfile(file_fullPath)):
+            print('Error: <psort_lib.load_file_continuous: file_fullPath is not valid>')
+            return 0, 0, 0
+        data_continuous = openephys_package.OpenEphys.load(file_fullPath)
+        ch_data = deepcopy(data_continuous['data'])
+        sample_rate = int(data_continuous['header']['sampleRate'])
+        ch_time_first_element = float(data_continuous['timestamps'][0])\
+                                /float(data_continuous['header']['sampleRate'])
+        ch_time_size = ch_data.size
+        time_step = 1. / float(sample_rate)
+        time_range = time_step * ch_time_size
+        ch_time_last_element = ch_time_first_element + time_range - time_step
+        ch_time = np.arange(ch_time_first_element, ch_time_last_element, time_step, dtype=np.float)
+        if not(ch_time.size == ch_data.size):
+            print('Error: <psort_lib.load_file_continuous: size of ch_time and ch_data are not the same.>')
+        del data_continuous
+        self.signal.emit(ch_data, ch_time, sample_rate)
 
 def load_file_continuous(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
@@ -111,7 +143,8 @@ def save_file_psort(file_fullPath, grandDataBase):
         return 'Error: <psort_lib.save_file_psort: file_path is not valid>'
     deepdish_package.io.save(file_fullPath, grandDataBase, 'zlib')
     return 0
-
+## #############################################################################
+#%% Signal Processing
 def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=None):
     if sample_rate is None:
         sample_rate = 30000.
@@ -195,11 +228,12 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
     instant_firing_rate = 1. / inter_spike_interval # IFR in Hz
     return instant_firing_rate
 
-def cross_correlogram(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001, win_len=0.050):
+def cross_probability(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001, win_len=0.050):
     """
-    calculating cross correlation: spike1_X_spike2
-    that is, when the data is aligned to spike1 what is the probability of spike2
-    in other words, p( spike2 | spike1=1 )
+    the word cross_probability is the mixture of cross_correlation and conditional_probability
+    cross_probability of spike1_X_spike2 is the probability of spike2
+    when the data is aligned to spike1, that is, p( spike2 | spike1=1 )
+    The probability of spike2 around time t given that spike1 has fired at time t
     """
     if sample_rate is None:
         sample_rate = 30000. # sample_rate in Hz
@@ -209,15 +243,15 @@ def cross_correlogram(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001
         win_len = 0.050 # window length in sec, the default is 50ms
     if spike1_bool.size != spike2_bool.size:
         print(
-        'Error: <psort_lib.cross_correlogram: size of spike1 and spike2 should be the same.>',
+        'Error: <psort_lib.cross_probability: size of spike1 and spike2 should be the same.>',
         file=sys.stderr)
     if spike1_bool.dtype != np.bool:
         print(
-        'Error: <psort_lib.cross_correlogram: spike1 should be np.bool array.>',
+        'Error: <psort_lib.cross_probability: spike1 should be np.bool array.>',
         file=sys.stderr)
     if spike2_bool.dtype != np.bool:
         print(
-        'Error: <psort_lib.cross_correlogram: spike2 should be np.bool array.>',
+        'Error: <psort_lib.cross_probability: spike2 should be np.bool array.>',
         file=sys.stderr)
     spike1_time = np.where(spike1_bool)[0] / float(sample_rate)
     spike1_int = np.round(spike1_time/float(bin_size)).astype(int)

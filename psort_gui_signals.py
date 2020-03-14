@@ -1906,7 +1906,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def extract_ss_corr(self):
         if self._workingDataBase['ss_index'].sum() > 1:
             self._workingDataBase['ss_corr'], self._workingDataBase['ss_corr_span'] = \
-                psort_lib.cross_correlogram(
+                psort_lib.cross_probability(
                     self._workingDataBase['ss_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
@@ -1922,7 +1922,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def extract_cs_corr(self):
         if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_corr'], self._workingDataBase['cs_corr_span'] = \
-                psort_lib.cross_correlogram(
+                psort_lib.cross_probability(
                     self._workingDataBase['cs_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
