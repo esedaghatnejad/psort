@@ -4,12 +4,14 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+## #############################################################################
+#%% IMPORT PACKAGES
 from PyQt5 import QtWidgets, QtGui, QtCore
 from psort_gui_signals import PsortGuiSignals
 import os
 import sys # We need sys so that we can pass argv to QApplication
 
-VERSION = (0, 3, 29)
+VERSION = (0, 3, 30)
 ISRELEASED = False
 __version__ = '{0}.{1}.{2}'.format(*VERSION)
 if not ISRELEASED:

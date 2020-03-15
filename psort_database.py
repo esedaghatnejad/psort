@@ -4,7 +4,8 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
-
+## #############################################################################
+#%% IMPORT PACKAGES
 import numpy as np
 import deepdish_package
 import pymatreader_package

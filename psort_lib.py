@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-@author: Ehsan Sedaghat-Nejad (esedaghatnejad@gmail.com)
+Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
+@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+## #############################################################################
+#%% IMPORT PACKAGES
 from PyQt5 import QtWidgets, QtCore, QtGui
 from scipy import signal
 from sklearn.decomposition import PCA
@@ -25,36 +28,6 @@ def get_fullPath_components(file_fullPath):
     file_name = os.path.basename(file_fullPath)
     file_name_without_ext = os.path.basename(file_fullPath_without_ext)
     return file_fullPath, file_path, file_name, file_ext, file_name_without_ext
-## #############################################################################
-#%% load and save procedure as QThread
-class LoadFileContinuous(QtCore.QThread):
-    def __init__(self):
-        super(LoadFileContinuous, self).__init__()
-        self.file_fullPath = ''
-
-    def run(self):
-        file_fullPath = self.file_fullPath
-        _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
-        if not(file_ext=='.continuous'):
-            print('Error: <psort_lib.load_file_continuous: file extension is not .continuous.>')
-            return 0, 0, 0
-        if not(os.path.isfile(file_fullPath)):
-            print('Error: <psort_lib.load_file_continuous: file_fullPath is not valid>')
-            return 0, 0, 0
-        data_continuous = openephys_package.OpenEphys.load(file_fullPath)
-        ch_data = deepcopy(data_continuous['data'])
-        sample_rate = int(data_continuous['header']['sampleRate'])
-        ch_time_first_element = float(data_continuous['timestamps'][0])\
-                                /float(data_continuous['header']['sampleRate'])
-        ch_time_size = ch_data.size
-        time_step = 1. / float(sample_rate)
-        time_range = time_step * ch_time_size
-        ch_time_last_element = ch_time_first_element + time_range - time_step
-        ch_time = np.arange(ch_time_first_element, ch_time_last_element, time_step, dtype=np.float)
-        if not(ch_time.size == ch_data.size):
-            print('Error: <psort_lib.load_file_continuous: size of ch_time and ch_data are not the same.>')
-        del data_continuous
-        self.signal.emit(ch_data, ch_time, sample_rate)
 
 def load_file_continuous(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
@@ -143,6 +116,44 @@ def save_file_psort(file_fullPath, grandDataBase):
         return 'Error: <psort_lib.save_file_psort: file_path is not valid>'
     deepdish_package.io.save(file_fullPath, grandDataBase, 'zlib')
     return 0
+## #############################################################################
+#%% load procedure as QThread
+class LoadData(QtCore.QThread):
+    return_signal = QtCore.pyqtSignal('PyQt_PyObject', 'PyQt_PyObject', 'PyQt_PyObject')
+    def __init__(self):
+        super(LoadData, self).__init__()
+        self.file_fullPath = ''
+
+    def run(self):
+        file_fullPath = self.file_fullPath
+        _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+        if file_ext == '.continuous':
+            ch_data, ch_time, sample_rate = load_file_continuous(file_fullPath)
+        elif file_ext == '.mat':
+            ch_data, ch_time, sample_rate = load_file_matlab(file_fullPath)
+        elif file_ext == '.h5':
+            ch_data, ch_time, sample_rate = load_file_h5(file_fullPath)
+        self.return_signal.emit(ch_data, ch_time, sample_rate)
+## #############################################################################
+#%% save procedure as QThread
+class SaveData(QtCore.QThread):
+    return_signal = QtCore.pyqtSignal()
+    def __init__(self):
+        super(SaveData, self).__init__()
+        self.file_fullPath = ''
+        self.ch_data = np.zeros((0), dtype=np.float64)
+        self.ch_time = np.zeros((0), dtype=np.float64)
+        self.sample_rate = 0
+        self.grandDataBase = {}
+
+    def run(self):
+        file_fullPath = self.file_fullPath
+        _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+        if file_ext == '.h5':
+            save_file_h5(self.file_fullPath, self.ch_data, self.ch_time, self.sample_rate)
+        elif file_ext == '.psort':
+            save_file_psort(self.file_fullPath, self.grandDataBase)
+        self.return_signal.emit()
 ## #############################################################################
 #%% Signal Processing
 def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=None):
