@@ -19,8 +19,8 @@ class PsortGuiWidget(QMainWindow):
         self.setGlobalObjects()
 
         self.setWindowTitle("PurkinjeSort")
-        # Enable StatusBar
-        self.setStatusBar(QtGui.QStatusBar(self))
+        # Set up StatusBar
+        self.build_statusbar()
         # Set up Toolbar
         self.build_toolbar()
         # Set up menu bar
@@ -575,8 +575,8 @@ class PsortGuiWidget(QMainWindow):
         self.actionBtn_toolbar_refresh.setStatusTip("Refresh Slot")
         self.actionBtn_toolbar_load = \
             QAction(QtGui.QApplication.style().\
-            standardIcon(QtGui.QStyle.SP_DialogOpenButton), "Load Session", self)
-        self.actionBtn_toolbar_load.setStatusTip("Load Session")
+            standardIcon(QtGui.QStyle.SP_DialogOpenButton), "Load File", self)
+        self.actionBtn_toolbar_load.setStatusTip("Load File")
         self.actionBtn_toolbar_save = \
             QAction(QtGui.QApplication.style().\
             standardIcon(QtGui.QStyle.SP_DialogSaveButton), "Save Session", self)
@@ -593,7 +593,9 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_toolbar_slotNumCurrent.setMinimum(1)
         self.txtedit_toolbar_slotNumCurrent.setMaximum(30)
         self.setFont(self.txtedit_toolbar_slotNumCurrent)
+        self.txtedit_toolbar_slotNumCurrent.setStatusTip("Change Slot#")
         self.txtlabel_toolbar_slotNumTotal = QLabel("/ 30(0)")
+        self.txtlabel_toolbar_slotNumTotal.setStatusTip("Total Slot#")
         self.setFont(self.txtlabel_toolbar_slotNumTotal)
 
         self.txtlabel_toolbar_fileName = QLabel("File_Name")
@@ -623,11 +625,11 @@ class PsortGuiWidget(QMainWindow):
 
         self.menu_menubar_file = self.menubar.addMenu("File")
         self.actionBtn_menubar_file_exit = QAction("Exit", self)
-        self.actionBtn_menubar_file_exit.setStatusTip("Exit application")
-        self.actionBtn_menubar_file_open = QAction("Open...", self)
-        self.actionBtn_menubar_file_open.setStatusTip("Open file")
-        self.actionBtn_menubar_file_save = QAction("Save", self)
-        self.actionBtn_menubar_file_save.setStatusTip("Save file")
+        self.actionBtn_menubar_file_exit.setStatusTip("Exit Application")
+        self.actionBtn_menubar_file_open = QAction("Open File...", self)
+        self.actionBtn_menubar_file_open.setStatusTip("Open File")
+        self.actionBtn_menubar_file_save = QAction("Save Session", self)
+        self.actionBtn_menubar_file_save.setStatusTip("Save Session")
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_open)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_save)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_exit)
@@ -641,6 +643,15 @@ class PsortGuiWidget(QMainWindow):
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_commonAvg)
 
         self.menubar.setNativeMenuBar(False)
+        return 0
+
+    def build_statusbar(self):
+        self.setStatusBar(QStatusBar(self))
+        self.txtlabel_statusBar = QLabel('Text')
+        self.progress_statusBar = QProgressBar()
+        self.progress_statusBar.setRange(0,1)
+        self.statusBar().addWidget(self.txtlabel_statusBar,0)
+        self.statusBar().addWidget(self.progress_statusBar,1)
         return 0
 
     def setFont(self, widget, pointSize=None, color=None):

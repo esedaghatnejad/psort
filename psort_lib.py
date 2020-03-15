@@ -129,11 +129,20 @@ class LoadData(QtCore.QThread):
         _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
         if file_ext == '.continuous':
             ch_data, ch_time, sample_rate = load_file_continuous(file_fullPath)
+            self.return_signal.emit(ch_data, ch_time, sample_rate)
         elif file_ext == '.mat':
             ch_data, ch_time, sample_rate = load_file_matlab(file_fullPath)
+            self.return_signal.emit(ch_data, ch_time, sample_rate)
         elif file_ext == '.h5':
             ch_data, ch_time, sample_rate = load_file_h5(file_fullPath)
-        self.return_signal.emit(ch_data, ch_time, sample_rate)
+            self.return_signal.emit(ch_data, ch_time, sample_rate)
+        elif file_ext == '.psort':
+            grandDataBase = load_file_psort(file_fullPath)
+            self.return_signal.emit(grandDataBase, 0, 0)
+        else:
+            print('Error: <psort_lib.LoadData: file_ext is not valid>')
+            self.return_signal.emit(0, 0, 0)
+
 ## #############################################################################
 #%% save procedure as QThread
 class SaveData(QtCore.QThread):
@@ -151,9 +160,14 @@ class SaveData(QtCore.QThread):
         _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
         if file_ext == '.h5':
             save_file_h5(self.file_fullPath, self.ch_data, self.ch_time, self.sample_rate)
+            self.return_signal.emit()
         elif file_ext == '.psort':
             save_file_psort(self.file_fullPath, self.grandDataBase)
-        self.return_signal.emit()
+            self.return_signal.emit()
+        else:
+            print('Error: <psort_lib.SaveData: file_ext is not valid>')
+            self.return_signal.emit()
+
 ## #############################################################################
 #%% Signal Processing
 def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=None):

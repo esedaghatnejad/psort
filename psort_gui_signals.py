@@ -15,6 +15,7 @@ import psort_lib
 import numpy as np
 from copy import deepcopy
 import os
+import datetime
 import sys
 import decorator
 import psort_tools_commonAvg
@@ -93,6 +94,12 @@ _workingDataBase = {
     'csLearnTemp_mode':       np.zeros((1), dtype=np.bool),
     'popUp_mode':             np.array(['ss_pca'],   dtype=np.unicode),
 }
+_fileDataBase = {
+    'load_file_fullPath': np.array([''], dtype=np.unicode),
+    'save_file_fullPath': np.array([''], dtype=np.unicode),
+    'isCommonAverage':    np.zeros((1), dtype=np.bool),
+    'flag_index_detection':   True
+}
 
 _MIN_X_RANGE_WAVE = 0.002
 _MAX_X_RANGE_WAVE = 0.004
@@ -125,6 +132,9 @@ class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
         super(PsortGuiSignals, self).__init__(parent)
         self.psortDataBase = PsortDataBase()
+        self.loadData = psort_lib.LoadData()
+        self.saveData = psort_lib.SaveData()
+        self._fileDataBase = deepcopy(_fileDataBase)
         self.init_workingDataBase()
         self.init_plots()
         self.connect_menubar_signals()
@@ -145,8 +155,11 @@ class PsortGuiSignals(PsortGuiWidget):
             self.update_gui_widgets_from_dataBase()
         self.update_dataBase_from_gui_widgets()
         self.filter_data()
-        self.detect_ss_index()
-        self.detect_cs_index_slow()
+        if self._fileDataBase['flag_index_detection']:
+            self.detect_ss_index()
+            self.detect_cs_index_slow()
+        else:
+            self._fileDataBase['flag_index_detection'] = True
         self.align_cs()
         self.reset_cs_ROI()
         self.reset_ss_ROI()
@@ -172,6 +185,9 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         self.plot_cs_pca()
         self._workingDataBase['isAnalyzed'][0] = True
+        currentDT = datetime.datetime.now()
+        self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
+                + ' Analyzed Slot# ' + str(self.txtedit_toolbar_slotNumCurrent.value()))
         return 0
 
 ## #############################################################################
@@ -439,6 +455,11 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_toolbar_signals(self):
+        self.txtlabel_statusBar.setText('Load data.')
+        self.loadData.return_signal.\
+            connect(self.load_process_finished)
+        self.saveData.return_signal.\
+            connect(self.save_process_finished)
         self.actionBtn_toolbar_next.triggered.\
             connect(self.onToolbar_next_ButtonClick)
         self.actionBtn_toolbar_previous.triggered.\
@@ -588,35 +609,10 @@ class PsortGuiSignals(PsortGuiWidget):
             getOpenFileName(self, "Open File", file_path,
                             filter="Data file (*.psort *.mat *.continuous *.h5)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
-            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+            self._fileDataBase['load_file_fullPath'] = file_fullPath
+            self._fileDataBase['isCommonAverage'][0] = False
             self.init_workingDataBase()
-            self.psortDataBase.load_dataBase(file_fullPath, isCommonAverage=False)
-            QtWidgets.QApplication.restoreOverrideCursor()
-            _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
-            if not(file_ext=='.psort'):
-                _reply = QMessageBox.question(
-                                    self, 'Load Common Average',
-                                    "Do you want to load 'Common Average' Data?",
-                                    QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-                if _reply == QtGui.QMessageBox.Yes:
-                    # LOAD COMMON AVERAGE
-                    _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
-                    cmn_file_fullPath, _ = QFileDialog.\
-                        getOpenFileName(self, "Open File", file_path,
-                                        filter="Data file (*.mat *.continuous *.h5)")
-                    if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
-                        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-                        self.psortDataBase.load_dataBase(cmn_file_fullPath, isCommonAverage=True)
-                        QtWidgets.QApplication.restoreOverrideCursor()
-            self.transfer_data_from_dataBase_to_guiSignals()
-            _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath_components()
-            self.txtlabel_toolbar_fileName.setText(file_name)
-            self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
-            self.txtedit_toolbar_slotNumCurrent.\
-                setMaximum(self.psortDataBase.get_total_slot_num())
-            self.txtedit_toolbar_slotNumCurrent.setValue(1)
-            self.onToolbar_slotNumCurrent_ValueChanged()
-            self.setEnableWidgets(True)
+            self.load_process_start()
         return 0
 
     def onToolbar_save_ButtonClick(self):
@@ -628,18 +624,18 @@ class PsortGuiSignals(PsortGuiWidget):
                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if _reply == QtGui.QMessageBox.No:
                 return 0
-
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
         if not(os.path.isdir(file_path)):
             file_path = os.getcwd()
         file_fullPath, _ = QFileDialog.\
             getSaveFileName(self, "Save DataBase", file_path,
                             filter="psort DataBase (*.psort)")
-        file_path = os.path.dirname(file_fullPath)
+        _, file_path, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        if not(file_ext == '.psort'):
+            file_fullPath = file_fullPath + '.psort'
         if os.path.isdir(file_path):
-            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            self.psortDataBase.save_dataBase(file_fullPath)
-            QtWidgets.QApplication.restoreOverrideCursor()
+            self._fileDataBase['save_file_fullPath'] = file_fullPath
+            self.save_process_start()
         return 0
 
     def onMenubar_commonAvg_ButtonClick(self):
@@ -988,11 +984,13 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_waveform()
         self.extract_ss_ifr()
         self.extract_ss_corr()
+        self.extract_cs_corr()
         self.extract_ss_pca()
         self.plot_rawSignal()
         self.plot_ss_peaks_histogram()
         self.plot_ss_ifr_histogram()
         self.plot_ss_corr()
+        self.plot_cs_corr()
         self.plot_ss_waveform()
         self.plot_ss_pca()
         return 0
@@ -1130,7 +1128,98 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         self.plot_cs_pca()
         return 0
+## #############################################################################
+#%% LOAD & SAVE
+    def load_process_start(self):
+        file_fullPath = self._fileDataBase['load_file_fullPath']
+        self.loadData.file_fullPath = file_fullPath
+        self.loadData.start()
+        self.txtlabel_statusBar.setText('Loading data ...')
+        self.progress_statusBar.setRange(0,0)
+        self.widget_mainwin.setEnabled(False)
+        self.widget_popup.setEnabled(False)
+        self.toolbar.setEnabled(False)
+        self.menubar.setEnabled(False)
+        return 0
 
+    def load_process_finished(self, ch_data, ch_time, sample_rate):
+        self.txtlabel_statusBar.setText('Loaded data.')
+        self.progress_statusBar.setRange(0,1)
+        self.widget_mainwin.setEnabled(True)
+        self.widget_popup.setEnabled(True)
+        self.toolbar.setEnabled(True)
+        self.menubar.setEnabled(True)
+
+        file_fullPath = self._fileDataBase['load_file_fullPath']
+        isCommonAverage = self._fileDataBase['isCommonAverage'][0]
+        _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        if file_ext == '.psort':
+            self.psortDataBase.\
+                load_dataBase(file_fullPath, grandDataBase=ch_data, isCommonAverage=False)
+            self.load_process_finished_complement()
+            return 0
+
+        if isCommonAverage:
+            self.psortDataBase.\
+                load_dataBase(file_fullPath, ch_data=ch_data, isCommonAverage=True)
+            self.load_process_finished_complement()
+            return 0
+
+        if not(isCommonAverage):
+            self.psortDataBase.\
+                load_dataBase(file_fullPath, ch_data=ch_data, ch_time=ch_time,
+                                sample_rate=sample_rate, isCommonAverage=False)
+            _reply = QMessageBox.question(
+                                self, 'Load Common Average',
+                                "Do you want to load 'Common Average' Data?",
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            if _reply == QtGui.QMessageBox.Yes:
+                # LOAD COMMON AVERAGE
+                _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
+                cmn_file_fullPath, _ = QFileDialog.\
+                    getOpenFileName(self, "Open File", file_path,
+                                    filter="Data file (*.mat *.continuous *.h5)")
+                if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
+                    self._fileDataBase['load_file_fullPath'] = cmn_file_fullPath
+                    self._fileDataBase['isCommonAverage'][0] = True
+                    self.load_process_start()
+            else:
+                self.load_process_finished_complement()
+                return 0
+        return 0
+
+    def load_process_finished_complement(self):
+        self.transfer_data_from_dataBase_to_guiSignals()
+        _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath_components()
+        self.txtlabel_toolbar_fileName.setText(file_name)
+        self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
+        self.txtedit_toolbar_slotNumCurrent.\
+            setMaximum(self.psortDataBase.get_total_slot_num())
+        self.txtedit_toolbar_slotNumCurrent.setValue(1)
+        self.onToolbar_slotNumCurrent_ValueChanged()
+        self.setEnableWidgets(True)
+        return 0
+
+    def save_process_start(self):
+        self.saveData.file_fullPath = self._fileDataBase['save_file_fullPath']
+        self.saveData.grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+        self.saveData.start()
+        self.txtlabel_statusBar.setText('Saving data ...')
+        self.progress_statusBar.setRange(0,0)
+        self.widget_mainwin.setEnabled(False)
+        self.widget_popup.setEnabled(False)
+        self.toolbar.setEnabled(False)
+        self.menubar.setEnabled(False)
+        return 0
+
+    def save_process_finished(self):
+        self.txtlabel_statusBar.setText('Saved data.')
+        self.progress_statusBar.setRange(0,1)
+        self.widget_mainwin.setEnabled(True)
+        self.widget_popup.setEnabled(True)
+        self.toolbar.setEnabled(True)
+        self.menubar.setEnabled(True)
+        return 0
 ## #############################################################################
 #%% PLOTS
     def plot_rawSignal(self):
@@ -2067,6 +2156,9 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['isAnalyzed'][0]:
             for key in psortDataBase_currentSlot.keys():
                 self._workingDataBase[key] = psortDataBase_currentSlot[key]
+            self._fileDataBase['flag_index_detection'] = False
+        else:
+            self._fileDataBase['flag_index_detection'] = True
         return 0
 
     def transfer_data_from_guiSignals_to_dataBase(self):

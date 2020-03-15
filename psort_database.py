@@ -77,8 +77,6 @@ class PsortDataBase():
         self.init_slotsDataBase()
         self.changeCurrentSlot_to(0)
         self.set_file_fullPath(os.getcwd()+os.sep+"dataBase.psort")
-        #self.save_dataBase()
-        #self.load_dataBase()
         return None
 
     def init_slotsDataBase(self, ch_data=None, ch_time=None, sample_rate=30000):
@@ -144,82 +142,32 @@ class PsortDataBase():
         self.loadCurrentSlot_from(new_slot_num)
         return int(self._topLevelDataBase['current_slot_num'][0])
 
-    def save_dataBase(self, file_fullPath):
-        psort_lib.save_file_psort(file_fullPath, self._grandDataBase)
-        return 'Saved dataBase: ' + file_fullPath
-
-    def load_dataBase(self, file_fullPath, isCommonAverage=False):
+    def load_dataBase(self, file_fullPath, ch_data=None, ch_time=None, sample_rate=None, grandDataBase=None, isCommonAverage=False):
         _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
-            self.load_psort_dataBase(file_fullPath)
-        elif file_ext == '.mat':
-            self.load_mat_dataBase(file_fullPath, isCommonAverage)
-        elif file_ext == '.continuous':
-            self.load_continuous_dataBase(file_fullPath, isCommonAverage)
-        elif file_ext == '.h5':
-            self.load_h5_dataBase(file_fullPath, isCommonAverage)
-        else:
-            print('Error: <psort_database.load_dataBase: file extension is not valid>')
-            return None
-        if not(isCommonAverage):
+            self._grandDataBase = grandDataBase
+            self._currentSlotDataBase = self._grandDataBase[-2]
+            self._topLevelDataBase = self._grandDataBase[-1]
             self.set_file_fullPath(file_fullPath)
-        return 'Loaded dataBase: ' + file_fullPath
+            return 0
 
-    def load_psort_dataBase(self, file_fullPath):
-        self._grandDataBase = psort_lib.load_file_psort(file_fullPath)
-        self._currentSlotDataBase = self._grandDataBase[-2]
-        self._topLevelDataBase = self._grandDataBase[-1]
-        return 0
-
-    def load_mat_dataBase(self, file_fullPath, isCommonAverage = False):
         if not(isCommonAverage):
             self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
-            ch_data, ch_time, sample_rate = psort_lib.load_file_matlab(file_fullPath)
-            self.init_slotsDataBase(ch_data, ch_time, sample_rate)
-            del ch_data, ch_time
-        else:
-            _data_cmn, _, _ = psort_lib.load_file_matlab(file_fullPath)
-            # check _data_cmn size
-            if _data_cmn.size == self._topLevelDataBase['ch_data'].size:
-                self._topLevelDataBase['file_fullPathCommonAvg'] = np.array([file_fullPath], dtype=np.unicode)
-                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _data_cmn
-                del _data_cmn
-            else:
-                print('Error: <psort_database.load_mat_dataBase: size of common average data does not match main data.>')
-        return 0
+            _ch_data = deepcopy(ch_data)
+            _ch_time = deepcopy(ch_time)
+            _sample_rate = deepcopy(sample_rate)
+            self.init_slotsDataBase(_ch_data, _ch_time, _sample_rate)
+            self.set_file_fullPath(file_fullPath)
+            return 0
 
-    def load_continuous_dataBase(self, file_fullPath, isCommonAverage = False):
-        if not(isCommonAverage):
-            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
-            ch_data, ch_time, sample_rate = psort_lib.load_file_continuous(file_fullPath)
-            self.init_slotsDataBase(ch_data, ch_time, sample_rate)
-            del ch_data, ch_time
-        else:
-            _data_cmn, _, _ = psort_lib.load_file_continuous(file_fullPath)
-            # check _data_cmn size
-            if _data_cmn.size == self._topLevelDataBase['ch_data'].size:
+        if isCommonAverage:
+            _ch_data_cmn = deepcopy(ch_data)
+            # check _ch_data_cmn size
+            if _ch_data_cmn.size == self._topLevelDataBase['ch_data'].size:
                 self._topLevelDataBase['file_fullPathCommonAvg'] = np.array([file_fullPath], dtype=np.unicode)
-                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _data_cmn
-                del _data_cmn
+                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _ch_data_cmn
             else:
-                print('Error: <psort_database.load_continuous_dataBase: size of common average data does not match main data.>')
-        return 0
-
-    def load_h5_dataBase(self, file_fullPath, isCommonAverage = False):
-        if not(isCommonAverage):
-            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
-            ch_data, ch_time, sample_rate = psort_lib.load_file_h5(file_fullPath)
-            self.init_slotsDataBase(ch_data, ch_time, sample_rate)
-            del ch_data, ch_time
-        else:
-            _data_cmn, _, _ = psort_lib.load_file_h5(file_fullPath)
-            # check _data_cmn size
-            if _data_cmn.size == self._topLevelDataBase['ch_data'].size:
-                self._topLevelDataBase['file_fullPathCommonAvg'] = np.array([file_fullPath], dtype=np.unicode)
-                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _data_cmn
-                del _data_cmn
-            else:
-                print('Error: <psort_database.load_h5_dataBase: size of common average data does not match main data.>')
+                print('Error: <psort_database.load_dataBase: size of common average data does not match main data.>')
         return 0
 
     def is_all_slots_analyzed(self):
@@ -257,6 +205,10 @@ class PsortDataBase():
         file_ext = self._topLevelDataBase['file_ext'][0]
         file_name_without_ext = self._topLevelDataBase['file_name_without_ext'][0]
         return file_fullPath, file_path, file_name, file_ext, file_name_without_ext
+
+    def get_gradDataBase_Pointer(self):
+        # This function should be used just for save data function
+        return self._grandDataBase
 
     def get_currentSlotDataBase(self):
         return deepcopy(self._currentSlotDataBase)
