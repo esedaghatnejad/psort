@@ -286,6 +286,8 @@ def cross_probability(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001
                                 / float(sample_rate) / float(bin_size)\
                                 ).astype(int)
     _spike2_bool = np.zeros((spike2_bool_size), dtype=np.int8)
+    spike2_index[spike2_index<1] = 1
+    spike2_index[spike2_index>(spike2_bool_size-1)] = (spike2_bool_size-1)
     _spike2_bool[spike2_index] = 1
 
     win_len_int = np.round(float(win_len) / float(bin_size)).astype(int)
