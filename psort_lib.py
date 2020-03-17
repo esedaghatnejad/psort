@@ -46,7 +46,7 @@ def load_file_continuous(file_fullPath):
     time_step = 1. / float(sample_rate)
     time_range = time_step * ch_time_size
     ch_time_last_element = ch_time_first_element + time_range - time_step
-    ch_time = np.arange(ch_time_first_element, ch_time_last_element, time_step, dtype=np.float)
+    ch_time = np.linspace(ch_time_first_element, ch_time_last_element, num=ch_time_size, endpoint=True, dtype=np.float)
     if not(ch_time.size == ch_data.size):
         print('Error: <psort_lib.load_file_continuous: size of ch_time and ch_data are not the same.>')
     del data_continuous
