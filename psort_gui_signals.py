@@ -219,6 +219,10 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_popup_mainPlot.\
             plot(np.zeros((0)), np.zeros((0)), name="popUp", pen=None,
                 symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
+        self.pltData_popUpPlotTemplate =\
+            self.plot_popup_mainPlot.\
+            plot(np.zeros((0)), np.zeros((0)), name="popUpTemplate", pen=None,
+                symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
             # cross hair
         self.infLine_popUpPlot_vLine = \
             pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
@@ -889,6 +893,12 @@ class PsortGuiSignals(PsortGuiWidget):
                 connect="finite",
                 pen=None,
                 symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
+        self.pltData_popUpPlotTemplate.\
+            setData(
+                np.zeros((0)),
+                np.zeros((0)),
+                pen=None,
+                symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
         self.viewBox_popUpPlot.autoRange()
         self.plot_popup_mainPlot.setTitle(
             "Y: SS_PCA2(au) | X: SS_PCA1(au)", color='k', size='12')
@@ -907,6 +917,12 @@ class PsortGuiSignals(PsortGuiWidget):
                 connect="finite",
                 pen=None,
                 symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
+        self.pltData_popUpPlotTemplate.\
+            setData(
+                np.zeros((0)),
+                np.zeros((0)),
+                pen=None,
+                symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
         self.viewBox_popUpPlot.autoRange()
         self.plot_popup_mainPlot.setTitle(
             "Y: CS_PCA2(au) | X: CS_PCA1(au)", color='k', size='12')
@@ -928,6 +944,13 @@ class PsortGuiSignals(PsortGuiWidget):
                 connect="finite",
                 pen=pg.mkPen(color=(0, 0, 0, 200), width=1, style=QtCore.Qt.SolidLine),
                 symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+        self.pltData_popUpPlotTemplate.\
+            setData(
+                self._workingDataBase['ss_wave_span_template']*1000.,
+                self._workingDataBase['ss_wave_template'],
+                connect="finite",
+                pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine),
+                symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
         self.viewBox_popUpPlot.autoRange()
         self.plot_popup_mainPlot.setTitle(
             "Y: SS_Waveform(uV) | X: Time(ms)", color='k', size='12')
@@ -948,6 +971,13 @@ class PsortGuiSignals(PsortGuiWidget):
                 cs_waveform.ravel(),
                 connect="finite",
                 pen=pg.mkPen(color=(0, 0, 0, 200), width=2, style=QtCore.Qt.SolidLine),
+                symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+        self.pltData_popUpPlotTemplate.\
+            setData(
+                self._workingDataBase['cs_wave_span_template']*1000.,
+                self._workingDataBase['cs_wave_template'],
+                connect="finite",
+                pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine),
                 symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
         self.viewBox_popUpPlot.autoRange()
         self.plot_popup_mainPlot.setTitle(
