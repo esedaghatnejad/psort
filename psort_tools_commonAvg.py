@@ -176,6 +176,10 @@ class CommonAvgSignals(CommonAvgWidget):
         file_fullPath, _ = QFileDialog.\
             getSaveFileName(self, "Save DataBase", file_path,
                             filter="h5 Data (*.h5)")
+        if file_fullPath == '':
+            self.pushBtn_save.setEnabled(False)
+            self.pushBtn_save.setEnabled(True)
+            return 0
         _, file_path, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
         if not(file_ext == '.h5'):
             file_fullPath = file_fullPath + '.h5'
