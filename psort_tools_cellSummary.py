@@ -39,7 +39,6 @@ class CellSummaryWidget(QMainWindow):
         self.graphWin = pg.GraphicsWindow(title="Cell Summary")
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
-
         self.layout_grand.addWidget(self.graphWin)
         self.widget_grand = QWidget()
         self.widget_grand.setLayout(self.layout_grand)
@@ -64,6 +63,7 @@ class CellSummarySignals(CellSummaryWidget):
             self.load_workingDataBase()
             self.update_workingDataBase()
             self.update_plot()
+            self.update_text()
         return None
 
     def update_plot(self):
@@ -73,6 +73,23 @@ class CellSummarySignals(CellSummaryWidget):
         self.plot_cs_ifr_histogram()
         self.plot_cross_prob()
         self.plot_waveform()
+        return 0
+
+    def update_text(self):
+        duration = float( self._workingDataBase['ch_data'].size ) \
+                    / float( self._workingDataBase['sample_rate'][0] )
+        numCS = float( self._workingDataBase['cs_index'].sum() )
+        freqCS = self._workingDataBase['cs_ifr_mean'][0]
+        numSS = float( self._workingDataBase['ss_index'].sum() )
+        freqSS = self._workingDataBase['ss_ifr_mean'][0] # float(self._workingDataBase['ss_index'].sum()) / duration
+        self.pltLabel_Stats.setText(
+            "Duration: {:.1f} min ,   numCS: {:.0f} ,   freqCS: {:.2f} Hz ,   numSS: {:.0f} ,   freqSS: {:.2f} Hz".format(
+            (duration / 60.),
+            numCS,
+            freqCS,
+            numSS,
+            freqSS
+            ), color='k', size='14pt', bold=False)
         return 0
 
     def init_plot(self):
@@ -159,6 +176,11 @@ class CellSummarySignals(CellSummaryWidget):
                 stepMode=True, fillLevel=0, brush=(255,0,0,200))
         self.viewBox_CsPeak = self.pltWidget_CsPeak.getViewBox()
         self.viewBox_CsPeak.autoRange()
+        # Next Row
+        self.graphWin.nextRow()
+        # Stats
+        self.pltLabel_Stats = self.graphWin.addLabel(
+            text='TEXT2', row=None, col=None, rowspan=1, colspan=3)
         return 0
 
     def load_grandDataBase(self):
@@ -192,6 +214,33 @@ class CellSummarySignals(CellSummaryWidget):
         self.PsortGuiSignals.extract_cs_ifr(self)
         self.PsortGuiSignals.extract_ss_corr(self)
         self.PsortGuiSignals.extract_cs_corr(self)
+        self._workingDataBase['duration'] = \
+                    float( self._workingDataBase['ch_data'].size ) \
+                    / float( self._workingDataBase['sample_rate'][0] )
+        if self._workingDataBase['ss_index'].sum() > 0:
+            self._workingDataBase['ss_ifr_mean'][0] = \
+                float(self._workingDataBase['ss_index'].sum()) \
+                / self._workingDataBase['duration']
+            self._workingDataBase['ss_wave_mean'] = \
+                np.mean(self._workingDataBase['ss_wave'][:,:],axis=0)
+            self._workingDataBase['ss_wave_span_mean'] = \
+                np.mean(self._workingDataBase['ss_wave_span'][:,:],axis=0)
+        else:
+            self._workingDataBase['ss_ifr_mean'][0] = 0
+            self._workingDataBase['ss_wave_mean'] = np.zeros((0))
+            self._workingDataBase['ss_wave_span_mean'] = np.zeros((0))
+        if self._workingDataBase['cs_index'].sum() > 0:
+            self._workingDataBase['cs_ifr_mean'][0] = \
+                float(self._workingDataBase['cs_index'].sum()) \
+                / self._workingDataBase['duration']
+            self._workingDataBase['cs_wave_mean'] = \
+                np.mean(self._workingDataBase['cs_wave'][:,:],axis=0)
+            self._workingDataBase['cs_wave_span_mean'] = \
+                np.mean(self._workingDataBase['cs_wave_span'][:,:],axis=0)
+        else:
+            self._workingDataBase['cs_ifr_mean'][0] = 0
+            self._workingDataBase['cs_wave_mean'] = np.zeros((0))
+            self._workingDataBase['cs_wave_span_mean'] = np.zeros((0))
         return 0
 
     def plot_ss_peaks_histogram(self):
@@ -211,8 +260,6 @@ class CellSummarySignals(CellSummaryWidget):
         return 0
 
     def plot_ss_ifr_histogram(self):
-        self._workingDataBase['ss_ifr_mean'][0] = \
-            np.median(self._workingDataBase['ss_ifr'])
         self.infLine_SsIfr.setValue(self._workingDataBase['ss_ifr_mean'][0])
         self.pltData_SsIfr.\
             setData(
@@ -223,8 +270,6 @@ class CellSummarySignals(CellSummaryWidget):
         return 0
 
     def plot_cs_ifr_histogram(self):
-        self._workingDataBase['cs_ifr_mean'][0] = \
-            np.median(self._workingDataBase['cs_ifr'])
         self.infLine_CsIfr.setValue(self._workingDataBase['cs_ifr_mean'][0])
         self.pltData_CsIfr.\
             setData(
@@ -252,19 +297,11 @@ class CellSummarySignals(CellSummaryWidget):
         return 0
 
     def plot_waveform(self):
-        self._workingDataBase['ss_wave_mean'] = \
-            np.mean(self._workingDataBase['ss_wave'][:,:],axis=0)
-        self._workingDataBase['ss_wave_span_mean'] = \
-            np.mean(self._workingDataBase['ss_wave_span'][:,:],axis=0)
         self.pltData_SsWave.\
             setData(
                 self._workingDataBase['ss_wave_span_mean']*1000.,
                 self._workingDataBase['ss_wave_mean'],
                 connect="finite")
-        self._workingDataBase['cs_wave_mean'] = \
-            np.mean(self._workingDataBase['cs_wave'][:,:],axis=0)
-        self._workingDataBase['cs_wave_span_mean'] = \
-            np.mean(self._workingDataBase['cs_wave_span'][:,:],axis=0)
         self.pltData_CsWave.\
             setData(
                 self._workingDataBase['cs_wave_span_mean']*1000.,

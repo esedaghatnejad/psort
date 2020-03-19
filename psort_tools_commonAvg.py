@@ -53,37 +53,36 @@ class CommonAvgWidget(QMainWindow):
         self.widget_table.setHorizontalHeaderLabels(['Name','Size','SampleRate','Status'])
 
         self.layout_addRemove = QHBoxLayout()
-        self.pushBtn_reset = QPushButton("Reset")
-        psort_lib.setFont(self.pushBtn_reset)
-        self.pushBtn_reset.setEnabled(False)
-        self.pushBtn_remove = QPushButton("Remove")
-        psort_lib.setFont(self.pushBtn_remove)
-        self.pushBtn_remove.setEnabled(False)
         self.pushBtn_add = QPushButton("Add")
         psort_lib.setFont(self.pushBtn_add)
         self.pushBtn_add.setEnabled(True)
-        self.layout_addRemove.addWidget(self.pushBtn_reset)
-        self.layout_addRemove.addStretch()
-        self.layout_addRemove.addWidget(self.pushBtn_remove)
+        self.pushBtn_remove = QPushButton("Remove")
+        psort_lib.setFont(self.pushBtn_remove)
+        self.pushBtn_remove.setEnabled(False)
+        self.pushBtn_reset = QPushButton("Reset")
+        psort_lib.setFont(self.pushBtn_reset)
+        self.pushBtn_reset.setEnabled(False)
         self.layout_addRemove.addWidget(self.pushBtn_add)
+        self.layout_addRemove.addWidget(self.pushBtn_remove)
+        self.layout_addRemove.addStretch()
+        self.layout_addRemove.addWidget(self.pushBtn_reset)
         self.layout_addRemove.setSpacing(1)
         self.layout_addRemove.setContentsMargins(1, 1, 1, 1)
 
         self.comboBx_avgMode = QComboBox()
         psort_lib.setFont(self.comboBx_avgMode)
         self.comboBx_avgMode.setEnabled(False)
-        self.comboBx_avgMode.setEditable(True)
-        self.comboBx_avgMode.lineEdit().setReadOnly(True);
-        self.comboBx_avgMode.lineEdit().setAlignment(QtCore.Qt.AlignCenter)
         self.comboBx_avgMode.addItems(["Mean", "Median"])
         self.comboBx_avgMode.setCurrentIndex(1)
 
         self.pushBtn_start = QPushButton("Start")
         psort_lib.setFont(self.pushBtn_start)
+        self.pushBtn_start.setStyleSheet("Text-align:left");
         self.pushBtn_start.setEnabled(False)
 
         self.pushBtn_save = QPushButton("Save")
         psort_lib.setFont(self.pushBtn_save)
+        self.pushBtn_save.setStyleSheet("Text-align:left");
         self.pushBtn_save.setEnabled(False)
 
         self.layout_grand.addWidget(self.widget_table)

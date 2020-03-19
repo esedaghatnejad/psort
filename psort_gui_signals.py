@@ -606,7 +606,12 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onToolbar_save_ButtonClick(self):
-        self.onToolbar_slotNumCurrent_ValueChanged()
+        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        self.transfer_data_from_guiSignals_to_dataBase()
+        self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
+        self.txtlabel_toolbar_slotNumTotal.\
+            setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
+            "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
         if not(self.psortDataBase.is_all_slots_analyzed()):
             _reply = QMessageBox.question(
                                 self, 'Save warning',
@@ -620,6 +625,8 @@ class PsortGuiSignals(PsortGuiWidget):
         file_fullPath, _ = QFileDialog.\
             getSaveFileName(self, "Save DataBase", file_path,
                             filter="psort DataBase (*.psort)")
+        if file_fullPath == '':
+            return 0
         _, file_path, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
         if not(file_ext == '.psort'):
             file_fullPath = file_fullPath + '.psort'
@@ -634,6 +641,12 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onMenubar_cellSummary_ButtonClick(self):
+        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        self.transfer_data_from_guiSignals_to_dataBase()
+        self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
+        self.txtlabel_toolbar_slotNumTotal.\
+            setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
+            "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
         _reply = QMessageBox.question(
                             self, 'Use current dataset',
                             "Do you want to use current dataset?",
