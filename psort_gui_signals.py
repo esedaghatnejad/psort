@@ -19,6 +19,7 @@ import datetime
 import sys
 import decorator
 import psort_tools_commonAvg
+import psort_tools_cellSummary
 
 ## #############################################################################
 #%% GLOBAL VARIABLES
@@ -38,8 +39,8 @@ _workingDataBase = {
     'cs_threshold':           np.zeros((1), dtype=np.float32),
     'ch_time':                np.zeros((0), dtype=np.float64),
     'ch_data':                np.zeros((0), dtype=np.float64),
-    'ch_data_cs':         np.zeros((0), dtype=np.float64),
-    'ch_data_ss':         np.zeros((0), dtype=np.float64),
+    'ch_data_cs':             np.zeros((0), dtype=np.float64),
+    'ch_data_ss':             np.zeros((0), dtype=np.float64),
     'ss_index':               np.zeros((0), dtype=np.bool),
     'ss_index_selected':      np.zeros((0), dtype=np.bool),
     'cs_index_slow':          np.zeros((0), dtype=np.bool),
@@ -100,23 +101,6 @@ _fileDataBase = {
     'isCommonAverage':    np.zeros((1), dtype=np.bool),
     'flag_index_detection':   True
 }
-
-_MIN_X_RANGE_WAVE = 0.002
-_MAX_X_RANGE_WAVE = 0.004
-_MIN_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MIN_X_RANGE_WAVE TEMPLATE
-_MAX_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MAX_X_RANGE_WAVE TEMPLATE
-_MIN_X_RANGE_CS_WAVE_TEMP = 0.0005 # should be lees than _MIN_X_RANGE_WAVE TEMPLATE
-_MAX_X_RANGE_CS_WAVE_TEMP = 0.0030 # should be lees than _MAX_X_RANGE_WAVE TEMPLATE
-_X_RANGE_CORR = 0.050
-_BIN_SIZE_CORR = 0.001
-if  _MIN_X_RANGE_SS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
-    _MIN_X_RANGE_SS_WAVE_TEMP = _MIN_X_RANGE_WAVE
-if  _MIN_X_RANGE_CS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
-    _MIN_X_RANGE_CS_WAVE_TEMP = _MIN_X_RANGE_WAVE
-if  _MAX_X_RANGE_SS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
-    _MAX_X_RANGE_SS_WAVE_TEMP = _MAX_X_RANGE_WAVE
-if  _MAX_X_RANGE_CS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
-    _MAX_X_RANGE_CS_WAVE_TEMP = _MAX_X_RANGE_WAVE
 
 @decorator.decorator
 def showWaitCursor(func, *args, **kwargs):
@@ -331,12 +315,12 @@ class PsortGuiSignals(PsortGuiWidget):
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveROI", \
                 pen=pg.mkPen(color=(255, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
         self.infLine_SsWave_minPca = \
-            pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(100,100,255,255),
+            pg.InfiniteLine(pos=-psort_lib._MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
         self.plot_mainwin_SsPanel_plots_SsWave.\
             addItem(self.infLine_SsWave_minPca, ignoreBounds=False)
         self.infLine_SsWave_maxPca = \
-            pg.InfiniteLine(pos=_MAX_X_RANGE_WAVE*1000./2., angle=90, pen=(100,100,255,255),
+            pg.InfiniteLine(pos=psort_lib._MAX_X_RANGE_WAVE*1000./2., angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
         self.plot_mainwin_SsPanel_plots_SsWave.\
             addItem(self.infLine_SsWave_maxPca, ignoreBounds=False)
@@ -396,12 +380,12 @@ class PsortGuiSignals(PsortGuiWidget):
             plot(np.zeros((0)), np.zeros((0)), name="csWaveROI", \
                 pen=pg.mkPen(color=(255, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
         self.infLine_CsWave_minPca = \
-            pg.InfiniteLine(pos=-_MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
+            pg.InfiniteLine(pos=-psort_lib._MIN_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
         self.plot_mainwin_CsPanel_plots_CsWave.\
             addItem(self.infLine_CsWave_minPca, ignoreBounds=False)
         self.infLine_CsWave_maxPca = \
-            pg.InfiniteLine(pos=_MAX_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
+            pg.InfiniteLine(pos=psort_lib._MAX_X_RANGE_WAVE*1000./2., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
         self.plot_mainwin_CsPanel_plots_CsWave.\
             addItem(self.infLine_CsWave_maxPca, ignoreBounds=False)
@@ -456,6 +440,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(sys.exit)
         self.actionBtn_menubar_tools_commonAvg.triggered.\
             connect(self.onMenubar_commonAvg_ButtonClick)
+        self.actionBtn_menubar_tools_cellSummary.triggered.\
+            connect(self.onMenubar_cellSummary_ButtonClick)
         return 0
 
     def connect_toolbar_signals(self):
@@ -647,6 +633,25 @@ class PsortGuiSignals(PsortGuiWidget):
         self.menubar_commonAvg.show()
         return 0
 
+    def onMenubar_cellSummary_ButtonClick(self):
+        _reply = QMessageBox.question(
+                            self, 'Use current dataset',
+                            "Do you want to use current dataset?",
+                            QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if (_reply == QtGui.QMessageBox.Yes) \
+            and (self.psortDataBase.get_total_slot_isAnalyzed()>0):
+            self.menubar_cellSummary = \
+                psort_tools_cellSummary.CellSummarySignals(
+                    psort_grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+                )
+        else:
+            self.menubar_cellSummary = \
+                psort_tools_cellSummary.CellSummarySignals(
+                    psort_grandDataBase = None
+                )
+        self.menubar_cellSummary.show()
+        return 0
+
     @showWaitCursor
     def onPopUp_Cancel_Clicked(self):
         self.popUp_task_cancelled()
@@ -704,12 +709,12 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineSsWaveMinPca_positionChangeFinished(self):
-        # minPca should not be less than -_MIN_X_RANGE_WAVE
-        if self.infLine_SsWave_minPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
-            self.infLine_SsWave_minPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
-        # minPca should not be more than +_MAX_X_RANGE_WAVE
-        if self.infLine_SsWave_minPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
-            self.infLine_SsWave_minPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # minPca should not be less than -psort_lib._MIN_X_RANGE_WAVE
+        if self.infLine_SsWave_minPca.value() < (-psort_lib._MIN_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_minPca.setValue( -psort_lib._MIN_X_RANGE_WAVE*1000.)
+        # minPca should not be more than +psort_lib._MAX_X_RANGE_WAVE
+        if self.infLine_SsWave_minPca.value() > (+psort_lib._MAX_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_minPca.setValue( +psort_lib._MAX_X_RANGE_WAVE*1000.)
         # minPca should not be more than maxPca
         # if minPca is more than maxPca then switch them
         _minPca = self.infLine_SsWave_minPca.value()
@@ -719,22 +724,22 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_SsWave_maxPca.setValue(_minPca)
         # update _workingDataBase
         self._workingDataBase['ss_pca_bound_min'][0] = \
-            int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_SsWave_minPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self._workingDataBase['ss_pca_bound_max'][0] = \
-            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self.extract_ss_pca()
         self.plot_ss_pca()
         return 0
 
     def onInfLineSsWaveMaxPca_positionChangeFinished(self):
-        # maxPca should not be less than -_MIN_X_RANGE_WAVE
-        if self.infLine_SsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
-            self.infLine_SsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
-        # maxPca should not be more than +_MAX_X_RANGE_WAVE
-        if self.infLine_SsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
-            self.infLine_SsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # maxPca should not be less than -psort_lib._MIN_X_RANGE_WAVE
+        if self.infLine_SsWave_maxPca.value() < (-psort_lib._MIN_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_maxPca.setValue( -psort_lib._MIN_X_RANGE_WAVE*1000.)
+        # maxPca should not be more than +psort_lib._MAX_X_RANGE_WAVE
+        if self.infLine_SsWave_maxPca.value() > (+psort_lib._MAX_X_RANGE_WAVE*1000.):
+            self.infLine_SsWave_maxPca.setValue( +psort_lib._MAX_X_RANGE_WAVE*1000.)
         # minPca should not be more than maxPca
         # if minPca is more than maxPca then switch them
         _minPca = self.infLine_SsWave_minPca.value()
@@ -744,22 +749,22 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_SsWave_maxPca.setValue(_minPca)
         # update _workingDataBase
         self._workingDataBase['ss_pca_bound_min'][0] = \
-            int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_SsWave_minPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self._workingDataBase['ss_pca_bound_max'][0] = \
-            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self.extract_ss_pca()
         self.plot_ss_pca()
         return 0
 
     def onInfLineCsWaveMinPca_positionChangeFinished(self):
-        # minPca should not be less than -_MIN_X_RANGE_WAVE
-        if self.infLine_CsWave_minPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
-            self.infLine_CsWave_minPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
-        # minPca should not be more than +_MAX_X_RANGE_WAVE
-        if self.infLine_CsWave_minPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
-            self.infLine_CsWave_minPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # minPca should not be less than -psort_lib._MIN_X_RANGE_WAVE
+        if self.infLine_CsWave_minPca.value() < (-psort_lib._MIN_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_minPca.setValue( -psort_lib._MIN_X_RANGE_WAVE*1000.)
+        # minPca should not be more than +psort_lib._MAX_X_RANGE_WAVE
+        if self.infLine_CsWave_minPca.value() > (+psort_lib._MAX_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_minPca.setValue( +psort_lib._MAX_X_RANGE_WAVE*1000.)
         # minPca should not be more than maxPca
         # if minPca is more than maxPca then switch them
         _minPca = self.infLine_CsWave_minPca.value()
@@ -769,22 +774,22 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_maxPca.setValue(_minPca)
         # update _workingDataBase
         self._workingDataBase['cs_pca_bound_min'][0] = \
-            int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_CsWave_minPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self._workingDataBase['cs_pca_bound_max'][0] = \
-            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self.extract_cs_pca()
         self.plot_cs_pca()
         return 0
 
     def onInfLineCsWaveMaxPca_positionChangeFinished(self):
-        # maxPca should not be less than -_MIN_X_RANGE_WAVE
-        if self.infLine_CsWave_maxPca.value() < (-_MIN_X_RANGE_WAVE*1000.):
-            self.infLine_CsWave_maxPca.setValue( -_MIN_X_RANGE_WAVE*1000.)
-        # maxPca should not be more than +_MAX_X_RANGE_WAVE
-        if self.infLine_CsWave_maxPca.value() > (+_MAX_X_RANGE_WAVE*1000.):
-            self.infLine_CsWave_maxPca.setValue( +_MAX_X_RANGE_WAVE*1000.)
+        # maxPca should not be less than -psort_lib._MIN_X_RANGE_WAVE
+        if self.infLine_CsWave_maxPca.value() < (-psort_lib._MIN_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_maxPca.setValue( -psort_lib._MIN_X_RANGE_WAVE*1000.)
+        # maxPca should not be more than +psort_lib._MAX_X_RANGE_WAVE
+        if self.infLine_CsWave_maxPca.value() > (+psort_lib._MAX_X_RANGE_WAVE*1000.):
+            self.infLine_CsWave_maxPca.setValue( +psort_lib._MAX_X_RANGE_WAVE*1000.)
         # minPca should not be more than maxPca
         # if minPca is more than maxPca then switch them
         _minPca = self.infLine_CsWave_minPca.value()
@@ -794,10 +799,10 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_maxPca.setValue(_minPca)
         # update _workingDataBase
         self._workingDataBase['cs_pca_bound_min'][0] = \
-            int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_CsWave_minPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self._workingDataBase['cs_pca_bound_max'][0] = \
-            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self.extract_cs_pca()
         self.plot_cs_pca()
@@ -1707,7 +1712,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def align_cs_wrt_ss_temp(self):
         window_len_4ms_back = int(0.004 * self._workingDataBase['sample_rate'][0])
-        window_len_ss_temp = int( (_MAX_X_RANGE_SS_WAVE_TEMP \
+        window_len_ss_temp = int( (psort_lib._MAX_X_RANGE_SS_WAVE_TEMP \
                                 * self._workingDataBase['sample_rate'][0])-1)
         _cs_index_slow = self._workingDataBase['cs_index_slow']
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
@@ -1733,7 +1738,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def align_cs_wrt_cs_temp(self):
         window_len_5ms_back = int(0.005 * self._workingDataBase['sample_rate'][0])
         window_len_5ms_front = int(0.005 * self._workingDataBase['sample_rate'][0])
-        window_len_cs_temp = int( (_MAX_X_RANGE_CS_WAVE_TEMP \
+        window_len_cs_temp = int( (psort_lib._MAX_X_RANGE_CS_WAVE_TEMP \
                                 * self._workingDataBase['sample_rate'][0])-1)
         _cs_index_slow = self._workingDataBase['cs_index_slow']
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
@@ -1955,8 +1960,8 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['ch_data_ss'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
-                    win_len_before=_MIN_X_RANGE_WAVE,
-                    win_len_after=_MAX_X_RANGE_WAVE)
+                    win_len_before=psort_lib._MIN_X_RANGE_WAVE,
+                    win_len_after=psort_lib._MAX_X_RANGE_WAVE)
         else:
             self._workingDataBase['ss_wave'] = np.zeros((0,0), dtype=np.float32)
             self._workingDataBase['ss_wave_span'] = np.zeros((0,0), dtype=np.float32)
@@ -1969,8 +1974,8 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['ch_data_ss'],
                     self._workingDataBase['cs_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
-                    win_len_before=_MIN_X_RANGE_WAVE,
-                    win_len_after=_MAX_X_RANGE_WAVE)
+                    win_len_before=psort_lib._MIN_X_RANGE_WAVE,
+                    win_len_after=psort_lib._MAX_X_RANGE_WAVE)
         else:
             self._workingDataBase['cs_wave'] = np.zeros((0,0), dtype=np.float32)
             self._workingDataBase['cs_wave_span'] = np.zeros((0,0), dtype=np.float32)
@@ -2029,9 +2034,10 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['ss_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
-                    bin_size=_BIN_SIZE_CORR,
-                    win_len=_X_RANGE_CORR)
-            _win_len_int = np.round(float(_X_RANGE_CORR) / float(_BIN_SIZE_CORR)).astype(int)
+                    bin_size=psort_lib._BIN_SIZE_CORR,
+                    win_len=psort_lib._X_RANGE_CORR)
+            _win_len_int = np.round(float(psort_lib._X_RANGE_CORR) \
+                                    / float(psort_lib._BIN_SIZE_CORR)).astype(int)
             self._workingDataBase['ss_corr'][_win_len_int] = np.NaN
         else:
             self._workingDataBase['ss_corr'] = np.zeros((0), dtype=np.float32)
@@ -2045,8 +2051,8 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['cs_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
-                    bin_size=_BIN_SIZE_CORR,
-                    win_len=_X_RANGE_CORR)
+                    bin_size=psort_lib._BIN_SIZE_CORR,
+                    win_len=psort_lib._X_RANGE_CORR)
         else:
             self._workingDataBase['cs_corr'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_corr_span'] = np.zeros((0), dtype=np.float32)
@@ -2094,9 +2100,9 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def extract_ss_template(self):
         if self._workingDataBase['ssLearnTemp_mode'][0]:
-            _ind_begin = int((_MIN_X_RANGE_WAVE-_MIN_X_RANGE_SS_WAVE_TEMP) \
+            _ind_begin = int((psort_lib._MIN_X_RANGE_WAVE-psort_lib._MIN_X_RANGE_SS_WAVE_TEMP) \
                                 * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((_MIN_X_RANGE_WAVE+_MAX_X_RANGE_SS_WAVE_TEMP) \
+            _ind_end = int((psort_lib._MIN_X_RANGE_WAVE+psort_lib._MAX_X_RANGE_SS_WAVE_TEMP) \
                                 * self._workingDataBase['sample_rate'][0])
             _window = np.arange(_ind_begin, _ind_end, 1)
             self._workingDataBase['ss_wave_template'] = \
@@ -2110,9 +2116,9 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def extract_cs_template(self):
         if self._workingDataBase['csLearnTemp_mode'][0]:
-            _ind_begin = int((_MIN_X_RANGE_WAVE-_MIN_X_RANGE_CS_WAVE_TEMP) \
+            _ind_begin = int((psort_lib._MIN_X_RANGE_WAVE-psort_lib._MIN_X_RANGE_CS_WAVE_TEMP) \
                                 * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((_MIN_X_RANGE_WAVE+_MAX_X_RANGE_CS_WAVE_TEMP) \
+            _ind_end = int((psort_lib._MIN_X_RANGE_WAVE+psort_lib._MAX_X_RANGE_CS_WAVE_TEMP) \
                                 * self._workingDataBase['sample_rate'][0])
             _window = np.arange(_ind_begin, _ind_end, 1)
             self._workingDataBase['cs_wave_template'] = \
@@ -2238,20 +2244,20 @@ class PsortGuiSignals(PsortGuiWidget):
         self.infLine_SsWave_minPca.setValue(
             ((self._workingDataBase['ss_pca_bound_min'][0] \
             / self._workingDataBase['sample_rate'][0])
-            - _MIN_X_RANGE_WAVE) * 1000.)
+            - psort_lib._MIN_X_RANGE_WAVE) * 1000.)
         self.infLine_SsWave_maxPca.setValue(
             ((self._workingDataBase['ss_pca_bound_max'][0] \
             / self._workingDataBase['sample_rate'][0])
-            - _MIN_X_RANGE_WAVE) * 1000.)
+            - psort_lib._MIN_X_RANGE_WAVE) * 1000.)
         # cs_pca_bound
         self.infLine_CsWave_minPca.setValue(
             ((self._workingDataBase['cs_pca_bound_min'][0] \
             / self._workingDataBase['sample_rate'][0])
-            - _MIN_X_RANGE_WAVE) * 1000.)
+            - psort_lib._MIN_X_RANGE_WAVE) * 1000.)
         self.infLine_CsWave_maxPca.setValue(
             ((self._workingDataBase['cs_pca_bound_max'][0] \
             / self._workingDataBase['sample_rate'][0])
-            - _MIN_X_RANGE_WAVE) * 1000.)
+            - psort_lib._MIN_X_RANGE_WAVE) * 1000.)
         return 0
 
     def update_dataBase_from_gui_widgets(self):
@@ -2294,17 +2300,17 @@ class PsortGuiSignals(PsortGuiWidget):
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         # ss_pca_bound
         self._workingDataBase['ss_pca_bound_min'][0] = \
-            int( ( (self.infLine_SsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_SsWave_minPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self._workingDataBase['ss_pca_bound_max'][0] = \
-            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_SsWave_maxPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         # cs_pca_bound
         self._workingDataBase['cs_pca_bound_min'][0] = \
-            int( ( (self.infLine_CsWave_minPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_CsWave_minPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         self._workingDataBase['cs_pca_bound_max'][0] = \
-            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + _MIN_X_RANGE_WAVE ) \
+            int( ( (self.infLine_CsWave_maxPca.value()/1000.) + psort_lib._MIN_X_RANGE_WAVE ) \
             * self._workingDataBase['sample_rate'][0] )
         return 0
 

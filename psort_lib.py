@@ -10,6 +10,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from scipy import signal
 from sklearn.decomposition import PCA
 import numpy as np
+import pyqtgraph as pg
 import deepdish_package
 import pymatreader_package
 import openephys_package
@@ -18,7 +19,62 @@ from matplotlib import path
 from copy import deepcopy
 import sys
 import os
+## #############################################################################
+#%% GLOBAL_VARIABLES
+GLOBAL_FONT = QtGui.QFont()
+GLOBAL_FONT.setStyleHint(QtGui.QFont.Helvetica)
+GLOBAL_FONT.setPointSize(10)
+GLOBAL_FONT.setWeight(QtGui.QFont.Normal)
+GLOBAL_PG_PEN = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
 
+
+_MIN_X_RANGE_WAVE = 0.002
+_MAX_X_RANGE_WAVE = 0.004
+_MIN_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MIN_X_RANGE_WAVE TEMPLATE
+_MAX_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MAX_X_RANGE_WAVE TEMPLATE
+_MIN_X_RANGE_CS_WAVE_TEMP = 0.0005 # should be lees than _MIN_X_RANGE_WAVE TEMPLATE
+_MAX_X_RANGE_CS_WAVE_TEMP = 0.0030 # should be lees than _MAX_X_RANGE_WAVE TEMPLATE
+_X_RANGE_CORR = 0.050
+_BIN_SIZE_CORR = 0.001
+if  _MIN_X_RANGE_SS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
+    _MIN_X_RANGE_SS_WAVE_TEMP = _MIN_X_RANGE_WAVE
+if  _MIN_X_RANGE_CS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
+    _MIN_X_RANGE_CS_WAVE_TEMP = _MIN_X_RANGE_WAVE
+if  _MAX_X_RANGE_SS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
+    _MAX_X_RANGE_SS_WAVE_TEMP = _MAX_X_RANGE_WAVE
+if  _MAX_X_RANGE_CS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
+    _MAX_X_RANGE_CS_WAVE_TEMP = _MAX_X_RANGE_WAVE
+## #############################################################################
+#%% Set widget Defaults
+def set_plotWidget(plot_widget, bkg=True):
+    if bkg:
+        plot_widget.setBackground('w')
+    plot_widget.setTitle(
+        "Y: Variable_Name(au) | X: Variable_Name(au)", color='k', size='12')
+    plot_widget.showLabel('left', show=False)
+    plot_widget.showLabel('bottom', show=False)
+    plot_widget.getAxis('left').setPen(GLOBAL_PG_PEN)
+    plot_widget.getAxis('left').tickFont = GLOBAL_FONT
+    plot_widget.getAxis('left').setStyle(tickLength=10)
+    plot_widget.getAxis('bottom').setPen(GLOBAL_PG_PEN)
+    plot_widget.getAxis('bottom').tickFont = GLOBAL_FONT
+    plot_widget.getAxis('bottom').setStyle(tickLength=10)
+    return 0
+
+def setFont(widget, pointSize=None, color=None):
+    widget.setFont(GLOBAL_FONT)
+    font = widget.font()
+    if pointSize:
+        font.setPointSize(pointSize)
+    else:
+        font.setPointSize(14)
+    widget.setFont(font)
+    if color:
+        style_string = "color: " + color
+        widget.setStyleSheet(style_string)
+    else:
+        widget.setStyleSheet("color: black")
+    return 0
 ## #############################################################################
 #%% get_fullPath_components
 def get_fullPath_components(file_fullPath):
