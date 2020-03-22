@@ -7,15 +7,16 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 ## #############################################################################
 #%% IMPORT PACKAGES
 from PyQt5 import QtWidgets, QtCore, QtGui
-from scipy import signal
-from sklearn.decomposition import PCA
-import numpy as np
 import pyqtgraph as pg
+import numpy as np
+from scipy import signal
+import scipy.stats
+from sklearn.decomposition import PCA
+import matplotlib as plt
+from matplotlib import path
 import deepdish_package
 import pymatreader_package
 import openephys_package
-import matplotlib as plt
-from matplotlib import path
 from copy import deepcopy
 import sys
 import os
@@ -30,18 +31,22 @@ GLOBAL_PG_PEN = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
 
 _MIN_X_RANGE_WAVE = 0.002
 _MAX_X_RANGE_WAVE = 0.004
-_MIN_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MIN_X_RANGE_WAVE TEMPLATE
-_MAX_X_RANGE_SS_WAVE_TEMP = 0.0003 # should be lees than _MAX_X_RANGE_WAVE TEMPLATE
-_MIN_X_RANGE_CS_WAVE_TEMP = 0.0005 # should be lees than _MIN_X_RANGE_WAVE TEMPLATE
-_MAX_X_RANGE_CS_WAVE_TEMP = 0.0030 # should be lees than _MAX_X_RANGE_WAVE TEMPLATE
+_MIN_X_RANGE_SS_WAVE_TEMP = 0.0003
+_MAX_X_RANGE_SS_WAVE_TEMP = 0.0003
+_MIN_X_RANGE_CS_WAVE_TEMP = 0.0005
+_MAX_X_RANGE_CS_WAVE_TEMP = 0.0030
 _X_RANGE_CORR = 0.050
 _BIN_SIZE_CORR = 0.001
+# TEMPLATE should be lees than _MIN_X_RANGE_WAVE
 if  _MIN_X_RANGE_SS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
     _MIN_X_RANGE_SS_WAVE_TEMP = _MIN_X_RANGE_WAVE
+# TEMPLATE should be lees than _MIN_X_RANGE_WAVE
 if  _MIN_X_RANGE_CS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
     _MIN_X_RANGE_CS_WAVE_TEMP = _MIN_X_RANGE_WAVE
+# TEMPLATE should be lees than _MAX_X_RANGE_WAVE
 if  _MAX_X_RANGE_SS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
     _MAX_X_RANGE_SS_WAVE_TEMP = _MAX_X_RANGE_WAVE
+# TEMPLATE should be lees than _MAX_X_RANGE_WAVE
 if  _MAX_X_RANGE_CS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
     _MAX_X_RANGE_CS_WAVE_TEMP = _MAX_X_RANGE_WAVE
 ## #############################################################################
@@ -102,7 +107,8 @@ def load_file_continuous(file_fullPath):
     time_step = 1. / float(sample_rate)
     time_range = time_step * ch_time_size
     ch_time_last_element = ch_time_first_element + time_range - time_step
-    ch_time = np.linspace(ch_time_first_element, ch_time_last_element, num=ch_time_size, endpoint=True, dtype=np.float)
+    ch_time = np.linspace(ch_time_first_element, ch_time_last_element, \
+                            num=ch_time_size, endpoint=True, dtype=np.float)
     if not(ch_time.size == ch_data.size):
         print('Error: <psort_lib.load_file_continuous: size of ch_time and ch_data are not the same.>')
     del data_continuous
@@ -414,3 +420,36 @@ def inpolygon(xq, yq, xv, yv):
     q = [(xq[i], yq[i]) for i in range(xq.shape[0])]
     p = path.Path([(xv[i], yv[i]) for i in range(xv.shape[0])])
     return p.contains_points(q).reshape(shape)
+
+def mean_confidence_interval(data, confidence=0.95, sem=False):
+    """
+    Calculate the mean and confidence interval for the input data
+    If data is a vector (ndim=1) the output will be 3 scalars
+    If the data is a matrix (ndim=2) the output will be the mean and confidence interval
+    of each column.
+    """
+    if data.ndim == 1:
+        if sem:
+            _data_size = data.size
+        else:
+            _data_size = 2
+        _mean = np.mean(data)
+        _interval = scipy.stats.sem(data) * scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
+        return _mean, _mean-_interval, _mean+_interval
+    elif data.ndim == 2:
+        if sem:
+            _data_size = data.shape[0]
+        else:
+            _data_size = 2
+        num_col = data.shape[1]
+        _mean = np.full((num_col),np.NaN, dtype=np.float)
+        _interval = np.full((num_col),np.NaN, dtype=np.float)
+        for counter_col in range(num_col):
+            _col_data = data[:,counter_col]
+            _col_mean = np.mean(_col_data)
+            _col_interval = scipy.stats.sem(_col_data) * scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
+            _mean[counter_col] = _col_mean
+            _interval[counter_col] = _col_interval
+        return _mean, _mean-_interval, _mean+_interval
+    else:
+        return 0, 0, 0

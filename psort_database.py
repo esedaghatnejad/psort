@@ -152,12 +152,12 @@ class PsortDataBase():
             return 0
 
         if not(isCommonAverage):
-            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
             _ch_data = deepcopy(ch_data)
             _ch_time = deepcopy(ch_time)
             _sample_rate = deepcopy(sample_rate)
             self.init_slotsDataBase(_ch_data, _ch_time, _sample_rate)
             self.set_file_fullPath(file_fullPath)
+            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
             return 0
 
         if isCommonAverage:
