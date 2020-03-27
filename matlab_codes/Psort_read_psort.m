@@ -12,7 +12,7 @@ if (nargin < 1) && usejava('desktop')
         return;
     end
     file_fullPath = [file_path filesep file_name];
-else
+elseif (nargin < 1) && ~usejava('desktop')
     psortDataBase = struct;
     return;
 end
