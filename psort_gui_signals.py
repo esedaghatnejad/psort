@@ -52,10 +52,10 @@ _workingDataBase = {
     'cs_ifr_mean':            np.zeros((1), dtype=np.float32),
     'cs_ifr_hist':            np.zeros((0), dtype=np.float32),
     'cs_ifr_bins':            np.zeros((0), dtype=np.float32),
-    'ss_xprob':                np.zeros((0), dtype=np.float32),
-    'ss_xprob_span':           np.zeros((0), dtype=np.float32),
-    'cs_xprob':                np.zeros((0), dtype=np.float32),
-    'cs_xprob_span':           np.zeros((0), dtype=np.float32),
+    'ss_xprob':               np.zeros((0), dtype=np.float32),
+    'ss_xprob_span':          np.zeros((0), dtype=np.float32),
+    'cs_xprob':               np.zeros((0), dtype=np.float32),
+    'cs_xprob_span':          np.zeros((0), dtype=np.float32),
     'ss_pca1':                np.zeros((0), dtype=np.float32),
     'ss_pca2':                np.zeros((0), dtype=np.float32),
     'ss_pca_mat':             np.zeros((0, 0), dtype=np.float32),
@@ -65,6 +65,8 @@ _workingDataBase = {
     'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
     'popUp_mode':             np.array(['ss_pca'],   dtype=np.unicode),
+    'flag_index_detection':   np.array([True], dtype=np.bool),
+    'flag_edit_prefrences':   np.array([False],dtype=np.bool),
 }
 
 for key in psort_database._singleSlotDataBase.keys():
@@ -74,7 +76,6 @@ _fileDataBase = {
     'load_file_fullPath': np.array([''], dtype=np.unicode),
     'save_file_fullPath': np.array([''], dtype=np.unicode),
     'isCommonAverage':    np.zeros((1), dtype=np.bool),
-    'flag_index_detection':   True
 }
 
 @decorator.decorator
@@ -114,12 +115,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self.update_gui_widgets_from_dataBase()
         self.update_dataBase_from_gui_widgets()
         self.filter_data()
-        if self._fileDataBase['flag_index_detection']:
+        if self._workingDataBase['flag_index_detection'][0]:
             self.detect_ss_index()
             self.detect_cs_index_slow()
             self.align_cs()
         else:
-            self._fileDataBase['flag_index_detection'] = True
+            self._workingDataBase['flag_index_detection'][0] = True
         self.reset_cs_ROI()
         self.reset_ss_ROI()
         self.extract_ss_peak()
@@ -204,6 +205,7 @@ class PsortGuiSignals(PsortGuiWidget):
             plot(np.zeros((0)), np.zeros((0)), name="ROI2", \
                 pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine),
                 symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+        self.plot_popup_mainPlot.showGrid(x=True)
         self.viewBox_popUpPlot = self.plot_popup_mainPlot.getViewBox()
         self.viewBox_popUpPlot.autoRange()
         # rawSignal
@@ -650,11 +652,13 @@ class PsortGuiSignals(PsortGuiWidget):
             else:
                 self._workingDataBase[key][0] = np.cast[np.float32](value)
         psort_lib.GLOBAL_check_variables(self._workingDataBase)
+        self._workingDataBase['flag_edit_prefrences'][0] = True
         self.onInfLineSsWaveMinPca_positionChangeFinished()
         self.onInfLineSsWaveMaxPca_positionChangeFinished()
         self.onInfLineCsWaveMinPca_positionChangeFinished()
         self.onInfLineCsWaveMaxPca_positionChangeFinished()
-        self._fileDataBase['flag_index_detection'] = False
+        self._workingDataBase['flag_edit_prefrences'][0] = False
+        self._workingDataBase['flag_index_detection'][0] = False
         self.refresh_workingDataBase()
         self.onSsPanel_learnWave_Clicked()
         self.onCsPanel_learnWave_Clicked()
@@ -764,8 +768,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_SsWave_minPca.value()/1000.
         self._workingDataBase['ss_pca_bound_max'][0] = \
             self.infLine_SsWave_maxPca.value()/1000.
-        self.extract_ss_pca()
-        self.plot_ss_pca()
+        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+            self.extract_ss_pca()
+            self.plot_ss_pca()
         return 0
 
     def onInfLineSsWaveMaxPca_positionChangeFinished(self):
@@ -791,8 +796,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_SsWave_minPca.value()/1000.
         self._workingDataBase['ss_pca_bound_max'][0] = \
             self.infLine_SsWave_maxPca.value()/1000.
-        self.extract_ss_pca()
-        self.plot_ss_pca()
+        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+            self.extract_ss_pca()
+            self.plot_ss_pca()
         return 0
 
     def onInfLineCsWaveMinPca_positionChangeFinished(self):
@@ -818,8 +824,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_minPca.value()/1000.
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
-        self.extract_cs_pca()
-        self.plot_cs_pca()
+        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+            self.extract_cs_pca()
+            self.plot_cs_pca()
         return 0
 
     def onInfLineCsWaveMaxPca_positionChangeFinished(self):
@@ -845,8 +852,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_minPca.value()/1000.
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
-        self.extract_cs_pca()
-        self.plot_cs_pca()
+        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+            self.extract_cs_pca()
+            self.plot_cs_pca()
         return 0
 
     def onfilterPanel_SsFast_IndexChanged(self):
@@ -2281,9 +2289,9 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['isAnalyzed'][0]:
             for key in psortDataBase_currentSlot.keys():
                 self._workingDataBase[key] = psortDataBase_currentSlot[key]
-            self._fileDataBase['flag_index_detection'] = False
+            self._workingDataBase['flag_index_detection'][0] = False
         else:
-            self._fileDataBase['flag_index_detection'] = True
+            self._workingDataBase['flag_index_detection'][0] = True
         return 0
 
     def transfer_data_from_guiSignals_to_dataBase(self):
