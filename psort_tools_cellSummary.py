@@ -49,8 +49,8 @@ class CellSummaryWidget(QMainWindow):
 ## #############################################################################
 #%% CellSummarySignals
 class CellSummarySignals(CellSummaryWidget):
-    def __init__(self, psort_grandDataBase=None):
-        super(CellSummarySignals, self).__init__()
+    def __init__(self, parent=None, psort_grandDataBase=None):
+        super(CellSummarySignals, self).__init__(parent)
         self.init_plot()
         self._workingDataBase = deepcopy(_workingDataBase)
         from psort_gui_signals import PsortGuiSignals
@@ -146,7 +146,7 @@ class CellSummarySignals(CellSummaryWidget):
         # SS_Peak
         self.pltWidget_SsPeak = self.graphWin.addPlot(title="SS_Peak")
         psort_lib.set_plotWidget(self.pltWidget_SsPeak, bkg=False)
-        self.pltWidget_SsPeak.setTitle("Y: SS_Peak_Dist(uV) | X: Count(#)")
+        self.pltWidget_SsPeak.setTitle("X: SS_Peak_Dist(uV) | Y: Count(#)")
         self.pltData_SsPeak =\
             self.pltWidget_SsPeak.\
             plot(np.arange(2), np.zeros((1)), name="ssPeak",
@@ -188,7 +188,7 @@ class CellSummarySignals(CellSummaryWidget):
         # CS_Peak
         self.pltWidget_CsPeak = self.graphWin.addPlot(title="CS_Peak")
         psort_lib.set_plotWidget(self.pltWidget_CsPeak, bkg=False)
-        self.pltWidget_CsPeak.setTitle("Y: CS_Peak_Dist(uV) | X: Count(#)")
+        self.pltWidget_CsPeak.setTitle("X: CS_Peak_Dist(uV) | Y: Count(#)")
         self.pltData_CsPeak =\
             self.pltWidget_CsPeak.\
             plot(np.arange(2), np.zeros((1)), name="csPeak",
@@ -216,6 +216,9 @@ class CellSummarySignals(CellSummaryWidget):
     def load_workingDataBase(self):
         for key in self._workingDataBase.keys():
             self._workingDataBase[key] = self._grandDataBase[-1][key]
+        for key in self._grandDataBase[-2].keys():
+            if 'GLOBAL' in key:
+                self._workingDataBase[key] = self._grandDataBase[-2][key]
         self._workingDataBase['ch_data_ss'] = self._workingDataBase['ch_data']
         self._workingDataBase['ch_data_cs'] = self._workingDataBase['ch_data']
         self._workingDataBase['ss_ifr_mean'] = np.zeros((1), dtype=np.float32)
@@ -231,8 +234,8 @@ class CellSummarySignals(CellSummaryWidget):
         self.PsortGuiSignals.extract_cs_waveform(self)
         self.PsortGuiSignals.extract_ss_ifr(self)
         self.PsortGuiSignals.extract_cs_ifr(self)
-        self.PsortGuiSignals.extract_ss_corr(self)
-        self.PsortGuiSignals.extract_cs_corr(self)
+        self.PsortGuiSignals.extract_ss_xprob(self)
+        self.PsortGuiSignals.extract_cs_xprob(self)
         self._workingDataBase['duration'] = \
                     float( self._workingDataBase['ch_data'].size ) \
                     / float( self._workingDataBase['sample_rate'][0] )
@@ -309,13 +312,13 @@ class CellSummarySignals(CellSummaryWidget):
     def plot_cross_prob(self):
         self.pltData_SsCorr.\
             setData(
-                self._workingDataBase['ss_corr_span']*1000.,
-                self._workingDataBase['ss_corr'],
+                self._workingDataBase['ss_xprob_span']*1000.,
+                self._workingDataBase['ss_xprob'],
                 connect="finite")
         self.pltData_CsCorr.\
             setData(
-                self._workingDataBase['cs_corr_span']*1000.,
-                self._workingDataBase['cs_corr'],
+                self._workingDataBase['cs_xprob_span']*1000.,
+                self._workingDataBase['cs_xprob'],
                 connect="finite")
         self.viewBox_xProb.autoRange()
         self.viewBox_xProb.setLimits(yMin=0., minYRange=0.)

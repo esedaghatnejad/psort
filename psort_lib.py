@@ -27,28 +27,43 @@ GLOBAL_FONT.setStyleHint(QtGui.QFont.Helvetica)
 GLOBAL_FONT.setPointSize(10)
 GLOBAL_FONT.setWeight(QtGui.QFont.Normal)
 GLOBAL_PG_PEN = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
-
-
-_MIN_X_RANGE_WAVE = 0.002
-_MAX_X_RANGE_WAVE = 0.004
-_MIN_X_RANGE_SS_WAVE_TEMP = 0.0003
-_MAX_X_RANGE_SS_WAVE_TEMP = 0.0003
-_MIN_X_RANGE_CS_WAVE_TEMP = 0.0005
-_MAX_X_RANGE_CS_WAVE_TEMP = 0.0030
-_X_RANGE_CORR = 0.050
-_BIN_SIZE_CORR = 0.001
-# TEMPLATE should be lees than _MIN_X_RANGE_WAVE
-if  _MIN_X_RANGE_SS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
-    _MIN_X_RANGE_SS_WAVE_TEMP = _MIN_X_RANGE_WAVE
-# TEMPLATE should be lees than _MIN_X_RANGE_WAVE
-if  _MIN_X_RANGE_CS_WAVE_TEMP > _MIN_X_RANGE_WAVE:
-    _MIN_X_RANGE_CS_WAVE_TEMP = _MIN_X_RANGE_WAVE
-# TEMPLATE should be lees than _MAX_X_RANGE_WAVE
-if  _MAX_X_RANGE_SS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
-    _MAX_X_RANGE_SS_WAVE_TEMP = _MAX_X_RANGE_WAVE
-# TEMPLATE should be lees than _MAX_X_RANGE_WAVE
-if  _MAX_X_RANGE_CS_WAVE_TEMP > _MAX_X_RANGE_WAVE:
-    _MAX_X_RANGE_CS_WAVE_TEMP = _MAX_X_RANGE_WAVE
+GLOBAL_DICT = {
+    'GLOBAL_WAVE_PLOT_SS_BEFORE'         : np.array([0.002], dtype=np.float32),# second, default is 0.002s  or 2ms
+    'GLOBAL_WAVE_PLOT_SS_AFTER'          : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
+    'GLOBAL_WAVE_PLOT_CS_BEFORE'         : np.array([0.002], dtype=np.float32),# second, default is 0.002s  or 2ms
+    'GLOBAL_WAVE_PLOT_CS_AFTER'          : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
+    'GLOBAL_WAVE_TEMPLATE_SS_BEFORE'     : np.array([0.0003],dtype=np.float32),# second, default is 0.0003s or 0.3ms
+    'GLOBAL_WAVE_TEMPLATE_SS_AFTER'      : np.array([0.0003],dtype=np.float32),# second, default is 0.0003s or 0.3ms
+    'GLOBAL_WAVE_TEMPLATE_CS_BEFORE'     : np.array([0.0005],dtype=np.float32),# second, default is 0.0005s or 0.5ms
+    'GLOBAL_WAVE_TEMPLATE_CS_AFTER'      : np.array([0.0030],dtype=np.float32),# second, default is 0.0030s or 3.0ms
+    'GLOBAL_XPROB_SS_BEFORE'             : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_SS_AFTER'              : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_SS_BINSIZE'            : np.array([0.001], dtype=np.float32),# second, default is 0.001s  or 1ms
+    'GLOBAL_XPROB_CS_BEFORE'             : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_CS_AFTER'              : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_CS_BINSIZE'            : np.array([0.001], dtype=np.float32),# second, default is 0.001s  or 1ms
+    'GLOBAL_IFR_PLOT_SS_MIN'             : np.array([0.0],   dtype=np.float32),# Hz, default is 0.0Hz
+    'GLOBAL_IFR_PLOT_SS_MAX'             : np.array([200.0], dtype=np.float32),# Hz, default is 200.0Hz
+    'GLOBAL_IFR_PLOT_SS_BINNUM'          : np.array([50],    dtype=np.uint32), # Integer, number of bins, default is 50
+    'GLOBAL_IFR_PLOT_CS_MIN'             : np.array([0.0],   dtype=np.float32),# Hz, default is 0.0Hz
+    'GLOBAL_IFR_PLOT_CS_MAX'             : np.array([2.0],   dtype=np.float32),# Hz, default is 2.0Hz
+    'GLOBAL_IFR_PLOT_CS_BINNUM'          : np.array([25],    dtype=np.uint32), # Integer, number of bins, default is 25
+}
+def GLOBAL_check_variables(GLOBAL_DICT):
+    # GLOBAL_WAVE_PLOT_SS_BEFORE should be more than GLOBAL_WAVE_TEMPLATE_SS_BEFORE
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
+    # GLOBAL_WAVE_PLOT_CS_BEFORE should be more than GLOBAL_WAVE_TEMPLATE_CS_BEFORE
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
+    # GLOBAL_WAVE_PLOT_SS_AFTER should be more than GLOBAL_WAVE_TEMPLATE_SS_AFTER
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
+    # GLOBAL_WAVE_PLOT_CS_AFTER should be more than GLOBAL_WAVE_TEMPLATE_CS_AFTER
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
+    return 0
+GLOBAL_check_variables(GLOBAL_DICT)
 ## #############################################################################
 #%% Set widget Defaults
 def set_plotWidget(plot_widget, bkg=True):
@@ -315,9 +330,10 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
     instant_firing_rate = 1. / inter_spike_interval # IFR in Hz
     return instant_firing_rate
 
-def cross_probability(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001, win_len=0.050):
+def cross_probability(spike1_bool, spike2_bool, sample_rate=None, \
+                        bin_size=0.001, win_len_before=0.050, win_len_after=0.050):
     """
-    the word cross_probability is the mixture of cross_correlation and conditional_probability
+    the word cross_probability is the mixture of cross correlation and conditional probability
     cross_probability of spike1_X_spike2 is the probability of spike2
     when the data is aligned to spike1, that is, p( spike2 | spike1=1 )
     The probability of spike2 around time t given that spike1 has fired at time t
@@ -326,8 +342,10 @@ def cross_probability(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001
         sample_rate = 30000. # sample_rate in Hz
     if bin_size is None:
         bin_size = 0.001 # bin size in sec, the default is 1ms
-    if win_len is None:
-        win_len = 0.050 # window length in sec, the default is 50ms
+    if win_len_before is None:
+        win_len_before = 0.050 # window length in sec, the default is 50ms
+    if win_len_after is None:
+        win_len_after = 0.050 # window length in sec, the default is 50ms
     if spike1_bool.size != spike2_bool.size:
         print(
         'Error: <psort_lib.cross_probability: size of spike1 and spike2 should be the same.>',
@@ -352,8 +370,9 @@ def cross_probability(spike1_bool, spike2_bool, sample_rate=None, bin_size=0.001
     spike2_index[spike2_index>(spike2_bool_size-1)] = (spike2_bool_size-1)
     _spike2_bool[spike2_index] = 1
 
-    win_len_int = np.round(float(win_len) / float(bin_size)).astype(int)
-    span_int = np.arange(-win_len_int, win_len_int+1, 1)
+    win_len_before_int = np.round(float(win_len_before) / float(bin_size)).astype(int)
+    win_len_after_int = np.round(float(win_len_after) / float(bin_size)).astype(int)
+    span_int = np.arange(-win_len_before_int, win_len_after_int+1, 1)
 
     _spike1_int = spike1_int.reshape((spike1_int.size, -1))
     _spike1_int = np.tile(_spike1_int, (1, span_int.size))

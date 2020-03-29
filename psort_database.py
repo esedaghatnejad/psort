@@ -34,12 +34,12 @@ _singleSlotDataBase = {
         'cs_wave_span_ROI':       np.zeros((0), dtype=np.float32),
         'cs_wave_template':       np.zeros((0), dtype=np.float32),
         'cs_wave_span_template':  np.zeros((0), dtype=np.float32),
-        'ss_pca_bound_min':       np.zeros((1), dtype=np.uint32),
-        'ss_pca_bound_max':       np.zeros((1), dtype=np.uint32),
+        'ss_pca_bound_min':       np.zeros((1), dtype=np.float32),
+        'ss_pca_bound_max':       np.zeros((1), dtype=np.float32),
         'ss_pca1_ROI':            np.zeros((0), dtype=np.float32),
         'ss_pca2_ROI':            np.zeros((0), dtype=np.float32),
-        'cs_pca_bound_min':       np.zeros((1), dtype=np.uint32),
-        'cs_pca_bound_max':       np.zeros((1), dtype=np.uint32),
+        'cs_pca_bound_min':       np.zeros((1), dtype=np.float32),
+        'cs_pca_bound_max':       np.zeros((1), dtype=np.float32),
         'cs_pca1_ROI':            np.zeros((0), dtype=np.float32),
         'cs_pca2_ROI':            np.zeros((0), dtype=np.float32),
         'ssPeak_mode':            np.array(['min'], dtype=np.unicode),
@@ -49,7 +49,11 @@ _singleSlotDataBase = {
         'csLearnTemp_mode':       np.zeros((1), dtype=np.bool),
         }
 
+for key in psort_lib.GLOBAL_DICT.keys():
+    _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
+
 _topLevelDataBase = {
+        'PSORT_VERSION':          np.array([0, 3, 40], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -142,7 +146,8 @@ class PsortDataBase():
         self.loadCurrentSlot_from(new_slot_num)
         return int(self._topLevelDataBase['current_slot_num'][0])
 
-    def load_dataBase(self, file_fullPath, ch_data=None, ch_time=None, sample_rate=None, grandDataBase=None, isCommonAverage=False):
+    def load_dataBase(self, file_fullPath, ch_data=None, ch_time=None, sample_rate=None,
+                        grandDataBase=None, isCommonAverage=False):
         _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self._grandDataBase = grandDataBase
@@ -157,15 +162,18 @@ class PsortDataBase():
             _sample_rate = deepcopy(sample_rate)
             self.init_slotsDataBase(_ch_data, _ch_time, _sample_rate)
             self.set_file_fullPath(file_fullPath)
-            self._topLevelDataBase['file_fullPathOriginal'] = np.array([file_fullPath], dtype=np.unicode)
+            self._topLevelDataBase['file_fullPathOriginal'] = \
+                np.array([file_fullPath], dtype=np.unicode)
             return 0
 
         if isCommonAverage:
             _ch_data_cmn = deepcopy(ch_data)
             # check _ch_data_cmn size
             if _ch_data_cmn.size == self._topLevelDataBase['ch_data'].size:
-                self._topLevelDataBase['file_fullPathCommonAvg'] = np.array([file_fullPath], dtype=np.unicode)
-                self._topLevelDataBase['ch_data'] = self._topLevelDataBase['ch_data'] - _ch_data_cmn
+                self._topLevelDataBase['file_fullPathCommonAvg'] = \
+                    np.array([file_fullPath], dtype=np.unicode)
+                self._topLevelDataBase['ch_data'] = \
+                    self._topLevelDataBase['ch_data'] - _ch_data_cmn
             else:
                 print('Error: <psort_database.load_dataBase: size of common average data does not match main data.>')
         return 0
@@ -223,8 +231,10 @@ class PsortDataBase():
         for key in psortDataBase_currentSlot.keys():
             psortDataBase_currentSlot[key] = guiSignals_workingDataBase[key]
 
-        index_start_on_ch_data = psortDataBase_currentSlot['index_start_on_ch_data'][0]
-        index_end_on_ch_data = psortDataBase_currentSlot['index_end_on_ch_data'][0]
+        index_start_on_ch_data = \
+            psortDataBase_currentSlot['index_start_on_ch_data'][0]
+        index_end_on_ch_data = \
+            psortDataBase_currentSlot['index_end_on_ch_data'][0]
         psortDataBase_topLevel['ch_data'][index_start_on_ch_data:index_end_on_ch_data] = \
             guiSignals_workingDataBase['ch_data']
         psortDataBase_topLevel['ch_time'][index_start_on_ch_data:index_end_on_ch_data] = \

@@ -219,7 +219,7 @@ class PsortGuiWidget(QMainWindow):
 
         self.plot_mainwin_rawSignalPanel_SsPeak = pg.PlotWidget()
         psort_lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_SsPeak)
-        self.plot_mainwin_rawSignalPanel_SsPeak.setTitle("Y: SS_Peak_Dist(uV) | X: Count(#)")
+        self.plot_mainwin_rawSignalPanel_SsPeak.setTitle("X: SS_Peak_Dist(uV) | Y: Count(#)")
 
         self.txtlabel_mainwin_rawSignalPanel_SsThresh = QLabel("SS Threshold")
         psort_lib.setFont(self.txtlabel_mainwin_rawSignalPanel_SsThresh, color="blue")
@@ -273,7 +273,7 @@ class PsortGuiWidget(QMainWindow):
 
         self.plot_mainwin_rawSignalPanel_CsPeak = pg.PlotWidget()
         psort_lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_CsPeak)
-        self.plot_mainwin_rawSignalPanel_CsPeak.setTitle("Y: CS_Peak_Dist(uV) | X: Count(#)")
+        self.plot_mainwin_rawSignalPanel_CsPeak.setTitle("X: CS_Peak_Dist(uV) | Y: Count(#)")
 
         self.txtlabel_mainwin_rawSignalPanel_CsThresh = QLabel("CS Threshold")
         psort_lib.setFont(self.txtlabel_mainwin_rawSignalPanel_CsThresh, color="red")
@@ -399,9 +399,9 @@ class PsortGuiWidget(QMainWindow):
         self.plot_mainwin_SsPanel_plots_SsPca = pg.PlotWidget()
         psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsPca)
         self.plot_mainwin_SsPanel_plots_SsPca.setTitle("Y: SS_PCA2(au) | X: SS_PCA1(au)")
-        self.plot_mainwin_SsPanel_plots_SsCorr = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsCorr)
-        self.plot_mainwin_SsPanel_plots_SsCorr.setTitle("Y: SSxSS_Corr(1) | X: Time(ms)")
+        self.plot_mainwin_SsPanel_plots_SsXProb = pg.PlotWidget()
+        psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsXProb)
+        self.plot_mainwin_SsPanel_plots_SsXProb.setTitle("Y: SSxSS_XProb(1) | X: Time(ms)")
 
         self.layout_mainwin_SsPanel_plots.\
             addLayout(self.layout_mainwin_SsPanel_plots_SsWaveBtn, 0, 0)
@@ -416,7 +416,7 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots.\
             addWidget(self.plot_mainwin_SsPanel_plots_SsPca, 3, 0)
         self.layout_mainwin_SsPanel_plots.\
-            addWidget(self.plot_mainwin_SsPanel_plots_SsCorr, 3, 1)
+            addWidget(self.plot_mainwin_SsPanel_plots_SsXProb, 3, 1)
         self.layout_mainwin_SsPanel_plots.setRowStretch(0, 0)
         self.layout_mainwin_SsPanel_plots.setRowStretch(1, 1)
         self.layout_mainwin_SsPanel_plots.setRowStretch(2, 0)
@@ -498,9 +498,9 @@ class PsortGuiWidget(QMainWindow):
         self.plot_mainwin_CsPanel_plots_CsPca = pg.PlotWidget()
         psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsPca)
         self.plot_mainwin_CsPanel_plots_CsPca.setTitle("Y: CS_PCA2(au) | X: CS_PCA1(au)")
-        self.plot_mainwin_CsPanel_plots_CsCorr = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsCorr)
-        self.plot_mainwin_CsPanel_plots_CsCorr.setTitle("Y: CSxSS_Corr(1) | X: Time(ms)")
+        self.plot_mainwin_CsPanel_plots_CsXProb = pg.PlotWidget()
+        psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsXProb)
+        self.plot_mainwin_CsPanel_plots_CsXProb.setTitle("Y: CSxSS_XProb(1) | X: Time(ms)")
 
         self.layout_mainwin_CsPanel_plots.\
             addLayout(self.layout_mainwin_CsPanel_plots_CsWaveBtn, 0, 0)
@@ -515,7 +515,7 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots.\
             addWidget(self.plot_mainwin_CsPanel_plots_CsPca, 3, 0)
         self.layout_mainwin_CsPanel_plots.\
-            addWidget(self.plot_mainwin_CsPanel_plots_CsCorr, 3, 1)
+            addWidget(self.plot_mainwin_CsPanel_plots_CsXProb, 3, 1)
         self.layout_mainwin_CsPanel_plots.setRowStretch(0, 0)
         self.layout_mainwin_CsPanel_plots.setRowStretch(1, 1)
         self.layout_mainwin_CsPanel_plots.setRowStretch(2, 0)
@@ -623,21 +623,26 @@ class PsortGuiWidget(QMainWindow):
         self.menubar = self.menuBar()
 
         self.menu_menubar_file = self.menubar.addMenu("File")
-        self.actionBtn_menubar_file_exit = QAction("Exit", self)
-        self.actionBtn_menubar_file_exit.setStatusTip("Exit Application")
         self.actionBtn_menubar_file_open = QAction("Open File...", self)
         self.actionBtn_menubar_file_open.setStatusTip("Open File")
         self.actionBtn_menubar_file_save = QAction("Save Session", self)
         self.actionBtn_menubar_file_save.setStatusTip("Save Session")
+        self.actionBtn_menubar_file_exit = QAction("Exit", self)
+        self.actionBtn_menubar_file_exit.setStatusTip("Exit Application")
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_open)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_save)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_exit)
 
+        self.menu_menubar_edit = self.menubar.addMenu("Edit")
+        self.actionBtn_menubar_edit_prefrences = QAction("Prefrences...", self)
+        self.actionBtn_menubar_edit_prefrences.setStatusTip("Edit Prefrences")
+        self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_prefrences)
+
         self.menu_menubar_tools = self.menubar.addMenu("Tools")
         self.actionBtn_menubar_tools_csTune = QAction("CS Tuning", self)
         self.actionBtn_menubar_tools_csTune.setStatusTip("CS Tuning Module")
-        self.actionBtn_menubar_tools_commonAvg = QAction("Common Average Module", self)
-        self.actionBtn_menubar_tools_commonAvg.setStatusTip("Common Average")
+        self.actionBtn_menubar_tools_commonAvg = QAction("Common Average", self)
+        self.actionBtn_menubar_tools_commonAvg.setStatusTip("Common Average Module")
         self.actionBtn_menubar_tools_cellSummary = QAction("Cell Summary", self)
         self.actionBtn_menubar_tools_cellSummary.setStatusTip("Cell Summary Module")
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_csTune)
