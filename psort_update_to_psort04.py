@@ -233,7 +233,7 @@ class UpdateToPsort04Signals(UpdateToPsort04Widget):
                     np.array([((self.psortDataBase[counter_slot]['cs_pca_bound_max'][0] \
                     / float(self.psortDataBase[-1]['sample_rate'][0]))
                     - psort_lib.GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0])], dtype=np.float32)
-        self.psortDataBase[-1]['PSORT_VERSION'] = np.array([0, 4, 2], dtype=np.uint32)
+        self.psortDataBase[-1]['PSORT_VERSION'] = np.array([0, 4, 4], dtype=np.uint32)
         self.psortDataBase[-1]['file_fullPathOriginal'] = \
             deepcopy(self.psortDataBase[-1]['file_fullPath'])
         return 0

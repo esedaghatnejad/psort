@@ -109,13 +109,13 @@ class PsortGuiWidget(QMainWindow):
     def build_mainwin_filterPanel(self):
         self.comboBx_mainwin_filterPanel_CsAlign = QComboBox()
         self.comboBx_mainwin_filterPanel_CsAlign.\
-            addItems(["Align CS wrt SS_Index", "Align CS wrt SS_Temp", "Align CS wrt CS_Temp"])
+            addItems(["Align CS wrt 'SS Index'", "Align CS wrt 'SS Template'", "Align CS wrt 'CS Template'"])
         psort_lib.setFont(self.comboBx_mainwin_filterPanel_CsAlign, color="red")
         self.comboBx_mainwin_filterPanel_CsSlow = QComboBox()
-        self.comboBx_mainwin_filterPanel_CsSlow.addItems(["Pos(+) CS_Slow", "Neg(-) CS_Slow"])
+        self.comboBx_mainwin_filterPanel_CsSlow.addItems(["Pos(+) CS Filter Peak", "Neg(-) CS Filter Peak"])
         psort_lib.setFont(self.comboBx_mainwin_filterPanel_CsSlow, color="red")
         self.comboBx_mainwin_filterPanel_SsFast = QComboBox()
-        self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS_Fast", "Pos(+) SS_Fast"])
+        self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS Filter Peak", "Pos(+) SS Filter Peak"])
         psort_lib.setFont(self.comboBx_mainwin_filterPanel_SsFast, color="blue")
         self.line_mainwin_filterPanel_l1 = QtGui.QFrame()
         self.line_mainwin_filterPanel_l1.setFrameShape(QFrame.VLine)

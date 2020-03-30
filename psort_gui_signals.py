@@ -289,7 +289,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 pen=pg.mkPen(color=(0, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveTemplate =\
             self.plot_mainwin_SsPanel_plots_SsWave.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemp", \
+            plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemplate", \
                 pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveROI =\
             self.plot_mainwin_SsPanel_plots_SsWave.\
@@ -357,7 +357,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 pen=pg.mkPen(color=(255, 0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveTemplate =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
-            plot(np.zeros((0)), np.zeros((0)), name="csWaveTemp", \
+            plot(np.zeros((0)), np.zeros((0)), name="csWaveTemplate", \
                 pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveROI =\
             self.plot_mainwin_CsPanel_plots_CsWave.\
@@ -1737,7 +1737,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def align_cs_wrt_ss_index(self):
-        window_len_4ms_back = int(0.004 * self._workingDataBase['sample_rate'][0])
+        win_look_before = self._workingDataBase['GLOBAL_CS_ALIGN_SSINDEX_BEFORE'][0]
+        window_len_before = int(win_look_before * self._workingDataBase['sample_rate'][0])
         _cs_index_slow = self._workingDataBase['cs_index_slow']
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
         self._workingDataBase['cs_index'] = \
@@ -1747,10 +1748,10 @@ class PsortGuiSignals(PsortGuiWidget):
         for counter_cs in range(_cs_index_slow_int.size):
             _cs_slow_index = _cs_index_slow_int[counter_cs]
             # if there is not enough data window before the potential CS, then skip it
-            if _cs_slow_index < window_len_4ms_back:
+            if _cs_slow_index < window_len_before:
                 _cs_index_slow[_cs_slow_index] = False
                 continue
-            search_win_inds = np.arange(_cs_slow_index-window_len_4ms_back, _cs_slow_index, 1)
+            search_win_inds = np.arange(_cs_slow_index-window_len_before, _cs_slow_index, 1)
             ss_search_win_bool = _ss_index[search_win_inds]
             ss_search_win_int  = np.where(ss_search_win_bool)[0]
             # if there is no SS in window before the potential CS, then skip it
@@ -1759,19 +1760,21 @@ class PsortGuiSignals(PsortGuiWidget):
                 continue
             # convert the SS to CS which has happened closer to the CS_SLOW
             cs_ind_search_win = np.max(ss_search_win_int)
-            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_4ms_back
+            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
             _cs_index[cs_ind] = True
             _ss_index[cs_ind] = False
         return 0
 
     def align_cs_wrt_ss_temp(self):
-        window_len_4ms_back = int(\
-            (0.004+self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
+        win_look_before  = self._workingDataBase['GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE'][0]
+        win_look_after = self._workingDataBase['GLOBAL_CS_ALIGN_SSTEMPLATE_AFTER'][0]
+        win_ss_template_before = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
+        win_ss_template_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
+        window_len_before = int( (win_look_before+win_ss_template_before) \
             * self._workingDataBase['sample_rate'][0] )
-        window_len_1ms_front = int(\
-            (0.001+self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
+        window_len_after = int( (win_look_after+win_ss_template_after) \
             * self._workingDataBase['sample_rate'][0] )
-        window_len_ss_temp = int( self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0] \
+        window_len_ss_temp = int( win_ss_template_after \
                                 * self._workingDataBase['sample_rate'][0])
         _cs_index_slow = self._workingDataBase['cs_index_slow']
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
@@ -1783,30 +1786,32 @@ class PsortGuiSignals(PsortGuiWidget):
         for counter_cs in range(_cs_index_slow_int.size):
             _cs_slow_index = _cs_index_slow_int[counter_cs]
             # if there is not enough data window before the potential CS, then skip it
-            if _cs_slow_index < window_len_4ms_back:
+            if _cs_slow_index < window_len_before:
                 _cs_index_slow[_cs_slow_index] = False
                 continue
             # if there is not enough data window after the potential CS, then skip it
-            if _cs_slow_index > (_data_ss.size - window_len_1ms_front):
+            if _cs_slow_index > (_data_ss.size - window_len_after):
                 _cs_index_slow[_cs_slow_index] = False
                 continue
-            search_win_inds = np.arange(_cs_slow_index-window_len_4ms_back, \
-                                        _cs_slow_index+window_len_1ms_front, 1)
+            search_win_inds = np.arange(_cs_slow_index-window_len_before, \
+                                        _cs_slow_index+window_len_after, 1)
             ss_data_search_win = _data_ss[search_win_inds]
             corr = np.correlate(ss_data_search_win, _ss_temp, 'full')
             cs_ind_search_win = np.argmax(corr) - window_len_ss_temp + 2
-            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_4ms_back
+            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
             _cs_index[cs_ind] = True
         return 0
 
     def align_cs_wrt_cs_temp(self):
-        window_len_4ms_back = int(\
-            (0.004+self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
+        win_look_before  = self._workingDataBase['GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE'][0]
+        win_look_after = self._workingDataBase['GLOBAL_CS_ALIGN_CSTEMPLATE_AFTER'][0]
+        win_cs_template_before = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
+        win_cs_template_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
+        window_len_before = int( (win_look_before+win_cs_template_before) \
             * self._workingDataBase['sample_rate'][0] )
-        window_len_1ms_front = int(\
-            (0.001+self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
+        window_len_after = int( (win_look_after+win_cs_template_after) \
             * self._workingDataBase['sample_rate'][0] )
-        window_len_cs_temp = int( self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0] \
+        window_len_cs_temp = int( win_cs_template_after \
                                 * self._workingDataBase['sample_rate'][0])
         _cs_index_slow = self._workingDataBase['cs_index_slow']
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
@@ -1818,29 +1823,30 @@ class PsortGuiSignals(PsortGuiWidget):
         for counter_cs in range(_cs_index_slow_int.size):
             _cs_slow_index = _cs_index_slow_int[counter_cs]
             # if there is not enough data window before the potential CS, then skip it
-            if _cs_slow_index < window_len_4ms_back:
+            if _cs_slow_index < window_len_before:
                 _cs_index_slow[_cs_slow_index] = False
                 continue
             # if there is not enough data window after the potential CS, then skip it
-            if _cs_slow_index > (_data_ss.size - window_len_1ms_front):
+            if _cs_slow_index > (_data_ss.size - window_len_after):
                 _cs_index_slow[_cs_slow_index] = False
                 continue
-            search_win_inds = np.arange(_cs_slow_index-window_len_4ms_back, \
-                                        _cs_slow_index+window_len_1ms_front, 1)
+            search_win_inds = np.arange(_cs_slow_index-window_len_before, \
+                                        _cs_slow_index+window_len_after, 1)
             ss_data_search_win = _data_ss[search_win_inds]
             corr = np.correlate(ss_data_search_win, _cs_temp, 'full')
             cs_ind_search_win = np.argmax(corr) - window_len_cs_temp + 2
-            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_4ms_back
+            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
             _cs_index[cs_ind] = True
         return 0
 
     def resolve_ss_ss_conflicts(self):
+        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_SS_SS_AROUND'][0]
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             _peakType = 'min'
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _peakType = 'max'
         # search .5ms before and .5ms after the SS and select the dominant peak
-        window_len = int(0.0005 * self._workingDataBase['sample_rate'][0])
+        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
         _data_ss  = self._workingDataBase['ch_data_ss']
         _ss_index = self._workingDataBase['ss_index']
         _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
@@ -1873,12 +1879,13 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def resolve_cs_slow_cs_slow_conflicts(self):
+        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CSSLOW_CSSLOW_AROUND'][0]
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _peakType = 'max'
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
             _peakType = 'min'
         # search 5ms before and 5ms after the CS_SLOW and select the dominant peak
-        window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
         _data_cs  = self._workingDataBase['ch_data_cs']
         _cs_index_slow = self._workingDataBase['cs_index_slow']
         _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
@@ -1911,7 +1918,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def resolve_cs_cs_conflicts(self):
-        window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CS_CS_AROUND'][0]
+        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
         _cs_index = self._workingDataBase['cs_index']
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
         for counter_cs in range(_cs_index_int.size):
@@ -1940,11 +1948,12 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def resolve_cs_cs_slow_conflicts(self):
+        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CS_CSSLOW_AROUND'][0]
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _peakType = 'max'
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
             _peakType = 'min'
-        window_len = int(0.005 * self._workingDataBase['sample_rate'][0])
+        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
         _data_cs  = self._workingDataBase['ch_data_cs']
         _cs_index = self._workingDataBase['cs_index']
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
@@ -1968,8 +1977,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def resolve_cs_ss_conflicts(self):
-        window_len_back = int(0.0005 * self._workingDataBase['sample_rate'][0])
-        window_len_front = int(0.0005 * self._workingDataBase['sample_rate'][0])
+        win_look_before  = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_BEFORE'][0]
+        win_look_after   = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_AFTER'][0]
+        window_len_back = int(win_look_before * self._workingDataBase['sample_rate'][0])
+        window_len_front = int(win_look_after * self._workingDataBase['sample_rate'][0])
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
         _ss_index = self._workingDataBase['ss_index']
         for counter_cs in range(_cs_index_int.size):
