@@ -1792,7 +1792,7 @@ class PsortGuiSignals(PsortGuiWidget):
         init_val_2D = np.zeros((n_clusters, 2))
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
-        labels, centers = psort_lib.kmeans(
+        labels, centers = psort_lib.GaussianMixture(
             pca_mat=pca_mat_2D,
             n_clusters=n_clusters,
             init_val=init_val_2D)
@@ -1803,7 +1803,7 @@ class PsortGuiSignals(PsortGuiWidget):
             for counter_cluster in range(n_clusters):
                 index_cluster = (labels == counter_cluster)
                 init_val_ND[counter_cluster, :] = np.mean(pca_mat_ND[index_cluster,:], axis=0)
-            labels, centers = psort_lib.kmeans(
+            labels, centers = psort_lib.GaussianMixture(
                 pca_mat=pca_mat_ND,
                 n_clusters=n_clusters,
                 init_val=init_val_ND)

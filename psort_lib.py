@@ -13,6 +13,8 @@ from scipy import signal
 import scipy.stats
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
+from sklearn import cluster
+from sklearn import mixture
 import matplotlib as plt
 from matplotlib import path
 import deepdish_package
@@ -503,4 +505,35 @@ def kmeans(pca_mat, n_clusters=2, init_val=None):
     _kmeans = KMeans(n_clusters=n_clusters, init=init_val, n_init=n_init).fit(pca_mat)
     labels = _kmeans.labels_
     centers = _kmeans.cluster_centers_
+    return labels, centers
+
+def AgglomerativeClustering(pca_mat, n_clusters=2):
+    """
+    n_clusters: int, default=2
+    pca_mat:  ndarray of shape (n_samples,  n_features)
+    labels:   ndarray of shape (n_samples, ) , dtype=int32
+    centers:  ndarray of shape (n_clusters, n_features)
+    """
+    ward = cluster.AgglomerativeClustering(n_clusters=n_clusters, linkage='ward')
+    ward.fit(pca_mat)
+    labels = ward.labels_
+    centers = np.zeros((n_clusters, pca_mat.shape[1]))
+    for counter_cluster in range(n_clusters):
+        index_cluster = (labels == counter_cluster)
+        centers[counter_cluster,:] = np.mean(pca_mat[index_cluster,:],axis=0)
+    return labels, centers
+
+def GaussianMixture(pca_mat, n_clusters=2, init_val=None):
+    """
+    n_clusters: int, default=2
+    pca_mat:  ndarray of shape (n_samples,  n_features)
+    init_val: ndarray of shape (n_clusters, n_features)
+    labels:   ndarray of shape (n_samples, ) , dtype=int32
+    centers:  ndarray of shape (n_clusters, n_features)
+    """
+    gmm = mixture.GaussianMixture(n_components=n_clusters,
+        means_init=init_val, covariance_type='full')
+    gmm.fit(pca_mat)
+    labels = gmm.predict(pca_mat)
+    centers = gmm.means_
     return labels, centers
