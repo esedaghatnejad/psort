@@ -12,6 +12,7 @@ import pyqtgraph as pg
 import psort_lib
 import psort_database
 from psort_gui_widgets import PsortGuiWidget
+from psort_gui_widgets import PsortInputDialog
 from psort_database import PsortDataBase
 from psort_tools_commonAvg import CommonAvgSignals
 from psort_tools_cellSummary import CellSummarySignals
@@ -59,12 +60,14 @@ _workingDataBase = {
     'ss_pca1':                np.zeros((0), dtype=np.float32),
     'ss_pca2':                np.zeros((0), dtype=np.float32),
     'ss_pca_mat':             np.zeros((0, 0), dtype=np.float32),
+    'ss_pca_variance':        np.zeros((0), dtype=np.float32),
     'cs_pca1':                np.zeros((0), dtype=np.float32),
     'cs_pca2':                np.zeros((0), dtype=np.float32),
     'cs_pca_mat':             np.zeros((0, 0), dtype=np.float32),
+    'cs_pca_variance':        np.zeros((0), dtype=np.float32),
     'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
-    'popUp_mode':             np.array(['ss_pca'],   dtype=np.unicode),
+    'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
     'flag_index_detection':   np.array([True], dtype=np.bool),
     'flag_edit_prefrences':   np.array([False],dtype=np.bool),
 }
@@ -91,6 +94,7 @@ def showWaitCursor(func, *args, **kwargs):
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
         super(PsortGuiSignals, self).__init__(parent)
+        self.list_color = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
         self.psortDataBase = PsortDataBase()
         self.loadData = psort_lib.LoadData()
         self.saveData = psort_lib.SaveData()
@@ -205,6 +209,20 @@ class PsortGuiSignals(PsortGuiWidget):
             plot(np.zeros((0)), np.zeros((0)), name="ROI2", \
                 pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine),
                 symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+        self.pltText_popUpPlot_list = []
+        self.pltData_popUpPlot_list = []
+        for counter in range(len(self.list_color)):
+            self.pltData_popUpPlot_list.append( self.plot_popup_mainPlot.\
+                plot(np.zeros((0)), np.zeros((0)), pen=None,
+                    symbol='o', symbolSize=3,
+                    symbolBrush=self.list_color[counter], symbolPen=None) )
+            self.pltText_popUpPlot_list.append( pg.TextItem(
+                str(counter+1), color=self.list_color[counter],
+                border='k', fill=(150, 150, 150, 200)) )
+            self.pltText_popUpPlot_list[counter].setPos(counter, counter)
+            self.pltText_popUpPlot_list[counter].hide()
+            self.plot_popup_mainPlot.\
+                addItem(self.pltText_popUpPlot_list[counter], ignoreBounds=True)
         self.plot_popup_mainPlot.showGrid(x=True)
         self.viewBox_popUpPlot = self.plot_popup_mainPlot.getViewBox()
         self.viewBox_popUpPlot.autoRange()
@@ -938,7 +956,24 @@ class PsortGuiSignals(PsortGuiWidget):
     def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array(['ss_pca'], dtype=np.unicode)
+        if self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 0:
+            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_manual'], dtype=np.unicode)
+        elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1) \
+            or (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 2):
+            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_kmeans'], dtype=np.unicode)
+            message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 2.
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 1.
+            doubleSpinBx_params['max'] = len(self.list_color)
+            doubleSpinBx_params['min'] = 2.
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if not(self.input_dialog.exec_()):
+                return 0
+        else:
+            return 0
         self.popUp_showWidget(True)
         self.pltData_popUpPlot.\
             setData(
@@ -962,7 +997,24 @@ class PsortGuiSignals(PsortGuiWidget):
     def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array(['cs_pca'], dtype=np.unicode)
+        if self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 0:
+            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_manual'], dtype=np.unicode)
+        elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1) \
+            or (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 2):
+            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_kmeans'], dtype=np.unicode)
+            message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 2.
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 1.
+            doubleSpinBx_params['max'] = len(self.list_color)
+            doubleSpinBx_params['min'] = 2.
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if not(self.input_dialog.exec_()):
+                return 0
+        else:
+            return 0
         self.popUp_showWidget(True)
         self.pltData_popUpPlot.\
             setData(
@@ -986,7 +1038,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def onSsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array(['ss_wave'], dtype=np.unicode)
+        self._workingDataBase['popUp_mode'] = np.array(['ss_wave_manual'], dtype=np.unicode)
         self.popUp_showWidget(True)
         nan_array = np.full((self._workingDataBase['ss_wave'].shape[0]), np.NaN).reshape(-1, 1)
         ss_waveform = np.append(self._workingDataBase['ss_wave'], nan_array, axis=1)
@@ -1014,7 +1066,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def onCsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
-        self._workingDataBase['popUp_mode'] = np.array(['cs_wave'], dtype=np.unicode)
+        self._workingDataBase['popUp_mode'] = np.array(['cs_wave_manual'], dtype=np.unicode)
         self.popUp_showWidget(True)
         nan_array = np.full((self._workingDataBase['cs_wave'].shape[0]), np.NaN).reshape(-1, 1)
         cs_waveform = np.append(self._workingDataBase['cs_wave'], nan_array, axis=1)
@@ -1554,14 +1606,25 @@ class PsortGuiSignals(PsortGuiWidget):
                     np.append(self._workingDataBase['popUp_ROI_x'], [mousePoint.x()])
                 self._workingDataBase['popUp_ROI_y'] = \
                     np.append(self._workingDataBase['popUp_ROI_y'], [mousePoint.y()])
-                self.pltData_popUpPlot_ROI.\
-                    setData(self._workingDataBase['popUp_ROI_x'],
-                            self._workingDataBase['popUp_ROI_y'])
-                if self._workingDataBase['popUp_ROI_x'].size > 2:
-                    self.pushBtn_popup_ok.setEnabled(True)
-                    self.pltData_popUpPlot_ROI2.\
-                        setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
-                                self._workingDataBase['popUp_ROI_y'][[0,-1],])
+                if '_manual' in self._workingDataBase['popUp_mode'][0]:
+                    self.pltData_popUpPlot_ROI.\
+                        setData(self._workingDataBase['popUp_ROI_x'],
+                                self._workingDataBase['popUp_ROI_y'],
+                                pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine))
+                    if self._workingDataBase['popUp_ROI_x'].size > 2:
+                        self.pushBtn_popup_ok.setEnabled(True)
+                        self.pltData_popUpPlot_ROI2.\
+                            setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
+                                    self._workingDataBase['popUp_ROI_y'][[0,-1],],
+                                    pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
+                elif '_kmeans' in self._workingDataBase['popUp_mode'][0]:
+                    self.pltData_popUpPlot_ROI.\
+                        setData(self._workingDataBase['popUp_ROI_x'],
+                                self._workingDataBase['popUp_ROI_y'],
+                                pen=None)
+                    if (self._workingDataBase['popUp_ROI_x'].size \
+                        > (self.input_dialog.doubleSpinBx.value()-1)):
+                        self.popUp_pca_KMeans()
                 else:
                     self.pltData_popUpPlot_ROI2.\
                         setData(np.zeros((0)),
@@ -1583,10 +1646,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def popUp_task_completed(self):
-        if self._workingDataBase['popUp_ROI_x'].size < 3:
-            self.popUp_task_cancelled()
-            return 0
-        if   self._workingDataBase['popUp_mode'] == np.array(['ss_pca'], dtype=np.unicode):
+        if   self._workingDataBase['popUp_mode'] == np.array(['ss_pca_manual'], dtype=np.unicode):
             self._workingDataBase['ss_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1603,7 +1663,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
             self.plot_ss_waveform()
             self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca'], dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_manual'], dtype=np.unicode):
             self._workingDataBase['cs_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1620,7 +1680,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_pca()
             self.plot_cs_waveform()
             self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array(['ss_wave'], dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['ss_wave_manual'], dtype=np.unicode):
             self._workingDataBase['ss_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1645,7 +1705,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_waveform()
             self.plot_ss_pca()
             self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array(['cs_wave'], dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_wave_manual'], dtype=np.unicode):
             self._workingDataBase['cs_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
@@ -1670,6 +1730,26 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_waveform()
             self.plot_cs_pca()
             self.plot_rawSignal()
+        elif self._workingDataBase['popUp_mode'] == np.array(['ss_pca_kmeans'], dtype=np.unicode):
+            self._workingDataBase['ss_pca1_ROI'] = np.append(self._workingDataBase['popUp_ROI_x'],
+                        self._workingDataBase['popUp_ROI_x'][0])
+            self._workingDataBase['ss_pca2_ROI'] = np.append(self._workingDataBase['popUp_ROI_y'],
+                        self._workingDataBase['popUp_ROI_y'][0])
+            self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
+            self.plot_ss_pca()
+            self.plot_ss_waveform()
+            self.plot_rawSignal()
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_kmeans'], dtype=np.unicode):
+            self._workingDataBase['cs_pca1_ROI'] = np.append(self._workingDataBase['popUp_ROI_x'],
+                        self._workingDataBase['popUp_ROI_x'][0])
+            self._workingDataBase['cs_pca2_ROI'] = np.append(self._workingDataBase['popUp_ROI_y'],
+                        self._workingDataBase['popUp_ROI_y'][0])
+            self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
+            self.plot_cs_pca()
+            self.plot_cs_waveform()
+            self.plot_rawSignal()
         else:
             pass
         return 0
@@ -1685,8 +1765,80 @@ class PsortGuiSignals(PsortGuiWidget):
             setData(self._workingDataBase['popUp_ROI_x'],
                     self._workingDataBase['popUp_ROI_y'])
         self.pltData_popUpPlot_ROI2.\
-            setData(np.zeros((0)),
-                    np.zeros((0)) )
+            setData(np.zeros((0)), np.zeros((0)) )
+        for counter in range(len(self.list_color)):
+            self.pltData_popUpPlot_list[counter].\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltText_popUpPlot_list[counter].hide()
+        return 0
+
+    def popUp_pca_KMeans(self):
+        n_clusters=int(self.input_dialog.doubleSpinBx.value())
+        if self._workingDataBase['popUp_mode'] == np.array(['ss_pca_kmeans'], dtype=np.unicode):
+            pca_mat_ND = self._workingDataBase['ss_pca_mat'].T # shape (n_samples,  n_features)
+            pca_variance = self._workingDataBase['ss_pca_variance']
+            if (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1):
+                flag_ND = False
+            elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 2):
+                flag_ND = True
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_kmeans'], dtype=np.unicode):
+            pca_mat_ND = self._workingDataBase['cs_pca_mat'].T # shape (n_samples,  n_features)
+            pca_variance = self._workingDataBase['cs_pca_variance']
+            if (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1):
+                flag_ND = False
+            elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 2):
+                flag_ND = True
+        pca_mat_2D = pca_mat_ND[:,0:2]
+        init_val_2D = np.zeros((n_clusters, 2))
+        init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
+        init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
+        labels, centers = psort_lib.kmeans(
+            pca_mat=pca_mat_2D,
+            n_clusters=n_clusters,
+            init_val=init_val_2D)
+        if flag_ND:
+            num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.95), 2])
+            pca_mat_ND = pca_mat_ND[:,0:num_D]
+            init_val_ND = np.zeros((n_clusters, pca_mat_ND.shape[1]))
+            for counter_cluster in range(n_clusters):
+                index_cluster = (labels == counter_cluster)
+                init_val_ND[counter_cluster, :] = np.mean(pca_mat_ND[index_cluster,:], axis=0)
+            labels, centers = psort_lib.kmeans(
+                pca_mat=pca_mat_ND,
+                n_clusters=n_clusters,
+                init_val=init_val_ND)
+        self._workingDataBase['popUp_ROI_x'] = centers[:,0].reshape(-1)
+        self._workingDataBase['popUp_ROI_y'] = centers[:,1].reshape(-1)
+        self.pltData_popUpPlot_ROI.\
+            setData(self._workingDataBase['popUp_ROI_x'],
+                    self._workingDataBase['popUp_ROI_y'],
+                    pen=None)
+        for counter_cluster in range(n_clusters):
+            index_cluster = (labels == counter_cluster)
+            self.pltText_popUpPlot_list[counter_cluster].\
+                setPos(centers[counter_cluster,0], centers[counter_cluster,1])
+            self.pltText_popUpPlot_list[counter_cluster].show()
+            self.pltData_popUpPlot_list[counter_cluster].\
+                setData(pca_mat_2D[index_cluster,0], pca_mat_2D[index_cluster,1] )
+        message = 'Which cluster do you want to select?'
+        doubleSpinBx_params = {}
+        doubleSpinBx_params['value'] = 1.
+        doubleSpinBx_params['dec'] = 0
+        doubleSpinBx_params['step'] = 1.
+        doubleSpinBx_params['max'] = n_clusters
+        doubleSpinBx_params['min'] = 1.
+        self.input_dialog = PsortInputDialog(self, \
+            message=message, doubleSpinBx_params=doubleSpinBx_params)
+        if not(self.input_dialog.exec_()):
+            self.onPopUp_Cancel_Clicked()
+            return 0
+        selected_cluster = int(self.input_dialog.doubleSpinBx.value()-1)
+        index_cluster = (labels == selected_cluster)
+        if   self._workingDataBase['popUp_mode'] == np.array(['ss_pca_kmeans'], dtype=np.unicode):
+            self._workingDataBase['ss_index_selected'] = index_cluster
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_kmeans'], dtype=np.unicode):
+            self._workingDataBase['cs_index_selected'] = index_cluster
+        self.onPopUp_Ok_Clicked()
         return 0
 
 ## #############################################################################
@@ -2164,7 +2316,7 @@ class PsortGuiSignals(PsortGuiWidget):
             + self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] )\
             * self._workingDataBase['sample_rate'][0] )
         if (self._workingDataBase['ss_index'].sum() > 1):
-            self._workingDataBase['ss_pca_mat'] = \
+            self._workingDataBase['ss_pca_mat'], self._workingDataBase['ss_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['ss_pca1'] = self._workingDataBase['ss_pca_mat'][0,:]
@@ -2190,7 +2342,7 @@ class PsortGuiSignals(PsortGuiWidget):
             + self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] )\
             * self._workingDataBase['sample_rate'][0] )
         if (self._workingDataBase['cs_index'].sum() > 1):
-            self._workingDataBase['cs_pca_mat'] = \
+            self._workingDataBase['cs_pca_mat'], self._workingDataBase['cs_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['cs_pca1'] = self._workingDataBase['cs_pca_mat'][0,:]

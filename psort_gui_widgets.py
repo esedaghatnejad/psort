@@ -11,7 +11,8 @@ from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
 import psort_lib
-
+## #############################################################################
+#%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow):
     def __init__(self, parent=None):
         super(PsortGuiWidget, self).__init__(parent)
@@ -376,7 +377,7 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", "KMeans 2D", "KMeans ND"])
         psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData)
@@ -475,7 +476,7 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", "Kmeans"])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", "KMeans 2D", "KMeans ND"])
         psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData)
@@ -660,3 +661,37 @@ class PsortGuiWidget(QMainWindow):
         self.statusBar().addWidget(self.txtlabel_statusBar,0)
         self.statusBar().addWidget(self.progress_statusBar,1)
         return 0
+## #############################################################################
+#%% PsortInputDialog
+class PsortInputDialog(QDialog):
+    def __init__(self, parent=None, message='message', doubleSpinBx_params=None):
+        super(PsortInputDialog, self).__init__(parent)
+        if message is None:
+            message = 'message'
+        if doubleSpinBx_params is None:
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 0.0
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 1.
+            doubleSpinBx_params['max'] = 10.
+            doubleSpinBx_params['min'] = 0.
+        self.setWindowTitle("Input Dialog")
+        self.layout_grand = QVBoxLayout()
+
+        self.label = QLabel(message)
+
+        self.doubleSpinBx = QDoubleSpinBox()
+        self.doubleSpinBx.setDecimals(doubleSpinBx_params['dec'])
+        self.doubleSpinBx.setSingleStep(doubleSpinBx_params['step'])
+        self.doubleSpinBx.setMaximum(doubleSpinBx_params['max'])
+        self.doubleSpinBx.setMinimum(doubleSpinBx_params['min'])
+        self.doubleSpinBx.setValue(doubleSpinBx_params['value'])
+
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+
+        self.layout_grand.addWidget(self.label)
+        self.layout_grand.addWidget(self.doubleSpinBx)
+        self.layout_grand.addWidget(self.buttonBox)
+        self.setLayout(self.layout_grand)

@@ -12,6 +12,7 @@ import numpy as np
 from scipy import signal
 import scipy.stats
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 import matplotlib as plt
 from matplotlib import path
 import deepdish_package
@@ -431,7 +432,9 @@ def extract_waveform(data, spike_bool, sample_rate=None, \
 def extract_pca(waveform):
     _pca = PCA(svd_solver='full')
     _pca.fit(waveform)
-    return _pca.components_
+    components = _pca.components_
+    explained_variance_ratio = _pca.explained_variance_ratio_
+    return components, explained_variance_ratio
 
 def inpolygon(xq, yq, xv, yv):
     """
@@ -483,3 +486,21 @@ def mean_confidence_interval(data, confidence=0.95, sem=False):
         return _mean, _mean-_interval, _mean+_interval
     else:
         return 0, 0, 0
+
+def kmeans(pca_mat, n_clusters=2, init_val=None):
+    """
+    n_clusters: int, default=2
+    pca_mat:  ndarray of shape (n_samples,  n_features)
+    init_val: ndarray of shape (n_clusters, n_features)
+    labels:   ndarray of shape (n_samples, ) , dtype=int32
+    centers:  ndarray of shape (n_clusters, n_features)
+    """
+    if init_val is None:
+        init_val = 'k-means++'
+        n_init=10
+    else:
+        n_init=1
+    _kmeans = KMeans(n_clusters=n_clusters, init=init_val, n_init=n_init).fit(pca_mat)
+    labels = _kmeans.labels_
+    centers = _kmeans.cluster_centers_
+    return labels, centers
