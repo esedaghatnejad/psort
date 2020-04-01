@@ -523,17 +523,17 @@ def AgglomerativeClustering(pca_mat, n_clusters=2):
         centers[counter_cluster,:] = np.mean(pca_mat[index_cluster,:],axis=0)
     return labels, centers
 
-def GaussianMixture(pca_mat, n_clusters=2, init_val=None):
+def GaussianMixture(gmm_data, n_clusters=2, init_val=None, covariance_type='full'):
     """
     n_clusters: int, default=2
-    pca_mat:  ndarray of shape (n_samples,  n_features)
+    gmm_data: ndarray of shape (n_samples,  n_features)
     init_val: ndarray of shape (n_clusters, n_features)
     labels:   ndarray of shape (n_samples, ) , dtype=int32
     centers:  ndarray of shape (n_clusters, n_features)
     """
     gmm = mixture.GaussianMixture(n_components=n_clusters,
-        means_init=init_val, covariance_type='full')
-    gmm.fit(pca_mat)
-    labels = gmm.predict(pca_mat)
+        means_init=init_val, covariance_type=covariance_type)
+    gmm.fit(gmm_data)
+    labels = gmm.predict(gmm_data)
     centers = gmm.means_
     return labels, centers

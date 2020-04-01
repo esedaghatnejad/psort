@@ -116,8 +116,8 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% HIGH LEVEL FUNCTIONS
     def refresh_workingDataBase(self):
         if self._workingDataBase['isAnalyzed'][0]:
-            self.update_gui_widgets_from_dataBase()
-        self.update_dataBase_from_gui_widgets()
+            self.update_guiWidgets_from_guiDataBase()
+        self.update_guiDataBase_from_guiWidgets()
         self.filter_data()
         if self._workingDataBase['flag_index_detection'][0]:
             self.detect_ss_index()
@@ -535,6 +535,10 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onRawSignal_SsThresh_ValueChanged)
         self.txtedit_mainwin_rawSignalPanel_CsThresh.valueChanged.\
             connect(self.onRawSignal_CsThresh_ValueChanged)
+        self.pushBtn_mainwin_rawSignalPanel_SsRefresh.clicked.\
+            connect(self.onRawSignal_SsRefresh_Clicked)
+        self.pushBtn_mainwin_rawSignalPanel_CsRefresh.clicked.\
+            connect(self.onRawSignal_CsRefresh_Clicked)
         return 0
 
     def connect_ssPanel_signals(self):
@@ -591,12 +595,12 @@ class PsortGuiSignals(PsortGuiWidget):
     @showWaitCursor
     def onToolbar_slotNumCurrent_ValueChanged(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
-        self.transfer_data_from_guiSignals_to_dataBase()
+        self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self.txtlabel_toolbar_slotNumTotal.\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
             "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
-        self.transfer_data_from_dataBase_to_guiSignals()
+        self.transfer_data_from_psortDataBase_to_guiSignals()
         self.refresh_workingDataBase()
         return 0
 
@@ -616,7 +620,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onToolbar_save_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
-        self.transfer_data_from_guiSignals_to_dataBase()
+        self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self.txtlabel_toolbar_slotNumTotal.\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
@@ -684,7 +688,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onMenubar_cellSummary_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
-        self.transfer_data_from_guiSignals_to_dataBase()
+        self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self.txtlabel_toolbar_slotNumTotal.\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
@@ -937,6 +941,7 @@ class PsortGuiSignals(PsortGuiWidget):
             setValue(self._workingDataBase['ss_threshold'][0]*_sign)
         self.infLine_SsPeak.\
             setValue(self._workingDataBase['ss_threshold'][0]*_sign)
+        self.viewBox_SsPeak.autoRange()
         return 0
 
     def onRawSignal_CsThresh_ValueChanged(self):
@@ -950,6 +955,51 @@ class PsortGuiSignals(PsortGuiWidget):
             setValue(self._workingDataBase['cs_threshold'][0]*_sign)
         self.infLine_CsPeak.\
             setValue(self._workingDataBase['cs_threshold'][0]*_sign)
+        self.viewBox_CsPeak.autoRange()
+        return 0
+
+    def onRawSignal_SsRefresh_Clicked(self):
+        _ss_index = psort_lib.find_peaks(
+                self._workingDataBase['ch_data_ss'],
+                threshold=10.0,
+                peakType=self._workingDataBase['ssPeak_mode'][0])
+        _ss_peak = self._workingDataBase['ch_data_ss'][_ss_index]
+        gmm_data = _ss_peak.reshape(-1,1)
+        labels, centers = psort_lib.GaussianMixture(
+                            gmm_data=gmm_data,
+                            n_clusters=2,
+                            init_val=None,
+                            covariance_type='tied')
+        if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            ind_cluster_noise = np.argmax(centers)
+            _threshold = np.min(gmm_data[labels==ind_cluster_noise])
+            self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((-_threshold)+1)
+        elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            ind_cluster_noise = np.argmin(centers)
+            _threshold = np.max(gmm_data[labels==ind_cluster_noise])
+            self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((+_threshold)+1)
+        return 0
+
+    def onRawSignal_CsRefresh_Clicked(self):
+        _cs_index = psort_lib.find_peaks(
+                self._workingDataBase['ch_data_cs'],
+                threshold=10.0,
+                peakType=self._workingDataBase['csPeak_mode'][0])
+        _cs_peak = self._workingDataBase['ch_data_cs'][_cs_index]
+        gmm_data = _cs_peak.reshape(-1,1)
+        labels, centers = psort_lib.GaussianMixture(
+                            gmm_data=gmm_data,
+                            n_clusters=2,
+                            init_val=None,
+                            covariance_type='tied')
+        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            ind_cluster_noise = np.argmin(centers)
+            _threshold = np.max(gmm_data[labels==ind_cluster_noise])
+            self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((+_threshold)+1)
+        elif self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            ind_cluster_noise = np.argmax(centers)
+            _threshold = np.min(gmm_data[labels==ind_cluster_noise])
+            self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
         return 0
 
     @showWaitCursor
@@ -1327,15 +1377,19 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def load_process_finished_complement(self):
-        self.transfer_data_from_dataBase_to_guiSignals()
-        _, file_path, file_name, _, _ = self.psortDataBase.get_file_fullPath_components()
+        self.setEnableWidgets(True)
+        self.transfer_data_from_psortDataBase_to_guiSignals()
+        _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
         self.txtlabel_toolbar_fileName.setText(file_name)
         self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
         self.txtedit_toolbar_slotNumCurrent.\
             setMaximum(self.psortDataBase.get_total_slot_num())
         self.txtedit_toolbar_slotNumCurrent.setValue(1)
         self.onToolbar_slotNumCurrent_ValueChanged()
-        self.setEnableWidgets(True)
+        if not(file_ext=='.psort'):
+            self.onRawSignal_SsRefresh_Clicked()
+            self.onRawSignal_CsRefresh_Clicked()
+            self.onToolbar_refresh_ButtonClick()
         return 0
 
     def save_process_start(self):
@@ -1793,9 +1847,10 @@ class PsortGuiSignals(PsortGuiWidget):
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
         labels, centers = psort_lib.GaussianMixture(
-            pca_mat=pca_mat_2D,
+            gmm_data=pca_mat_2D,
             n_clusters=n_clusters,
-            init_val=init_val_2D)
+            init_val=init_val_2D,
+            covariance_type='full')
         if flag_ND:
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.95), 2])
             pca_mat_ND = pca_mat_ND[:,0:num_D]
@@ -1804,9 +1859,10 @@ class PsortGuiSignals(PsortGuiWidget):
                 index_cluster = (labels == counter_cluster)
                 init_val_ND[counter_cluster, :] = np.mean(pca_mat_ND[index_cluster,:], axis=0)
             labels, centers = psort_lib.GaussianMixture(
-                pca_mat=pca_mat_ND,
+                gmm_data=pca_mat_ND,
                 n_clusters=n_clusters,
-                init_val=init_val_ND)
+                init_val=init_val_ND,
+                covariance_type='full')
         self._workingDataBase['popUp_ROI_x'] = centers[:,0].reshape(-1)
         self._workingDataBase['popUp_ROI_y'] = centers[:,1].reshape(-1)
         self.pltData_popUpPlot_ROI.\
@@ -2421,7 +2477,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
 ## #############################################################################
 #%% BIND PSORT_GUI_SIGNALS TO PSORT_DATABASE
-    def transfer_data_from_dataBase_to_guiSignals(self):
+    def transfer_data_from_psortDataBase_to_guiSignals(self):
         psortDataBase_currentSlot = \
             self.psortDataBase.get_currentSlotDataBase()
         self._workingDataBase['isAnalyzed'] = \
@@ -2457,12 +2513,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['flag_index_detection'][0] = True
         return 0
 
-    def transfer_data_from_guiSignals_to_dataBase(self):
+    def transfer_data_from_guiSignals_to_psortDataBase(self):
         self.psortDataBase.update_dataBase_based_on_psort_gui_signals(\
             deepcopy(self._workingDataBase))
         return 0
 
-    def update_gui_widgets_from_dataBase(self):
+    def update_guiWidgets_from_guiDataBase(self):
         # Filter values
         self.txtedit_mainwin_filterPanel_ssFilter_min.setValue(
             self._workingDataBase['ss_min_cutoff_freq'][0])
@@ -2512,7 +2568,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_bound_max'][0] * 1000.)
         return 0
 
-    def update_dataBase_from_gui_widgets(self):
+    def update_guiDataBase_from_guiWidgets(self):
         # Filter values
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
             self.txtedit_mainwin_filterPanel_ssFilter_min.value()
