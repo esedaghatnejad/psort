@@ -88,7 +88,7 @@ class UpdateToPsort04Signals(UpdateToPsort04Widget):
         self.loadData.return_signal.connect(self.load_iteration_finished)
         self.saveData = psort_lib.SaveData()
         self.saveData.return_signal.connect(self.save_process_finished)
-        self.psortDataBase = {}
+        self._grandDataBase = {}
         self._workingDataBase = deepcopy(_workingDataBase)
         self.widget_table.itemSelectionChanged.connect(self.onTable_itemSelectionChanged)
         self.pushBtn_add.pressed.connect(self.onAdd_pressed)
@@ -187,10 +187,10 @@ class UpdateToPsort04Signals(UpdateToPsort04Widget):
 
     def load_iteration_finished(self, ch_data, ch_time, sample_rate):
         if self.counter_iteration < self.num_iteration:
-            self.psortDataBase=ch_data
+            self._grandDataBase=ch_data
             self.widget_table.setItem(self.counter_iteration, 1, QTableWidgetItem('Loaded') )
             self.label_statusBar.setText('Updating data ...')
-            self.update_psortDataBase()
+            self.update_grandDataBase()
             self.widget_table.setItem(self.counter_iteration, 2, QTableWidgetItem('Updated') )
             file_fullPath = self._workingDataBase['file_fullPath'][self.counter_iteration]
             self.save_process_start(file_fullPath)
@@ -198,7 +198,7 @@ class UpdateToPsort04Signals(UpdateToPsort04Widget):
 
     def save_process_start(self, file_fullPath):
         self.saveData.file_fullPath = file_fullPath
-        self.saveData.grandDataBase = self.psortDataBase
+        self.saveData.grandDataBase = self._grandDataBase
         self.saveData.start()
         self.label_statusBar.setText('Saving data ...')
         return 0
@@ -210,32 +210,32 @@ class UpdateToPsort04Signals(UpdateToPsort04Widget):
         self.load_iteration_start()
         return 0
 
-    def update_psortDataBase(self):
-        for counter_slot in range(len(self.psortDataBase)-1):
+    def update_grandDataBase(self):
+        for counter_slot in range(len(self._grandDataBase)-1):
             for key in psort_lib.GLOBAL_DICT.keys():
-                self.psortDataBase[counter_slot][key] = deepcopy(psort_lib.GLOBAL_DICT[key])
-            if self.psortDataBase[counter_slot]['ss_pca_bound_min'][0] > 1:
+                self._grandDataBase[counter_slot][key] = deepcopy(psort_lib.GLOBAL_DICT[key])
+            if self._grandDataBase[counter_slot]['ss_pca_bound_min'][0] > 1:
                 # ss_pca_bound
-                self.psortDataBase[counter_slot]['ss_pca_bound_min'] = \
-                    np.array([((self.psortDataBase[counter_slot]['ss_pca_bound_min'][0] \
-                    / float(self.psortDataBase[-1]['sample_rate'][0]))
+                self._grandDataBase[counter_slot]['ss_pca_bound_min'] = \
+                    np.array([((self._grandDataBase[counter_slot]['ss_pca_bound_min'][0] \
+                    / float(self._grandDataBase[-1]['sample_rate'][0]))
                     - psort_lib.GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0])], dtype=np.float32)
-                self.psortDataBase[counter_slot]['ss_pca_bound_max'] = \
-                    np.array([((self.psortDataBase[counter_slot]['ss_pca_bound_max'][0] \
-                    / float(self.psortDataBase[-1]['sample_rate'][0]))
+                self._grandDataBase[counter_slot]['ss_pca_bound_max'] = \
+                    np.array([((self._grandDataBase[counter_slot]['ss_pca_bound_max'][0] \
+                    / float(self._grandDataBase[-1]['sample_rate'][0]))
                     - psort_lib.GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0])], dtype=np.float32)
                 # cs_pca_bound
-                self.psortDataBase[counter_slot]['cs_pca_bound_min'] = \
-                    np.array([((self.psortDataBase[counter_slot]['cs_pca_bound_min'][0] \
-                    / float(self.psortDataBase[-1]['sample_rate'][0]))
+                self._grandDataBase[counter_slot]['cs_pca_bound_min'] = \
+                    np.array([((self._grandDataBase[counter_slot]['cs_pca_bound_min'][0] \
+                    / float(self._grandDataBase[-1]['sample_rate'][0]))
                     - psort_lib.GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0])], dtype=np.float32)
-                self.psortDataBase[counter_slot]['cs_pca_bound_max'] = \
-                    np.array([((self.psortDataBase[counter_slot]['cs_pca_bound_max'][0] \
-                    / float(self.psortDataBase[-1]['sample_rate'][0]))
+                self._grandDataBase[counter_slot]['cs_pca_bound_max'] = \
+                    np.array([((self._grandDataBase[counter_slot]['cs_pca_bound_max'][0] \
+                    / float(self._grandDataBase[-1]['sample_rate'][0]))
                     - psort_lib.GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0])], dtype=np.float32)
-        self.psortDataBase[-1]['PSORT_VERSION'] = np.array([0, 4, 4], dtype=np.uint32)
-        self.psortDataBase[-1]['file_fullPathOriginal'] = \
-            deepcopy(self.psortDataBase[-1]['file_fullPath'])
+        self._grandDataBase[-1]['PSORT_VERSION'] = np.array([0, 4, 4], dtype=np.uint32)
+        self._grandDataBase[-1]['file_fullPathOriginal'] = \
+            deepcopy(self._grandDataBase[-1]['file_fullPath'])
         return 0
 
 if __name__ == '__main__':

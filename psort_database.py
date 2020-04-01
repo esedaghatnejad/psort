@@ -53,7 +53,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 6], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 7], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -151,6 +151,11 @@ class PsortDataBase():
         _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self._grandDataBase = grandDataBase
+            # Backward compatibility to PSORT_VERSION 03
+            if not('PSORT_VERSION' in self._grandDataBase[-1].keys()):
+                from psort_update_to_psort04 import UpdateToPsort04Signals
+                UpdateToPsort04Signals.update_grandDataBase(self)
+                self._grandDataBase[-1]['PSORT_VERSION'] = deepcopy(_topLevelDataBase['PSORT_VERSION'])
             self._currentSlotDataBase = self._grandDataBase[-2]
             self._topLevelDataBase = self._grandDataBase[-1]
             self.set_file_fullPath(file_fullPath)
