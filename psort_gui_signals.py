@@ -628,7 +628,7 @@ class PsortGuiSignals(PsortGuiWidget):
             file_path = os.getcwd()
         file_fullPath, _ = QFileDialog.\
             getOpenFileName(self, "Open File", file_path,
-                            filter="Data file (*.psort *.mat *.continuous *.h5)")
+                            filter="Data file (*.psort *.mat *.continuous *.h5 *.smr)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
             self._fileDataBase['load_file_fullPath'] = file_fullPath
             self._fileDataBase['isCommonAverage'][0] = False
@@ -1019,10 +1019,12 @@ class PsortGuiSignals(PsortGuiWidget):
     def onRawSignal_SsAutoThresh_Clicked(self):
         _ss_index = psort_lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
-                threshold=10.0,
+                threshold=0.0,
                 peakType=self._workingDataBase['ssPeak_mode'][0])
         _ss_peak = self._workingDataBase['ch_data_ss'][_ss_index]
         gmm_data = _ss_peak.reshape(-1,1)
+        if gmm_data.size < 1:
+            return 0
         labels, centers = psort_lib.GaussianMixture(
                             gmm_data=gmm_data,
                             n_clusters=2,
@@ -1041,10 +1043,12 @@ class PsortGuiSignals(PsortGuiWidget):
     def onRawSignal_CsAutoThresh_Clicked(self):
         _cs_index = psort_lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
-                threshold=10.0,
+                threshold=0.0,
                 peakType=self._workingDataBase['csPeak_mode'][0])
         _cs_peak = self._workingDataBase['ch_data_cs'][_cs_index]
         gmm_data = _cs_peak.reshape(-1,1)
+        if gmm_data.size < 1:
+            return 0
         labels, centers = psort_lib.GaussianMixture(
                             gmm_data=gmm_data,
                             n_clusters=2,
@@ -1393,6 +1397,25 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% LOAD & SAVE
     def load_process_start(self):
         file_fullPath = self._fileDataBase['load_file_fullPath']
+        # in case of a smr file, get the channel index from user
+        _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        if file_ext == '.smr':
+            info_str, num_channels, ch_index = psort_lib.get_smr_file_info(file_fullPath)
+            message = 'FILE INFO: \n' + info_str + '\n' + 'Which channel do you want to load?'
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = ch_index
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 1.
+            doubleSpinBx_params['max'] = num_channels-1
+            doubleSpinBx_params['min'] = 0.
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if self.input_dialog.exec_():
+                ch_index = int(self.input_dialog.doubleSpinBx.value())
+                self.loadData.ch_index = ch_index
+            else:
+                return 0
+        # Load data
         self.loadData.file_fullPath = file_fullPath
         self.loadData.start()
         self.txtlabel_statusBar.setText('Loading data ...')
@@ -1440,7 +1463,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
                 cmn_file_fullPath, _ = QFileDialog.\
                     getOpenFileName(self, "Open File", file_path,
-                                    filter="Data file (*.mat *.continuous *.h5)")
+                                    filter="Data file (*.mat *.continuous *.h5 *.smr)")
                 if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
                     self._fileDataBase['load_file_fullPath'] = cmn_file_fullPath
                     self._fileDataBase['isCommonAverage'][0] = True
@@ -1452,20 +1475,23 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def load_process_finished_complement(self):
         file_fullPath, _, _, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
+        psortDataBase_topLevel = \
+            self.psortDataBase.get_topLevelDataBase()
+        ch_data = psortDataBase_topLevel['ch_data']
+        ch_data_max = np.max(ch_data)
+        # Reassign slot duration
         if not(file_ext == '.psort'):
-            # Reassign slot duration
-            psortDataBase_topLevel = \
-                self.psortDataBase.get_topLevelDataBase()
-            ch_data = psortDataBase_topLevel['ch_data']
             sample_rate = psortDataBase_topLevel['sample_rate'][0]
             total_duration = float(ch_data.size) / float(sample_rate)
             slot_duration = 60.
             total_slot_num = int(np.ceil(total_duration / slot_duration))
 
-            message = str('Total data duration is: {:.0f}s.\n'+\
-                'Current number of slots is: {:.0f}.\n'+\
-                'If you want to change the approximate slot duration,\n'\
-                'please put the new number in seconds:'\
+            message = str(
+                  'Total data duration is: {:.0f}s.\n'\
+                + 'Current number of slots is: {:.0f}.\n'\
+                + 'If you want to change the approximate slot duration,\n'\
+                + "please put the new number in 'seconds',\n"\
+                + "otherwise, please select 'Cancel'"
                 ).format(total_duration, total_slot_num)
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = 60.
@@ -1478,7 +1504,42 @@ class PsortGuiSignals(PsortGuiWidget):
             if self.input_dialog.exec_():
                 slot_duration = self.input_dialog.doubleSpinBx.value()
                 self.psortDataBase.reassign_slot_duration(slot_duration, file_fullPath)
-
+        # Scale ch_data UP and put it in 100-10000 range
+        if ch_data_max < 100.:
+            message = str('Maximum signal value is: {:f}.\n'+\
+                'For best performance the data should be in 100-10,000 range.\n'\
+                'Please specify the scale factor for the signal:'\
+                ).format(ch_data_max, total_slot_num)
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 1000.
+            doubleSpinBx_params['dec'] = 1
+            doubleSpinBx_params['step'] = 10.
+            doubleSpinBx_params['max'] = 1e+5
+            doubleSpinBx_params['min'] = 1e-8
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if self.input_dialog.exec_():
+                scale_value = self.input_dialog.doubleSpinBx.value()
+                psort_grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+                psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
+        # Scale ch_data DOWN and put it in 100-10000 range
+        if ch_data_max > 10000.:
+            message = str('Maximum signal value is: {:f}.\n'+\
+                'For best performance the data should be in 100-10,000 range.\n'\
+                'Please specify the scale factor for the signal:'\
+                ).format(ch_data_max, total_slot_num)
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 0.001
+            doubleSpinBx_params['dec'] = 8
+            doubleSpinBx_params['step'] = 0.0001
+            doubleSpinBx_params['max'] = 1e+5
+            doubleSpinBx_params['min'] = 1e-8
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if self.input_dialog.exec_():
+                scale_value = self.input_dialog.doubleSpinBx.value()
+                psort_grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+                psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         self.setEnableWidgets(True)
         self.transfer_data_from_psortDataBase_to_guiSignals()
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()

@@ -110,13 +110,17 @@ class PsortGuiWidget(QMainWindow):
     def build_mainwin_filterPanel(self):
         self.comboBx_mainwin_filterPanel_CsAlign = QComboBox()
         self.comboBx_mainwin_filterPanel_CsAlign.\
-            addItems(["Align CS wrt 'SS Index'", "Align CS wrt 'SS Template'", "Align CS wrt 'CS Template'"])
+            addItems(["Align CS wrt 'SS Index'", \
+                      "Align CS wrt 'SS Template'", \
+                      "Align CS wrt 'CS Template'"])
         psort_lib.setFont(self.comboBx_mainwin_filterPanel_CsAlign, color="red")
         self.comboBx_mainwin_filterPanel_CsSlow = QComboBox()
-        self.comboBx_mainwin_filterPanel_CsSlow.addItems(["Pos(+) CS Filter Peak", "Neg(-) CS Filter Peak"])
+        self.comboBx_mainwin_filterPanel_CsSlow.addItems(["Pos(+) CS Filter Peak", \
+                                                          "Neg(-) CS Filter Peak"])
         psort_lib.setFont(self.comboBx_mainwin_filterPanel_CsSlow, color="red")
         self.comboBx_mainwin_filterPanel_SsFast = QComboBox()
-        self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS Filter Peak", "Pos(+) SS Filter Peak"])
+        self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS Filter Peak", \
+                                                          "Pos(+) SS Filter Peak"])
         psort_lib.setFont(self.comboBx_mainwin_filterPanel_SsFast, color="blue")
         self.line_mainwin_filterPanel_l1 = QtGui.QFrame()
         self.line_mainwin_filterPanel_l1.setFrameShape(QFrame.VLine)
@@ -377,7 +381,9 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", "GMM-2D", "GMM-ND"])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", \
+                                                                             "GMM-2D", \
+                                                                             "GMM-ND"])
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.setCurrentIndex(1)
         psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
@@ -515,7 +521,9 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", "GMM-2D", "GMM-ND"])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", \
+                                                                             "GMM-2D", \
+                                                                             "GMM-ND"])
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.setCurrentIndex(1)
         psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
@@ -741,11 +749,16 @@ class PsortInputDialog(QDialog):
             doubleSpinBx_params['min'] = 0.
         self.setWindowTitle("Input Dialog")
         self.layout_grand = QVBoxLayout()
+        self.scrollArea = QScrollArea()
 
         self.label = QLabel(message)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.scrollArea.setWidget(self.label)
 
         self.doubleSpinBx = QDoubleSpinBox()
-        self.doubleSpinBx.setDecimals(doubleSpinBx_params['dec'])
+        self.doubleSpinBx.setDecimals(int(doubleSpinBx_params['dec']))
         self.doubleSpinBx.setSingleStep(doubleSpinBx_params['step'])
         self.doubleSpinBx.setMaximum(doubleSpinBx_params['max'])
         self.doubleSpinBx.setMinimum(doubleSpinBx_params['min'])
@@ -755,7 +768,7 @@ class PsortInputDialog(QDialog):
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 
-        self.layout_grand.addWidget(self.label)
+        self.layout_grand.addWidget(self.scrollArea)
         self.layout_grand.addWidget(self.doubleSpinBx)
         self.layout_grand.addWidget(self.buttonBox)
         self.setLayout(self.layout_grand)

@@ -57,7 +57,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 10], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 11], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -95,7 +95,8 @@ class PsortDataBase():
             index_slot_edges = np.zeros((total_slot_num+1), dtype=np.uint32)
         else:
             data_size = ch_data.size
-            total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / slot_duration))
+            total_slot_num = \
+                int(np.ceil(float(data_size) / float(sample_rate) / slot_duration))
             index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
                                         endpoint=True)).astype(int)
         if ch_time is None:
@@ -160,12 +161,14 @@ class PsortDataBase():
             if not('PSORT_VERSION' in self._grandDataBase[-1].keys()):
                 from psort_update_to_psort04 import UpdateToPsort04Signals
                 UpdateToPsort04Signals.update_grandDataBase(self)
-                self._grandDataBase[-1]['PSORT_VERSION'] = deepcopy(_topLevelDataBase['PSORT_VERSION'])
+                self._grandDataBase[-1]['PSORT_VERSION'] = \
+                    deepcopy(_topLevelDataBase['PSORT_VERSION'])
             # Backward compatibility to PSORT_VERSION 04
             for key in _singleSlotDataBase.keys():
                 if not(key in self._grandDataBase[-2].keys()):
                     for counter_slot in range(len(self._grandDataBase)-1):
-                        self._grandDataBase[counter_slot][key] = deepcopy(_singleSlotDataBase[key])
+                        self._grandDataBase[counter_slot][key] = \
+                            deepcopy(_singleSlotDataBase[key])
             self._currentSlotDataBase = self._grandDataBase[-2]
             self._topLevelDataBase = self._grandDataBase[-1]
             self.set_file_fullPath(file_fullPath)
@@ -190,7 +193,8 @@ class PsortDataBase():
                 self._topLevelDataBase['ch_data'] = \
                     self._topLevelDataBase['ch_data'] - _ch_data_cmn
             else:
-                print('Error: <psort_database.load_dataBase: size of common average data does not match main data.>')
+                print('Error: <psort_database.load_dataBase: ' \
+                    + 'size of common average data does not match main data.>')
         return 0
 
     def is_all_slots_analyzed(self):
@@ -202,10 +206,10 @@ class PsortDataBase():
     def set_file_fullPath(self, file_fullPath):
         file_fullPath, file_path, file_name, file_ext, file_name_without_ext = \
             psort_lib.get_fullPath_components(file_fullPath)
-        self._topLevelDataBase['file_fullPath']         = np.array([file_fullPath], dtype=np.unicode)
-        self._topLevelDataBase['file_path']             = np.array([file_path], dtype=np.unicode)
-        self._topLevelDataBase['file_name']             = np.array([file_name], dtype=np.unicode)
-        self._topLevelDataBase['file_ext']              = np.array([file_ext], dtype=np.unicode)
+        self._topLevelDataBase['file_fullPath'] = np.array([file_fullPath], dtype=np.unicode)
+        self._topLevelDataBase['file_path']     = np.array([file_path], dtype=np.unicode)
+        self._topLevelDataBase['file_name']     = np.array([file_name], dtype=np.unicode)
+        self._topLevelDataBase['file_ext']      = np.array([file_ext], dtype=np.unicode)
         self._topLevelDataBase['file_name_without_ext'] = \
             np.array([file_name_without_ext], dtype=np.unicode)
         return 0

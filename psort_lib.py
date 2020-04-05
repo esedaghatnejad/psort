@@ -20,6 +20,7 @@ from matplotlib import path
 import deepdish_package
 import pymatreader_package
 import openephys_package
+from neo_package import spike2io
 from copy import deepcopy
 import sys
 import os
@@ -31,51 +32,90 @@ GLOBAL_FONT.setPointSize(10)
 GLOBAL_FONT.setWeight(QtGui.QFont.Normal)
 GLOBAL_PG_PEN = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
 GLOBAL_DICT = {
-    'GLOBAL_WAVE_PLOT_SS_BEFORE'          : np.array([0.002], dtype=np.float32),# second, default is 0.002s  or 2ms
-    'GLOBAL_WAVE_PLOT_SS_AFTER'           : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
-    'GLOBAL_WAVE_PLOT_CS_BEFORE'          : np.array([0.002], dtype=np.float32),# second, default is 0.002s  or 2ms
-    'GLOBAL_WAVE_PLOT_CS_AFTER'           : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
-    'GLOBAL_WAVE_TEMPLATE_SS_BEFORE'      : np.array([0.0003],dtype=np.float32),# second, default is 0.0003s or 0.3ms
-    'GLOBAL_WAVE_TEMPLATE_SS_AFTER'       : np.array([0.0003],dtype=np.float32),# second, default is 0.0003s or 0.3ms
-    'GLOBAL_WAVE_TEMPLATE_CS_BEFORE'      : np.array([0.0005],dtype=np.float32),# second, default is 0.0005s or 0.5ms
-    'GLOBAL_WAVE_TEMPLATE_CS_AFTER'       : np.array([0.0030],dtype=np.float32),# second, default is 0.0030s or 3.0ms
-    'GLOBAL_XPROB_SS_BEFORE'              : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_SS_AFTER'               : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_SS_BINSIZE'             : np.array([0.001], dtype=np.float32),# second, default is 0.001s  or 1ms
-    'GLOBAL_XPROB_CS_BEFORE'              : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_CS_AFTER'               : np.array([0.050], dtype=np.float32),# second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_CS_BINSIZE'             : np.array([0.001], dtype=np.float32),# second, default is 0.001s  or 1ms
-    'GLOBAL_IFR_PLOT_SS_MIN'              : np.array([0.0],   dtype=np.float32),# Hz, default is 0.0Hz
-    'GLOBAL_IFR_PLOT_SS_MAX'              : np.array([200.0], dtype=np.float32),# Hz, default is 200.0Hz
-    'GLOBAL_IFR_PLOT_SS_BINNUM'           : np.array([50],    dtype=np.uint32), # Integer, number of bins, default is 50
-    'GLOBAL_IFR_PLOT_CS_MIN'              : np.array([0.0],   dtype=np.float32),# Hz, default is 0.0Hz
-    'GLOBAL_IFR_PLOT_CS_MAX'              : np.array([2.0],   dtype=np.float32),# Hz, default is 2.0Hz
-    'GLOBAL_IFR_PLOT_CS_BINNUM'           : np.array([25],    dtype=np.uint32), # Integer, number of bins, default is 25
-    'GLOBAL_CONFLICT_CS_SS_BEFORE'        : np.array([0.0005],dtype=np.float32),# second, default is 0.0005s or 0.5ms
-    'GLOBAL_CONFLICT_CS_SS_AFTER'         : np.array([0.0005],dtype=np.float32),# second, default is 0.0005s or 0.5ms
-    'GLOBAL_CONFLICT_SS_SS_AROUND'        : np.array([0.0005],dtype=np.float32),# second, default is 0.0005s or 0.5ms
-    'GLOBAL_CONFLICT_CS_CS_AROUND'        : np.array([0.005], dtype=np.float32),# second, default is 0.005s  or 5ms
-    'GLOBAL_CONFLICT_CS_CSSLOW_AROUND'    : np.array([0.005], dtype=np.float32),# second, default is 0.005s  or 5ms
-    'GLOBAL_CONFLICT_CSSLOW_CSSLOW_AROUND': np.array([0.005], dtype=np.float32),# second, default is 0.005s  or 5ms
-    'GLOBAL_CS_ALIGN_SSINDEX_BEFORE'      : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
-    'GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE'   : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
-    'GLOBAL_CS_ALIGN_SSTEMPLATE_AFTER'    : np.array([0.001], dtype=np.float32),# second, default is 0.001s  or 1ms
-    'GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE'   : np.array([0.004], dtype=np.float32),# second, default is 0.004s  or 4ms
-    'GLOBAL_CS_ALIGN_CSTEMPLATE_AFTER'    : np.array([0.001], dtype=np.float32),# second, default is 0.001s  or 1ms
+    # second, default is 0.002s  or 2ms
+    'GLOBAL_WAVE_PLOT_SS_BEFORE'          : np.array([0.002], dtype=np.float32),
+    # second, default is 0.004s  or 4ms
+    'GLOBAL_WAVE_PLOT_SS_AFTER'           : np.array([0.004], dtype=np.float32),
+    # second, default is 0.002s  or 2ms
+    'GLOBAL_WAVE_PLOT_CS_BEFORE'          : np.array([0.002], dtype=np.float32),
+    # second, default is 0.004s  or 4ms
+    'GLOBAL_WAVE_PLOT_CS_AFTER'           : np.array([0.004], dtype=np.float32),
+    # second, default is 0.0003s or 0.3ms
+    'GLOBAL_WAVE_TEMPLATE_SS_BEFORE'      : np.array([0.0003],dtype=np.float32),
+    # second, default is 0.0003s or 0.3ms
+    'GLOBAL_WAVE_TEMPLATE_SS_AFTER'       : np.array([0.0003],dtype=np.float32),
+    # second, default is 0.0005s or 0.5ms
+    'GLOBAL_WAVE_TEMPLATE_CS_BEFORE'      : np.array([0.0005],dtype=np.float32),
+    # second, default is 0.0030s or 3.0ms
+    'GLOBAL_WAVE_TEMPLATE_CS_AFTER'       : np.array([0.0030],dtype=np.float32),
+    # second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_SS_BEFORE'              : np.array([0.050], dtype=np.float32),
+    # second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_SS_AFTER'               : np.array([0.050], dtype=np.float32),
+    # second, default is 0.001s  or 1ms
+    'GLOBAL_XPROB_SS_BINSIZE'             : np.array([0.001], dtype=np.float32),
+    # second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_CS_BEFORE'              : np.array([0.050], dtype=np.float32),
+    # second, default is 0.050s  or 50ms
+    'GLOBAL_XPROB_CS_AFTER'               : np.array([0.050], dtype=np.float32),
+    # second, default is 0.001s  or 1ms
+    'GLOBAL_XPROB_CS_BINSIZE'             : np.array([0.001], dtype=np.float32),
+    # Hz, default is 0.0Hz
+    'GLOBAL_IFR_PLOT_SS_MIN'              : np.array([0.0],   dtype=np.float32),
+    # Hz, default is 200.0Hz
+    'GLOBAL_IFR_PLOT_SS_MAX'              : np.array([200.0], dtype=np.float32),
+    # Integer, number of bins, default is 50
+    'GLOBAL_IFR_PLOT_SS_BINNUM'           : np.array([50],    dtype=np.uint32),
+    # Hz, default is 0.0Hz
+    'GLOBAL_IFR_PLOT_CS_MIN'              : np.array([0.0],   dtype=np.float32),
+    # Hz, default is 2.0Hz
+    'GLOBAL_IFR_PLOT_CS_MAX'              : np.array([2.0],   dtype=np.float32),
+    # Integer, number of bins, default is 25
+    'GLOBAL_IFR_PLOT_CS_BINNUM'           : np.array([25],    dtype=np.uint32),
+    # second, default is 0.0005s or 0.5ms
+    'GLOBAL_CONFLICT_CS_SS_BEFORE'        : np.array([0.0005],dtype=np.float32),
+    # second, default is 0.0005s or 0.5ms
+    'GLOBAL_CONFLICT_CS_SS_AFTER'         : np.array([0.0005],dtype=np.float32),
+    # second, default is 0.0005s or 0.5ms
+    'GLOBAL_CONFLICT_SS_SS_AROUND'        : np.array([0.0005],dtype=np.float32),
+    # second, default is 0.005s  or 5ms
+    'GLOBAL_CONFLICT_CS_CS_AROUND'        : np.array([0.005], dtype=np.float32),
+    # second, default is 0.005s  or 5ms
+    'GLOBAL_CONFLICT_CS_CSSLOW_AROUND'    : np.array([0.005], dtype=np.float32),
+    # second, default is 0.005s  or 5ms
+    'GLOBAL_CONFLICT_CSSLOW_CSSLOW_AROUND': np.array([0.005], dtype=np.float32),
+    # second, default is 0.004s  or 4ms
+    'GLOBAL_CS_ALIGN_SSINDEX_BEFORE'      : np.array([0.004], dtype=np.float32),
+    # second, default is 0.004s  or 4ms
+    'GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE'   : np.array([0.004], dtype=np.float32),
+    # second, default is 0.001s  or 1ms
+    'GLOBAL_CS_ALIGN_SSTEMPLATE_AFTER'    : np.array([0.001], dtype=np.float32),
+    # second, default is 0.004s  or 4ms
+    'GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE'   : np.array([0.004], dtype=np.float32),
+    # second, default is 0.001s  or 1ms
+    'GLOBAL_CS_ALIGN_CSTEMPLATE_AFTER'    : np.array([0.001], dtype=np.float32),
 }
 def GLOBAL_check_variables(GLOBAL_DICT):
     # GLOBAL_WAVE_PLOT_SS_BEFORE should be more than GLOBAL_WAVE_TEMPLATE_SS_BEFORE
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0] \
+            > GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] = \
+            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
     # GLOBAL_WAVE_PLOT_CS_BEFORE should be more than GLOBAL_WAVE_TEMPLATE_CS_BEFORE
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0] > \
+            GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] = \
+            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
     # GLOBAL_WAVE_PLOT_SS_AFTER should be more than GLOBAL_WAVE_TEMPLATE_SS_AFTER
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0] > \
+            GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0] = \
+            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
     # GLOBAL_WAVE_PLOT_CS_AFTER should be more than GLOBAL_WAVE_TEMPLATE_CS_AFTER
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0] > GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0] = GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
+    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0] > \
+            GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0]:
+        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0] = \
+            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
     return 0
 GLOBAL_check_variables(GLOBAL_DICT)
 ## #############################################################################
@@ -139,7 +179,8 @@ def load_file_continuous(file_fullPath):
     ch_time = np.linspace(ch_time_first_element, ch_time_last_element, \
                             num=ch_time_size, endpoint=True, dtype=np.float)
     if not(ch_time.size == ch_data.size):
-        print('Error: <psort_lib.load_file_continuous: size of ch_time and ch_data are not the same.>')
+        print('Error: <psort_lib.load_file_continuous: ' \
+            + 'size of ch_time and ch_data are not the same.>')
     del data_continuous
     return ch_data, ch_time, sample_rate
 
@@ -184,6 +225,54 @@ def load_file_psort(file_fullPath):
     grandDataBase = deepdish_package.io.load(file_fullPath)
     return grandDataBase
 
+def load_file_smr(file_fullPath, ch_index):
+    _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext=='.smr'):
+        print('Error: <psort_lib.load_file_smr: file extension is not .smr.>')
+        return 0, 0, 0
+    if not(os.path.isfile(file_fullPath)):
+        print('Error: <psort_lib.load_file_smr: file_fullPath is not valid>')
+        return 0, 0, 0
+    reader = spike2io.Spike2IO(filename=file_fullPath)
+    seg = reader.read_segment(lazy=True)
+    sigproxy = seg.analogsignals[int(ch_index)]
+    asig = sigproxy.load(time_slice=None)
+    ch_data = np.array(asig)
+    ch_data = deepcopy(ch_data.reshape(-1).astype(np.float64))
+    ch_time = asig.times.rescale('s').magnitude
+    ch_time = deepcopy(ch_time.reshape(-1).astype(np.float64))
+    sample_rate = float(asig.sampling_rate)
+    del reader, seg, sigproxy, asig
+    return ch_data, ch_time, sample_rate
+
+def get_smr_file_info(file_fullPath):
+    _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
+    if not(file_ext=='.smr'):
+        print('Error: <psort_lib.get_smr_file_info: file extension is not .smr.>')
+        return 'invalid_file_extension', 0
+    if not(os.path.isfile(file_fullPath)):
+        print('Error: <psort_lib.get_smr_file_info: file_fullPath is not valid>')
+        return 'invalid_file_fullPath', 0
+    reader = spike2io.Spike2IO(filename=file_fullPath)
+    seg = reader.read_segment(lazy=True)
+    sampling_rate_list = []
+    info_str = ''
+    for counter_sig in range(len(seg.analogsignals)):
+        info_str += (\
+        'ch_' + str(counter_sig) + '.'\
+        + ' sampling_rate: '\
+        + str(round(seg.analogsignals[counter_sig].sampling_rate))\
+        + '\t units: '\
+        + str(seg.analogsignals[counter_sig].units)\
+        + '\t name: '\
+        + str(seg.analogsignals[counter_sig].name)\
+        + '\n')
+        sampling_rate_list.append(round(seg.analogsignals[counter_sig].sampling_rate))
+    ch_index_max_sampling_rate = np.argmax(sampling_rate_list)
+    num_channels = len(sampling_rate_list)
+    del reader, seg, sampling_rate_list
+    return info_str, num_channels, ch_index_max_sampling_rate
+
 def save_file_h5(file_fullPath, ch_data, ch_time, sample_rate):
     _, file_path, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext == '.h5'):
@@ -214,9 +303,11 @@ class LoadData(QtCore.QThread):
     def __init__(self):
         super(LoadData, self).__init__()
         self.file_fullPath = ''
+        self.ch_index = int(0)
 
     def run(self):
         file_fullPath = self.file_fullPath
+        ch_index = int(self.ch_index)
         _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
         if file_ext == '.continuous':
             ch_data, ch_time, sample_rate = load_file_continuous(file_fullPath)
@@ -226,6 +317,9 @@ class LoadData(QtCore.QThread):
             self.return_signal.emit(ch_data, ch_time, sample_rate)
         elif file_ext == '.h5':
             ch_data, ch_time, sample_rate = load_file_h5(file_fullPath)
+            self.return_signal.emit(ch_data, ch_time, sample_rate)
+        elif file_ext == '.smr':
+            ch_data, ch_time, sample_rate = load_file_smr(file_fullPath, ch_index)
             self.return_signal.emit(ch_data, ch_time, sample_rate)
         elif file_ext == '.psort':
             grandDataBase = load_file_psort(file_fullPath)
@@ -270,12 +364,14 @@ def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=
         hi_cutoff_freq = 6000.
     if abs(lo_cutoff_freq - hi_cutoff_freq) < 1.0:
         hi_cutoff_freq = hi_cutoff_freq + 1
-        print('Warning: <psort_lib.bandpass_filter: lo_cutoff_freq and hi_cutoff_freq are the same.>')
+        print('Warning: <psort_lib.bandpass_filter: ' \
+            + 'lo_cutoff_freq and hi_cutoff_freq are the same.>')
     elif lo_cutoff_freq > hi_cutoff_freq:
         _temp = lo_cutoff_freq
         lo_cutoff_freq = hi_cutoff_freq
         hi_cutoff_freq = _temp
-        print('Warning: <psort_lib.bandpass_filter: lo_cutoff_freq is grater than hi_cutoff_freq.>')
+        print('Warning: <psort_lib.bandpass_filter: ' \
+            + 'lo_cutoff_freq is grater than hi_cutoff_freq.>')
     lo_cutoff_wn = float(lo_cutoff_freq) / (float(sample_rate) / 2.)
     hi_cutoff_wn = float(hi_cutoff_freq) / (float(sample_rate) / 2.)
     b_lo_cutoff, a_lo_cutoff = signal.butter(N=4, Wn=lo_cutoff_wn, btype='high')
@@ -294,7 +390,8 @@ def find_peaks(data, threshold=None, peakType=None):
     elif ((peakType == 'min') or (peakType == 'Min')):
         data *= -1.
     else:
-        print('Error: <psort_lib.find_peaks: peakType should be either max or min.>', file=sys.stderr)
+        print('Error: <psort_lib.find_peaks: ' \
+            + 'peakType should be either max or min.>', file=sys.stderr)
     peak_index_boolean = np.logical_and((np.diff(data) >=  0)[:-1], (np.diff(data) < 0)[1:])
     peak_index_boolean = np.concatenate(([False], peak_index_boolean, [False]))
     _threshold = abs(float(threshold))
@@ -316,10 +413,12 @@ def inter_spike_interval_from_index(index_bool, sample_rate=None):
         pass
     elif index_bool.dtype == np.float:
         print(
-        'Warning: <psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float.>')
+        'Warning: <psort_lib.inter_spike_interval_from_index: ' \
+            + 'index_bool.dtype should not be float.>')
     else:
         print(
-        'Error: <psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid.>',
+        'Error: <psort_lib.inter_spike_interval_from_index: ' \
+            + 'index_bool.dtype is not valid.>',
         file=sys.stderr)
     inter_spike_interval = np.diff(index_value) / float(sample_rate)
     np.append(inter_spike_interval, inter_spike_interval[-1])  # ISI in sec
@@ -334,10 +433,12 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
         pass
     elif index_bool.dtype == np.float:
         print(
-        'Warning: <psort_lib.inter_spike_interval_from_index: index_bool.dtype should not be float.>')
+        'Warning: <psort_lib.inter_spike_interval_from_index: ' \
+            + 'index_bool.dtype should not be float.>')
     else:
         print(
-        'Error: <psort_lib.inter_spike_interval_from_index: index_bool.dtype is not valid.>',
+        'Error: <psort_lib.inter_spike_interval_from_index: ' \
+            + 'index_bool.dtype is not valid.>',
         file=sys.stderr)
     inter_spike_interval = np.diff(index_value) / float(sample_rate)
     np.append(inter_spike_interval, inter_spike_interval[-1])  # ISI in sec
@@ -362,7 +463,8 @@ def cross_probability(spike1_bool, spike2_bool, sample_rate=None, \
         win_len_after = 0.050 # window length in sec, the default is 50ms
     if spike1_bool.size != spike2_bool.size:
         print(
-        'Error: <psort_lib.cross_probability: size of spike1 and spike2 should be the same.>',
+        'Error: <psort_lib.cross_probability: ' \
+            + 'size of spike1 and spike2 should be the same.>',
         file=sys.stderr)
     if spike1_bool.dtype != np.bool:
         print(
@@ -469,7 +571,8 @@ def mean_confidence_interval(data, confidence=0.95, sem=False):
         else:
             _data_size = 2
         _mean = np.mean(data)
-        _interval = scipy.stats.sem(data) * scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
+        _interval = scipy.stats.sem(data) * \
+            scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
         return _mean, _mean-_interval, _mean+_interval
     elif data.ndim == 2:
         if sem:
@@ -482,7 +585,8 @@ def mean_confidence_interval(data, confidence=0.95, sem=False):
         for counter_col in range(num_col):
             _col_data = data[:,counter_col]
             _col_mean = np.mean(_col_data)
-            _col_interval = scipy.stats.sem(_col_data) * scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
+            _col_interval = scipy.stats.sem(_col_data) * \
+                scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
             _mean[counter_col] = _col_mean
             _interval[counter_col] = _col_interval
         return _mean, _mean-_interval, _mean+_interval
@@ -531,6 +635,8 @@ def GaussianMixture(gmm_data, n_clusters=2, init_val=None, covariance_type='full
     labels:   ndarray of shape (n_samples, ) , dtype=int32
     centers:  ndarray of shape (n_clusters, n_features)
     """
+    if gmm_data.size < 1:
+        return np.zeros((0)), np.zeros((0))
     gmm = mixture.GaussianMixture(n_components=n_clusters,
         means_init=init_val, covariance_type=covariance_type)
     gmm.fit(gmm_data)
