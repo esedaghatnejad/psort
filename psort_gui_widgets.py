@@ -458,10 +458,6 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots.setSpacing(1)
         self.layout_mainwin_SsPanel_plots.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
-        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_TitleBarMaxButton))
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete = QPushButton("Delete")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete.\
@@ -474,15 +470,19 @@ class PsortGuiWidget(QMainWindow):
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
             setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_MediaSkipForward))
+        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
+        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
+        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogNoButton))
 
-        self.layout_mainwin_SsPanel_buttons.\
-            addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect)
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDelete)
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsKeep)
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs)
+        self.layout_mainwin_SsPanel_buttons.\
+            addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect)
         self.layout_mainwin_SsPanel_buttons.setSpacing(1)
         self.layout_mainwin_SsPanel_buttons.setContentsMargins(1, 1, 1, 1)
 
@@ -596,10 +596,6 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots.setSpacing(1)
         self.layout_mainwin_CsPanel_plots.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
-        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_TitleBarMaxButton))
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete = QPushButton("Delete")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete.\
@@ -612,15 +608,19 @@ class PsortGuiWidget(QMainWindow):
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
             setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_MediaSkipBackward))
+        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
+        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
+        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
+            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogNoButton))
 
-        self.layout_mainwin_CsPanel_buttons.\
-            addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect)
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDelete)
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsKeep)
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs)
+        self.layout_mainwin_CsPanel_buttons.\
+            addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect)
         self.layout_mainwin_CsPanel_buttons.setSpacing(1)
         self.layout_mainwin_CsPanel_buttons.setContentsMargins(1, 1, 1, 1)
 

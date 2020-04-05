@@ -1451,6 +1451,34 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def load_process_finished_complement(self):
+        file_fullPath, _, _, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
+        if not(file_ext == '.psort'):
+            # Reassign slot duration
+            psortDataBase_topLevel = \
+                self.psortDataBase.get_topLevelDataBase()
+            ch_data = psortDataBase_topLevel['ch_data']
+            sample_rate = psortDataBase_topLevel['sample_rate'][0]
+            total_duration = float(ch_data.size) / float(sample_rate)
+            slot_duration = 60.
+            total_slot_num = int(np.ceil(total_duration / slot_duration))
+
+            message = str('Total data duration is: {:.0f}s.\n'+\
+                'Current number of slots is: {:.0f}.\n'+\
+                'If you want to change the approximate slot duration,\n'\
+                'please put the new number in seconds:'\
+                ).format(total_duration, total_slot_num)
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 60.
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 5.
+            doubleSpinBx_params['max'] = 3600.
+            doubleSpinBx_params['min'] = 5.
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if self.input_dialog.exec_():
+                slot_duration = self.input_dialog.doubleSpinBx.value()
+                self.psortDataBase.reassign_slot_duration(slot_duration, file_fullPath)
+
         self.setEnableWidgets(True)
         self.transfer_data_from_psortDataBase_to_guiSignals()
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
@@ -1943,7 +1971,8 @@ class PsortGuiSignals(PsortGuiWidget):
             init_val=init_val_2D,
             covariance_type='full')
         if flag_ND:
-            num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.95), 2])
+            num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
+            num_D = np.min([10, num_D])
             pca_mat_ND = pca_mat_ND[:,0:num_D+1]
             init_val_ND = np.zeros((n_clusters, pca_mat_ND.shape[1]))
             for counter_cluster in range(n_clusters):

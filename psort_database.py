@@ -57,7 +57,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 9], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 10], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -87,14 +87,15 @@ class PsortDataBase():
         self.set_file_fullPath(os.getcwd()+os.sep+"dataBase.psort")
         return None
 
-    def init_slotsDataBase(self, ch_data=None, ch_time=None, sample_rate=30000):
+    def init_slotsDataBase(self, ch_data=None, ch_time=None, \
+                            sample_rate=30000, slot_duration = 60.0):
         if ch_data is None:
             ch_data=np.zeros((0), dtype=np.float64)
             total_slot_num = 30
             index_slot_edges = np.zeros((total_slot_num+1), dtype=np.uint32)
         else:
             data_size = ch_data.size
-            total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / 60.))
+            total_slot_num = int(np.ceil(float(data_size) / float(sample_rate) / slot_duration))
             index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
                                         endpoint=True)).astype(int)
         if ch_time is None:
@@ -237,6 +238,16 @@ class PsortDataBase():
 
     def get_topLevelDataBase(self):
         return deepcopy(self._topLevelDataBase)
+
+    def reassign_slot_duration(self, slot_duration, file_fullPath):
+        _ch_data = deepcopy(self._grandDataBase[-1]['ch_data'])
+        _ch_time = deepcopy(self._grandDataBase[-1]['ch_time'])
+        _sample_rate = self._grandDataBase[-1]['sample_rate'][0]
+        self.init_slotsDataBase(_ch_data, _ch_time, _sample_rate, slot_duration)
+        self.set_file_fullPath(file_fullPath)
+        self._topLevelDataBase['file_fullPathOriginal'] = \
+            np.array([file_fullPath], dtype=np.unicode)
+        return 0
 
     def update_dataBase_based_on_psort_gui_signals(self, guiSignals_workingDataBase):
         psortDataBase_currentSlot = self._currentSlotDataBase
