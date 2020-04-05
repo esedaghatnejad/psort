@@ -15,15 +15,15 @@ from copy import deepcopy
 import os
 
 _singleSlotDataBase = {
-        'isAnalyzed':             np.zeros((1), dtype=np.bool),
-        'index_start_on_ch_data': np.zeros((1), dtype=np.uint32),
-        'index_end_on_ch_data':   np.zeros((1), dtype=np.uint32),
-        'ss_min_cutoff_freq':     np.zeros((1), dtype=np.float32),
-        'ss_max_cutoff_freq':     np.zeros((1), dtype=np.float32),
-        'cs_min_cutoff_freq':     np.zeros((1), dtype=np.float32),
-        'cs_max_cutoff_freq':     np.zeros((1), dtype=np.float32),
-        'ss_threshold':           np.zeros((1), dtype=np.float32),
-        'cs_threshold':           np.zeros((1), dtype=np.float32),
+        'isAnalyzed':             np.array([False], dtype=np.bool),
+        'index_start_on_ch_data': np.array([0], dtype=np.uint32),
+        'index_end_on_ch_data':   np.array([1], dtype=np.uint32),
+        'ss_min_cutoff_freq':     np.array([50.], dtype=np.float32),
+        'ss_max_cutoff_freq':     np.array([5000.], dtype=np.float32),
+        'cs_min_cutoff_freq':     np.array([10.], dtype=np.float32),
+        'cs_max_cutoff_freq':     np.array([200.], dtype=np.float32),
+        'ss_threshold':           np.array([300.0], dtype=np.float32),
+        'cs_threshold':           np.array([300.0], dtype=np.float32),
         'ss_index_selected':      np.zeros((0), dtype=np.bool),
         'cs_index_selected':      np.zeros((0), dtype=np.bool),
         'ss_wave_ROI':            np.zeros((0), dtype=np.float32),
@@ -34,26 +34,30 @@ _singleSlotDataBase = {
         'cs_wave_span_ROI':       np.zeros((0), dtype=np.float32),
         'cs_wave_template':       np.zeros((0), dtype=np.float32),
         'cs_wave_span_template':  np.zeros((0), dtype=np.float32),
-        'ss_pca_bound_min':       np.zeros((1), dtype=np.float32),
-        'ss_pca_bound_max':       np.zeros((1), dtype=np.float32),
+        'ss_pca1_index':          np.array([0], dtype=np.uint32),
+        'ss_pca2_index':          np.array([1], dtype=np.uint32),
+        'ss_pca_bound_min':       np.array([-0.0003], dtype=np.float32),
+        'ss_pca_bound_max':       np.array([+0.0003], dtype=np.float32),
         'ss_pca1_ROI':            np.zeros((0), dtype=np.float32),
         'ss_pca2_ROI':            np.zeros((0), dtype=np.float32),
-        'cs_pca_bound_min':       np.zeros((1), dtype=np.float32),
-        'cs_pca_bound_max':       np.zeros((1), dtype=np.float32),
+        'cs_pca1_index':          np.array([0], dtype=np.uint32),
+        'cs_pca2_index':          np.array([1], dtype=np.uint32),
+        'cs_pca_bound_min':       np.array([-0.0005], dtype=np.float32),
+        'cs_pca_bound_max':       np.array([+0.0030], dtype=np.float32),
         'cs_pca1_ROI':            np.zeros((0), dtype=np.float32),
         'cs_pca2_ROI':            np.zeros((0), dtype=np.float32),
         'ssPeak_mode':            np.array(['min'], dtype=np.unicode),
         'csPeak_mode':            np.array(['max'], dtype=np.unicode),
         'csAlign_mode':           np.array(['ss_index'], dtype=np.unicode),
-        'ssLearnTemp_mode':       np.zeros((1), dtype=np.bool),
-        'csLearnTemp_mode':       np.zeros((1), dtype=np.bool),
+        'ssLearnTemp_mode':       np.array([False], dtype=np.bool),
+        'csLearnTemp_mode':       np.array([False], dtype=np.bool),
         }
 
 for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 8], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 9], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -62,9 +66,9 @@ _topLevelDataBase = {
         'file_ext':               np.array([''], dtype=np.unicode),
         'file_name_without_ext':  np.array([''], dtype=np.unicode),
         'index_slot_edges' :      np.zeros((30), dtype=np.uint32),
-        'total_slot_num':         np.full( (1), 30, dtype=np.uint8),
-        'current_slot_num':       np.zeros((1), dtype=np.uint8),
-        'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint8),
+        'total_slot_num':         np.full( (1), 30, dtype=np.uint32),
+        'current_slot_num':       np.zeros((1), dtype=np.uint32),
+        'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint32),
         'ch_data':                np.zeros((0), dtype=np.float64),
         'ch_time':                np.zeros((0), dtype=np.float64),
         'ss_index':               np.zeros((0), dtype=np.bool),
@@ -156,6 +160,11 @@ class PsortDataBase():
                 from psort_update_to_psort04 import UpdateToPsort04Signals
                 UpdateToPsort04Signals.update_grandDataBase(self)
                 self._grandDataBase[-1]['PSORT_VERSION'] = deepcopy(_topLevelDataBase['PSORT_VERSION'])
+            # Backward compatibility to PSORT_VERSION 04
+            for key in _singleSlotDataBase.keys():
+                if not(key in self._grandDataBase[-2].keys()):
+                    for counter_slot in range(len(self._grandDataBase)-1):
+                        self._grandDataBase[counter_slot][key] = deepcopy(_singleSlotDataBase[key])
             self._currentSlotDataBase = self._grandDataBase[-2]
             self._topLevelDataBase = self._grandDataBase[-1]
             self.set_file_fullPath(file_fullPath)

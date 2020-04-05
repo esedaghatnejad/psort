@@ -28,9 +28,9 @@ import decorator
 ## #############################################################################
 #%% GLOBAL VARIABLES
 _workingDataBase = {
-    'total_slot_num': (       np.full( (1), 30, dtype=np.uint8)),
-    'current_slot_num':       np.zeros((1), dtype=np.uint8),
-    'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint8),
+    'total_slot_num': (       np.full( (1), 30, dtype=np.uint32)),
+    'current_slot_num':       np.zeros((1), dtype=np.uint32),
+    'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint32),
     'sample_rate':            np.zeros((1), dtype=np.uint32),
     'ch_time':                np.zeros((0), dtype=np.float64),
     'ch_data':                np.zeros((0), dtype=np.float64),
@@ -137,7 +137,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_xprob()
         self.extract_ss_pca()
         self.extract_cs_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=False)
         self.plot_ss_peaks_histogram()
         self.plot_cs_peaks_histogram()
         self.plot_ss_ifr_histogram()
@@ -163,6 +163,10 @@ class PsortGuiSignals(PsortGuiWidget):
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
         self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         return 0
 
     def setEnableWidgets(self, isEnable):
@@ -454,7 +458,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_toolbar_signals(self):
-        self.txtlabel_statusBar.setText('Load data.')
+        self.txtlabel_statusBar.setText('Please load data to beging sorting or use tools menubar.')
         self.loadData.return_signal.\
             connect(self.load_process_finished)
         self.saveData.return_signal.\
@@ -535,10 +539,10 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onRawSignal_SsThresh_ValueChanged)
         self.txtedit_mainwin_rawSignalPanel_CsThresh.valueChanged.\
             connect(self.onRawSignal_CsThresh_ValueChanged)
-        self.pushBtn_mainwin_rawSignalPanel_SsRefresh.clicked.\
-            connect(self.onRawSignal_SsRefresh_Clicked)
-        self.pushBtn_mainwin_rawSignalPanel_CsRefresh.clicked.\
-            connect(self.onRawSignal_CsRefresh_Clicked)
+        self.pushBtn_mainwin_rawSignalPanel_SsAutoThresh.clicked.\
+            connect(self.onRawSignal_SsAutoThresh_Clicked)
+        self.pushBtn_mainwin_rawSignalPanel_CsAutoThresh.clicked.\
+            connect(self.onRawSignal_CsAutoThresh_Clicked)
         return 0
 
     def connect_ssPanel_signals(self):
@@ -548,12 +552,19 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onSsPanel_selectWave_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
             connect(self.onSsPanel_learnWave_Clicked)
+        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.clicked.\
+            connect(self.onSsPanel_deselect_Clicked)
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete.clicked.\
             connect(self.onSsPanel_delete_Clicked)
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep.clicked.\
             connect(self.onSsPanel_keep_Clicked)
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.clicked.\
             connect(self.onSsPanel_moveToCs_Clicked)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.activated.\
+            connect(self.onSsPanel_PcaNum1_IndexChanged)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.activated.\
+            connect(self.onSsPanel_PcaNum2_IndexChanged)
+
         return 0
 
     def connect_csPanel_signals(self):
@@ -563,12 +574,18 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onCsPanel_selectWave_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
             connect(self.onCsPanel_learnWave_Clicked)
+        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.clicked.\
+            connect(self.onCsPanel_deselect_Clicked)
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete.clicked.\
             connect(self.onCsPanel_delete_Clicked)
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep.clicked.\
             connect(self.onCsPanel_keep_Clicked)
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.clicked.\
             connect(self.onCsPanel_moveToSs_Clicked)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.activated.\
+            connect(self.onCsPanel_PcaNum1_IndexChanged)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.activated.\
+            connect(self.onCsPanel_PcaNum2_IndexChanged)
         return 0
 
 ## #############################################################################
@@ -597,9 +614,10 @@ class PsortGuiSignals(PsortGuiWidget):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
+        self._workingDataBase['current_slot_num'][0] = slot_num - 1
         self.txtlabel_toolbar_slotNumTotal.\
-            setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
-            "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
+            setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
+            '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
         self.transfer_data_from_psortDataBase_to_guiSignals()
         self.refresh_workingDataBase()
         return 0
@@ -879,6 +897,46 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_pca()
         return 0
 
+    def onSsPanel_PcaNum1_IndexChanged(self):
+        if (self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.count() >= 2) and \
+            (self._workingDataBase['ss_pca_mat'].size > 0):
+            self._workingDataBase['ss_pca1_index'][0] = \
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.currentIndex()
+            self._workingDataBase['ss_pca1'] = \
+                self._workingDataBase['ss_pca_mat'][self._workingDataBase['ss_pca1_index'][0],:]
+            self.plot_ss_pca()
+        return 0
+
+    def onSsPanel_PcaNum2_IndexChanged(self):
+        if (self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.count() >= 2) and \
+            (self._workingDataBase['ss_pca_mat'].size > 0):
+            self._workingDataBase['ss_pca2_index'][0] = \
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.currentIndex()
+            self._workingDataBase['ss_pca2'] = \
+                self._workingDataBase['ss_pca_mat'][self._workingDataBase['ss_pca2_index'][0],:]
+            self.plot_ss_pca()
+        return 0
+
+    def onCsPanel_PcaNum1_IndexChanged(self):
+        if (self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.count() >= 2) and \
+            (self._workingDataBase['cs_pca_mat'].size > 0):
+            self._workingDataBase['cs_pca1_index'][0] = \
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.currentIndex()
+            self._workingDataBase['cs_pca1'] = \
+                self._workingDataBase['cs_pca_mat'][self._workingDataBase['cs_pca1_index'][0],:]
+            self.plot_cs_pca()
+        return 0
+
+    def onCsPanel_PcaNum2_IndexChanged(self):
+        if (self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.count() >= 2) and \
+            (self._workingDataBase['cs_pca_mat'].size > 0):
+            self._workingDataBase['cs_pca2_index'][0] = \
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.currentIndex()
+            self._workingDataBase['cs_pca2'] = \
+                self._workingDataBase['cs_pca_mat'][self._workingDataBase['cs_pca2_index'][0],:]
+            self.plot_cs_pca()
+        return 0
+
     def onfilterPanel_SsFast_IndexChanged(self):
         if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
@@ -958,7 +1016,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_CsPeak.autoRange()
         return 0
 
-    def onRawSignal_SsRefresh_Clicked(self):
+    def onRawSignal_SsAutoThresh_Clicked(self):
         _ss_index = psort_lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=10.0,
@@ -980,7 +1038,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((+_threshold)+1)
         return 0
 
-    def onRawSignal_CsRefresh_Clicked(self):
+    def onRawSignal_CsAutoThresh_Clicked(self):
         _cs_index = psort_lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=10.0,
@@ -1002,7 +1060,6 @@ class PsortGuiSignals(PsortGuiWidget):
             self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
         return 0
 
-    @showWaitCursor
     def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
@@ -1010,7 +1067,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['popUp_mode'] = np.array(['ss_pca_manual'], dtype=np.unicode)
         elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1) \
             or (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 2):
-            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_kmeans'], dtype=np.unicode)
+            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_gmm'], dtype=np.unicode)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = 2.
@@ -1043,7 +1100,6 @@ class PsortGuiSignals(PsortGuiWidget):
             "Y: SS_PCA2(au) | X: SS_PCA1(au)", color='k', size='12')
         return 0
 
-    @showWaitCursor
     def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
@@ -1051,7 +1107,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['popUp_mode'] = np.array(['cs_pca_manual'], dtype=np.unicode)
         elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1) \
             or (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 2):
-            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_kmeans'], dtype=np.unicode)
+            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_gmm'], dtype=np.unicode)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = 2.
@@ -1159,6 +1215,22 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     @showWaitCursor
+    def onSsPanel_deselect_Clicked(self):
+        self.reset_ss_ROI(forced_reset = True)
+        self.plot_rawSignal(just_update_selected=True)
+        self.plot_ss_waveform()
+        self.plot_ss_pca()
+        return 0
+
+    @showWaitCursor
+    def onCsPanel_deselect_Clicked(self):
+        self.reset_cs_ROI(forced_reset = True)
+        self.plot_rawSignal(just_update_selected=True)
+        self.plot_cs_waveform()
+        self.plot_cs_pca()
+        return 0
+
+    @showWaitCursor
     def onSsPanel_delete_Clicked(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
@@ -1172,7 +1244,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_xprob()
         self.extract_cs_xprob()
         self.extract_ss_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
         self.plot_ss_ifr_histogram()
         self.plot_ss_xprob()
@@ -1199,7 +1271,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_ifr()
         self.extract_cs_xprob()
         self.extract_cs_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
         self.plot_cs_ifr_histogram()
         self.plot_cs_xprob()
@@ -1222,7 +1294,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_xprob()
         self.extract_cs_xprob()
         self.extract_ss_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
         self.plot_ss_ifr_histogram()
         self.plot_ss_xprob()
@@ -1249,7 +1321,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_ifr()
         self.extract_cs_xprob()
         self.extract_cs_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
         self.plot_cs_ifr_histogram()
         self.plot_cs_xprob()
@@ -1274,7 +1346,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_xprob()
         self.extract_ss_pca()
         self.extract_cs_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
         self.plot_cs_peaks_histogram()
         self.plot_ss_ifr_histogram()
@@ -1304,7 +1376,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_xprob()
         self.extract_ss_pca()
         self.extract_cs_pca()
-        self.plot_rawSignal()
+        self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
         self.plot_cs_peaks_histogram()
         self.plot_ss_ifr_histogram()
@@ -1316,6 +1388,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         self.plot_cs_pca()
         return 0
+
 ## #############################################################################
 #%% LOAD & SAVE
     def load_process_start(self):
@@ -1331,7 +1404,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def load_process_finished(self, ch_data, ch_time, sample_rate):
-        self.txtlabel_statusBar.setText('Loaded data.')
+        currentDT = datetime.datetime.now()
+        self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S") + ' Loaded data.')
         self.progress_statusBar.setRange(0,1)
         self.widget_mainwin.setEnabled(True)
         self.widget_popup.setEnabled(True)
@@ -1387,8 +1461,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.txtedit_toolbar_slotNumCurrent.setValue(1)
         self.onToolbar_slotNumCurrent_ValueChanged()
         if not(file_ext=='.psort'):
-            self.onRawSignal_SsRefresh_Clicked()
-            self.onRawSignal_CsRefresh_Clicked()
+            self.onRawSignal_SsAutoThresh_Clicked()
+            self.onRawSignal_CsAutoThresh_Clicked()
             self.onToolbar_refresh_ButtonClick()
         return 0
 
@@ -1405,7 +1479,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def save_process_finished(self):
-        self.txtlabel_statusBar.setText('Saved data.')
+        currentDT = datetime.datetime.now()
+        self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S") + ' Saved data.')
         self.progress_statusBar.setRange(0,1)
         self.widget_mainwin.setEnabled(True)
         self.widget_popup.setEnabled(True)
@@ -1414,13 +1489,13 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 ## #############################################################################
 #%% PLOTS
-    def plot_rawSignal(self):
-        self.plot_rawSignal_waveforms()
+    def plot_rawSignal(self, just_update_selected=False):
         self.plot_rawSignal_SsIndex()
         self.plot_rawSignal_CsIndex()
         self.plot_rawSignal_SsIndexSelected()
         self.plot_rawSignal_CsIndexSelected()
-        self.viewBox_rawSignal.autoRange()
+        if not(just_update_selected):
+            self.plot_rawSignal_waveforms()
         return 0
 
     def plot_rawSignal_waveforms(self):
@@ -1610,11 +1685,17 @@ class PsortGuiSignals(PsortGuiWidget):
             setData(
                 self._workingDataBase['ss_pca1'],
                 self._workingDataBase['ss_pca2'])
-        _ss_index_selected = self._workingDataBase['ss_index_selected']
-        self.pltData_SsPcaSelected.\
-            setData(
-                self._workingDataBase['ss_pca1'][_ss_index_selected,],
-                self._workingDataBase['ss_pca2'][_ss_index_selected,])
+        if (self._workingDataBase['ss_pca_mat'].size > 0):
+            _ss_index_selected = self._workingDataBase['ss_index_selected']
+            self.pltData_SsPcaSelected.\
+                setData(
+                    self._workingDataBase['ss_pca1'][_ss_index_selected,],
+                    self._workingDataBase['ss_pca2'][_ss_index_selected,])
+        else:
+            self.pltData_SsPcaSelected.\
+                setData(
+                    np.zeros((0)),
+                    np.zeros((0)))
         self.pltData_SsPcaROI.\
             setData(
                 self._workingDataBase['ss_pca1_ROI'],
@@ -1628,11 +1709,17 @@ class PsortGuiSignals(PsortGuiWidget):
             setData(
                 self._workingDataBase['cs_pca1'],
                 self._workingDataBase['cs_pca2'])
-        _cs_index_selected = self._workingDataBase['cs_index_selected']
-        self.pltData_CsPcaSelected.\
-            setData(
-                self._workingDataBase['cs_pca1'][_cs_index_selected,],
-                self._workingDataBase['cs_pca2'][_cs_index_selected,])
+        if (self._workingDataBase['cs_pca_mat'].size > 0):
+            _cs_index_selected = self._workingDataBase['cs_index_selected']
+            self.pltData_CsPcaSelected.\
+                setData(
+                    self._workingDataBase['cs_pca1'][_cs_index_selected,],
+                    self._workingDataBase['cs_pca2'][_cs_index_selected,])
+        else:
+            self.pltData_CsPcaSelected.\
+                setData(
+                    np.zeros((0)),
+                    np.zeros((0)))
         self.pltData_CsPcaROI.\
             setData(
                 self._workingDataBase['cs_pca1_ROI'],
@@ -1671,14 +1758,14 @@ class PsortGuiSignals(PsortGuiWidget):
                             setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
                                     self._workingDataBase['popUp_ROI_y'][[0,-1],],
                                     pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
-                elif '_kmeans' in self._workingDataBase['popUp_mode'][0]:
+                elif '_gmm' in self._workingDataBase['popUp_mode'][0]:
                     self.pltData_popUpPlot_ROI.\
                         setData(self._workingDataBase['popUp_ROI_x'],
                                 self._workingDataBase['popUp_ROI_y'],
                                 pen=None)
                     if (self._workingDataBase['popUp_ROI_x'].size \
                         > (self.input_dialog.doubleSpinBx.value()-1)):
-                        self.popUp_pca_KMeans()
+                        self.popUp_pca_gmm()
                 else:
                     self.pltData_popUpPlot_ROI2.\
                         setData(np.zeros((0)),
@@ -1716,7 +1803,7 @@ class PsortGuiSignals(PsortGuiWidget):
                                     self._workingDataBase['ss_pca2_ROI'])
             self.plot_ss_pca()
             self.plot_ss_waveform()
-            self.plot_rawSignal()
+            self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_manual'], dtype=np.unicode):
             self._workingDataBase['cs_pca1_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
@@ -1733,7 +1820,7 @@ class PsortGuiSignals(PsortGuiWidget):
                                     self._workingDataBase['cs_pca2_ROI'])
             self.plot_cs_pca()
             self.plot_cs_waveform()
-            self.plot_rawSignal()
+            self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase['popUp_mode'] == np.array(['ss_wave_manual'], dtype=np.unicode):
             self._workingDataBase['ss_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
@@ -1758,7 +1845,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_pca2_ROI'] = np.zeros((0), dtype=np.float32)
             self.plot_ss_waveform()
             self.plot_ss_pca()
-            self.plot_rawSignal()
+            self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase['popUp_mode'] == np.array(['cs_wave_manual'], dtype=np.unicode):
             self._workingDataBase['cs_wave_span_ROI'] = \
                 np.append(self._workingDataBase['popUp_ROI_x'],
@@ -1783,8 +1870,8 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca2_ROI'] = np.zeros((0), dtype=np.float32)
             self.plot_cs_waveform()
             self.plot_cs_pca()
-            self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array(['ss_pca_kmeans'], dtype=np.unicode):
+            self.plot_rawSignal(just_update_selected=True)
+        elif self._workingDataBase['popUp_mode'] == np.array(['ss_pca_gmm'], dtype=np.unicode):
             self._workingDataBase['ss_pca1_ROI'] = np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
             self._workingDataBase['ss_pca2_ROI'] = np.append(self._workingDataBase['popUp_ROI_y'],
@@ -1793,8 +1880,8 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
             self.plot_ss_pca()
             self.plot_ss_waveform()
-            self.plot_rawSignal()
-        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_kmeans'], dtype=np.unicode):
+            self.plot_rawSignal(just_update_selected=True)
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_gmm'], dtype=np.unicode):
             self._workingDataBase['cs_pca1_ROI'] = np.append(self._workingDataBase['popUp_ROI_x'],
                         self._workingDataBase['popUp_ROI_x'][0])
             self._workingDataBase['cs_pca2_ROI'] = np.append(self._workingDataBase['popUp_ROI_y'],
@@ -1803,7 +1890,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
             self.plot_cs_pca()
             self.plot_cs_waveform()
-            self.plot_rawSignal()
+            self.plot_rawSignal(just_update_selected=True)
         else:
             pass
         return 0
@@ -1826,23 +1913,27 @@ class PsortGuiSignals(PsortGuiWidget):
             self.pltText_popUpPlot_list[counter].hide()
         return 0
 
-    def popUp_pca_KMeans(self):
+    def popUp_pca_gmm(self):
         n_clusters=int(self.input_dialog.doubleSpinBx.value())
-        if self._workingDataBase['popUp_mode'] == np.array(['ss_pca_kmeans'], dtype=np.unicode):
+        if self._workingDataBase['popUp_mode'] == np.array(['ss_pca_gmm'], dtype=np.unicode):
             pca_mat_ND = self._workingDataBase['ss_pca_mat'].T # shape (n_samples,  n_features)
             pca_variance = self._workingDataBase['ss_pca_variance']
+            pca1_index = self._workingDataBase['ss_pca1_index'][0]
+            pca2_index = self._workingDataBase['ss_pca2_index'][0]
             if (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1):
                 flag_ND = False
             elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 2):
                 flag_ND = True
-        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_kmeans'], dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_gmm'], dtype=np.unicode):
             pca_mat_ND = self._workingDataBase['cs_pca_mat'].T # shape (n_samples,  n_features)
             pca_variance = self._workingDataBase['cs_pca_variance']
+            pca1_index = self._workingDataBase['cs_pca1_index'][0]
+            pca2_index = self._workingDataBase['cs_pca2_index'][0]
             if (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1):
                 flag_ND = False
             elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 2):
                 flag_ND = True
-        pca_mat_2D = pca_mat_ND[:,0:2]
+        pca_mat_2D = pca_mat_ND[:,[pca1_index, pca2_index]]
         init_val_2D = np.zeros((n_clusters, 2))
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
@@ -1853,7 +1944,7 @@ class PsortGuiSignals(PsortGuiWidget):
             covariance_type='full')
         if flag_ND:
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.95), 2])
-            pca_mat_ND = pca_mat_ND[:,0:num_D]
+            pca_mat_ND = pca_mat_ND[:,0:num_D+1]
             init_val_ND = np.zeros((n_clusters, pca_mat_ND.shape[1]))
             for counter_cluster in range(n_clusters):
                 index_cluster = (labels == counter_cluster)
@@ -1890,9 +1981,9 @@ class PsortGuiSignals(PsortGuiWidget):
             return 0
         selected_cluster = int(self.input_dialog.doubleSpinBx.value()-1)
         index_cluster = (labels == selected_cluster)
-        if   self._workingDataBase['popUp_mode'] == np.array(['ss_pca_kmeans'], dtype=np.unicode):
+        if   self._workingDataBase['popUp_mode'] == np.array(['ss_pca_gmm'], dtype=np.unicode):
             self._workingDataBase['ss_index_selected'] = index_cluster
-        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_kmeans'], dtype=np.unicode):
+        elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_gmm'], dtype=np.unicode):
             self._workingDataBase['cs_index_selected'] = index_cluster
         self.onPopUp_Ok_Clicked()
         return 0
@@ -2371,7 +2462,7 @@ class PsortGuiSignals(PsortGuiWidget):
             int( ( self._workingDataBase['ss_pca_bound_max'][0]\
             + self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] )\
             * self._workingDataBase['sample_rate'][0] )
-        if (self._workingDataBase['ss_index'].sum() > 1):
+        if (self._workingDataBase['ss_index'].sum() > 1) and ((_maxPca-_minPca)>2):
             self._workingDataBase['ss_pca_mat'], self._workingDataBase['ss_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
@@ -2381,6 +2472,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_pca_mat'] = np.zeros((0, 0), dtype=np.float32)
             self._workingDataBase['ss_pca1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_pca2'] = np.zeros((0), dtype=np.float32)
+        self.update_SSPcaNum_comboBx()
         return 0
 
     def extract_cs_pca(self):
@@ -2397,7 +2489,7 @@ class PsortGuiSignals(PsortGuiWidget):
             int( ( self._workingDataBase['cs_pca_bound_max'][0]\
             + self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] )\
             * self._workingDataBase['sample_rate'][0] )
-        if (self._workingDataBase['cs_index'].sum() > 1):
+        if (self._workingDataBase['cs_index'].sum() > 1) and ((_maxPca-_minPca)>2):
             self._workingDataBase['cs_pca_mat'], self._workingDataBase['cs_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
@@ -2407,6 +2499,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_mat'] = np.zeros((0, 0), dtype=np.float32)
             self._workingDataBase['cs_pca1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_pca2'] = np.zeros((0), dtype=np.float32)
+        self.update_CSPcaNum_comboBx()
         return 0
 
     def extract_ss_template(self):
@@ -2475,6 +2568,108 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
         return 0
 
+    def update_SSPcaNum_comboBx(self):
+        if self._workingDataBase['ss_pca_mat'].size > 0:
+            pca_variance = self._workingDataBase['ss_pca_variance']
+            num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
+            num_D = np.min([10, num_D])
+            comboBx_Items = []
+            for counter_pca in range(num_D):
+                comboBx_Items.append(str(counter_pca+1)+' - '+\
+                    str('{:.1f}').format(pca_variance[counter_pca]*100))
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            # ss_pca1_index
+            if (self._workingDataBase['ss_pca1_index'][0] < num_D):
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
+                    self._workingDataBase['ss_pca1_index'][0])
+                self._workingDataBase['ss_pca1'] = self._workingDataBase\
+                    ['ss_pca_mat'][self._workingDataBase['ss_pca1_index'][0],:]
+            else:
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+                self._workingDataBase['ss_pca1'] = self._workingDataBase['ss_pca_mat'][0,:]
+                self._workingDataBase['ss_pca1_index'][0] = 0
+            # ss_pca2_index
+            if (self._workingDataBase['ss_pca2_index'][0] < num_D):
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
+                    self._workingDataBase['ss_pca2_index'][0])
+                self._workingDataBase['ss_pca2'] = self._workingDataBase\
+                    ['ss_pca_mat'][self._workingDataBase['ss_pca2_index'][0],:]
+            else:
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+                self._workingDataBase['ss_pca2'] = self._workingDataBase['ss_pca_mat'][1,:]
+                self._workingDataBase['ss_pca2_index'][0] = 1
+        else:
+            pca_variance = [0, 0]
+            num_D = 2
+            comboBx_Items = []
+            for counter_pca in range(num_D):
+                comboBx_Items.append(str(counter_pca+1)+' - '+str(pca_variance[counter_pca]*100))
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            # ss_pca1_index
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+            self._workingDataBase['ss_pca1_index'][0] = 0
+            # ss_pca2_index
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+            self._workingDataBase['ss_pca2_index'][0] = 1
+        return 0
+
+    def update_CSPcaNum_comboBx(self):
+        if self._workingDataBase['cs_pca_mat'].size > 0:
+            pca_variance = self._workingDataBase['cs_pca_variance']
+            num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
+            num_D = np.min([10, num_D])
+            comboBx_Items = []
+            for counter_pca in range(num_D):
+                comboBx_Items.append(str(counter_pca+1)+' - '+\
+                    str('{:.1f}').format(pca_variance[counter_pca]*100))
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            # cs_pca1_index
+            if (self._workingDataBase['cs_pca1_index'][0] < num_D):
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
+                    self._workingDataBase['cs_pca1_index'][0])
+                self._workingDataBase['cs_pca1'] = self._workingDataBase\
+                    ['cs_pca_mat'][self._workingDataBase['cs_pca1_index'][0],:]
+            else:
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+                self._workingDataBase['cs_pca1'] = self._workingDataBase['cs_pca_mat'][0,:]
+                self._workingDataBase['cs_pca1_index'][0] = 0
+            # cs_pca2_index
+            if (self._workingDataBase['cs_pca2_index'][0] < num_D):
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
+                    self._workingDataBase['cs_pca2_index'][0])
+                self._workingDataBase['cs_pca2'] = self._workingDataBase\
+                    ['cs_pca_mat'][self._workingDataBase['cs_pca2_index'][0],:]
+            else:
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+                self._workingDataBase['cs_pca2'] = self._workingDataBase['cs_pca_mat'][1,:]
+                self._workingDataBase['cs_pca2_index'][0] = 1
+        else:
+            pca_variance = [0, 0]
+            num_D = 2
+            comboBx_Items = []
+            for counter_pca in range(num_D):
+                comboBx_Items.append(str(counter_pca+1)+' - '+str(pca_variance[counter_pca]*100))
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            # cs_pca1_index
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+            self._workingDataBase['cs_pca1_index'][0] = 0
+            # cs_pca2_index
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+            self._workingDataBase['cs_pca2_index'][0] = 1
+        return 0
+
 ## #############################################################################
 #%% BIND PSORT_GUI_SIGNALS TO PSORT_DATABASE
     def transfer_data_from_psortDataBase_to_guiSignals(self):
@@ -2506,7 +2701,7 @@ class PsortGuiSignals(PsortGuiWidget):
         # if the SLOT is already analyzed then transfer the data over,
         # otherwise, do not transfer and use the current values for the new slot
         if self._workingDataBase['isAnalyzed'][0]:
-            for key in psortDataBase_currentSlot.keys():
+            for key in psort_database._singleSlotDataBase.keys():
                 self._workingDataBase[key] = psortDataBase_currentSlot[key]
             self._workingDataBase['flag_index_detection'][0] = False
         else:
@@ -2566,6 +2761,16 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_bound_min'][0] * 1000.)
         self.infLine_CsWave_maxPca.setValue(
             self._workingDataBase['cs_pca_bound_max'][0] * 1000.)
+        # ss_pca_index
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
+            self._workingDataBase['ss_pca1_index'][0])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
+            self._workingDataBase['ss_pca2_index'][0])
+        # cs_pca_index
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
+            self._workingDataBase['cs_pca1_index'][0])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
+            self._workingDataBase['cs_pca2_index'][0])
         return 0
 
     def update_guiDataBase_from_guiWidgets(self):
@@ -2616,6 +2821,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_minPca.value()/1000.
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
+        # ss_pca_index
+        # Due to conflict with onToolbar_slotNumCurrent_ValueChanged
+        # this section has been implemented in update_SSPcaNum_comboBx
+        # cs_pca_index
+        # Due to conflict with onToolbar_slotNumCurrent_ValueChanged
+        # this section has been implemented in update_CSPcaNum_comboBx
         return 0
 
 ## #############################################################################
