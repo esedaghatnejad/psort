@@ -558,35 +558,25 @@ def inpolygon(xq, yq, xv, yv):
     p = path.Path([(xv[i], yv[i]) for i in range(xv.shape[0])])
     return p.contains_points(q).reshape(shape)
 
-def mean_confidence_interval(data, confidence=0.95, sem=False):
+def mean_std_min_max(data):
     """
-    Calculate the mean and confidence interval for the input data
+    Calculate the mean and std for the input data
     If data is a vector (ndim=1) the output will be 3 scalars
-    If the data is a matrix (ndim=2) the output will be the mean and confidence interval
+    If the data is a matrix (ndim=2) the output will be the mean and std
     of each column.
     """
     if data.ndim == 1:
-        if sem:
-            _data_size = data.size
-        else:
-            _data_size = 2
         _mean = np.mean(data)
-        _interval = scipy.stats.sem(data) * \
-            scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
+        _interval = scipy.stats.tstd(data)
         return _mean, _mean-_interval, _mean+_interval
     elif data.ndim == 2:
-        if sem:
-            _data_size = data.shape[0]
-        else:
-            _data_size = 2
         num_col = data.shape[1]
         _mean = np.full((num_col),np.NaN, dtype=np.float)
         _interval = np.full((num_col),np.NaN, dtype=np.float)
         for counter_col in range(num_col):
             _col_data = data[:,counter_col]
             _col_mean = np.mean(_col_data)
-            _col_interval = scipy.stats.sem(_col_data) * \
-                scipy.stats.t.ppf((1 + confidence) / 2., _data_size-1)
+            _col_interval = scipy.stats.tstd(_col_data)
             _mean[counter_col] = _col_mean
             _interval[counter_col] = _col_interval
         return _mean, _mean-_interval, _mean+_interval

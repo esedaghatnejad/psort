@@ -83,7 +83,7 @@ class CellSummarySignals(CellSummaryWidget):
         numCS = float( self._workingDataBase['cs_index'].sum() )
         freqCS = self._workingDataBase['cs_ifr_mean'][0]
         numSS = float( self._workingDataBase['ss_index'].sum() )
-        freqSS = self._workingDataBase['ss_ifr_mean'][0] # float(self._workingDataBase['ss_index'].sum()) / duration
+        freqSS = self._workingDataBase['ss_ifr_mean'][0]
         self.pltLabel_Stats.setText(
             "{} ::   Duration: {:.1f} min ,   numCS: {:.0f} ,   freqCS: {:.2f} Hz ,   numSS: {:.0f} ,   freqSS: {:.2f} Hz".format(
             file_name,
@@ -97,6 +97,11 @@ class CellSummarySignals(CellSummaryWidget):
 
     def init_plot(self):
         self.graphWin.setBackground('w')
+        # Stats
+        self.pltLabel_Stats = self.graphWin.addLabel(
+            text='TEXT2', row=None, col=None, rowspan=1, colspan=3)
+        # Next Row
+        self.graphWin.nextRow()
         # Waveform
         self.pltWidget_Waveform = self.graphWin.addPlot(title="Waveform")
         psort_lib.set_plotWidget(self.pltWidget_Waveform, bkg=False)
@@ -195,11 +200,6 @@ class CellSummarySignals(CellSummaryWidget):
                 stepMode=True, fillLevel=0, brush=(255,0,0,200))
         self.viewBox_CsPeak = self.pltWidget_CsPeak.getViewBox()
         self.viewBox_CsPeak.autoRange()
-        # Next Row
-        self.graphWin.nextRow()
-        # Stats
-        self.pltLabel_Stats = self.graphWin.addLabel(
-            text='TEXT2', row=None, col=None, rowspan=1, colspan=3)
         return 0
 
     def load_grandDataBase(self):
@@ -244,16 +244,16 @@ class CellSummarySignals(CellSummaryWidget):
                 float(self._workingDataBase['ss_index'].sum()) \
                 / self._workingDataBase['duration']
             self._workingDataBase['ss_wave_mean'], \
-                self._workingDataBase['ss_wave_95int_min'], \
-                self._workingDataBase['ss_wave_95int_max'] = \
-                    psort_lib.mean_confidence_interval(self._workingDataBase['ss_wave'])
+                self._workingDataBase['ss_wave_stdv_min'], \
+                self._workingDataBase['ss_wave_stdv_max'] = \
+                    psort_lib.mean_std_min_max(self._workingDataBase['ss_wave'])
             self._workingDataBase['ss_wave_span_mean'] = \
                 np.mean(self._workingDataBase['ss_wave_span'][:,:],axis=0)
         else:
             self._workingDataBase['ss_ifr_mean'][0] = 0
             self._workingDataBase['ss_wave_mean'] = np.zeros((0))
-            self._workingDataBase['ss_wave_95int_min'] = np.zeros((0))
-            self._workingDataBase['ss_wave_95int_max'] = np.zeros((0))
+            self._workingDataBase['ss_wave_stdv_min'] = np.zeros((0))
+            self._workingDataBase['ss_wave_stdv_max'] = np.zeros((0))
             self._workingDataBase['ss_wave_span_mean'] = np.zeros((0))
         if self._workingDataBase['cs_index'].sum() > 0:
             self._workingDataBase['cs_ifr_mean'][0] = \
@@ -262,7 +262,7 @@ class CellSummarySignals(CellSummaryWidget):
             self._workingDataBase['cs_wave_mean'], \
                 self._workingDataBase['cs_wave_95int_min'], \
                 self._workingDataBase['cs_wave_95int_max'] = \
-                    psort_lib.mean_confidence_interval(self._workingDataBase['cs_wave'])
+                    psort_lib.mean_std_min_max(self._workingDataBase['cs_wave'])
             self._workingDataBase['cs_wave_span_mean'] = \
                 np.mean(self._workingDataBase['cs_wave_span'][:,:],axis=0)
         else:
@@ -330,12 +330,12 @@ class CellSummarySignals(CellSummaryWidget):
         self.pltData_SsWave95Min.\
             setData(
                 self._workingDataBase['ss_wave_span_mean']*1000.,
-                self._workingDataBase['ss_wave_95int_min'],
+                self._workingDataBase['ss_wave_stdv_min'],
                 connect="finite")
         self.pltData_SsWave95Max.\
             setData(
                 self._workingDataBase['ss_wave_span_mean']*1000.,
-                self._workingDataBase['ss_wave_95int_max'],
+                self._workingDataBase['ss_wave_stdv_max'],
                 connect="finite")
         self.pltData_SsWave.\
             setData(
