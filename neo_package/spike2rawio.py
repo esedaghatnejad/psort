@@ -36,7 +36,7 @@ class Spike2RawIO(BaseRawIO):
     rawmode = 'one-file'
 
     def __init__(self, filename='', take_ideal_sampling_rate=False, ced_units=True,
-                            try_signal_grouping=True):
+                            try_signal_grouping=False):
         BaseRawIO.__init__(self)
         self.filename = filename
 

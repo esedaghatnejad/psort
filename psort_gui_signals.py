@@ -1547,8 +1547,21 @@ class PsortGuiSignals(PsortGuiWidget):
         self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
         self.txtedit_toolbar_slotNumCurrent.\
             setMaximum(self.psortDataBase.get_total_slot_num())
+        # Setting the value of slotNumCurrent to 1
+        # the disconnet and connect commands are to solve an issue when a new file is loaded
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            disconnect(self.onToolbar_slotNumCurrent_ValueChanged)
+        slot_num = 1;
+        self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
+        self._workingDataBase['current_slot_num'][0] = slot_num - 1
+        self.txtlabel_toolbar_slotNumTotal.\
+            setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
+            '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
+        self.transfer_data_from_psortDataBase_to_guiSignals()
+        self.refresh_workingDataBase()
         self.txtedit_toolbar_slotNumCurrent.setValue(1)
-        self.onToolbar_slotNumCurrent_ValueChanged()
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            connect(self.onToolbar_slotNumCurrent_ValueChanged)
         if not(file_ext=='.psort'):
             self.onRawSignal_SsAutoThresh_Clicked()
             self.onRawSignal_CsAutoThresh_Clicked()
@@ -2540,10 +2553,22 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def extract_ss_pca(self):
         """
-        -> ss_wave is a nSpike-by-181 matrix
+        -> check the minPca and maxPca and make sure they are less than 1s
+        -> by default ss_wave is a nSpike-by-181 matrix
         -> slice the ss_wave using minPca and maxPca
         -> make sure the DataBase values has been updated
         """
+        if self._workingDataBase['ss_pca_bound_min'][0] > 1:
+            self._workingDataBase['ss_pca_bound_min'][0] = \
+                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
+            self.infLine_SsWave_minPca.setValue(
+                self._workingDataBase['ss_pca_bound_min'][0] * 1000.)
+        if self._workingDataBase['ss_pca_bound_max'][0] > 1:
+            self._workingDataBase['ss_pca_bound_max'][0] = \
+                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
+            self.infLine_SsWave_maxPca.setValue(
+                self._workingDataBase['ss_pca_bound_max'][0] * 1000.)
+
         _minPca = \
             int( ( self._workingDataBase['ss_pca_bound_min'][0]\
             + self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] )\
@@ -2567,10 +2592,22 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def extract_cs_pca(self):
         """
-        -> cs_wave is a nSpike-by-181 matrix
+        -> check the minPca and maxPca and make sure they are less than 1s
+        -> by default cs_wave is a nSpike-by-181 matrix
         -> slice the cs_wave using minPca and maxPca
         -> make sure the DataBase values has been updated
         """
+        if self._workingDataBase['cs_pca_bound_min'][0] > 1:
+            self._workingDataBase['cs_pca_bound_min'][0] = \
+                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
+            self.infLine_CsWave_minPca.setValue(
+                self._workingDataBase['cs_pca_bound_min'][0] * 1000.)
+        if self._workingDataBase['cs_pca_bound_max'][0] > 1:
+            self._workingDataBase['cs_pca_bound_max'][0] = \
+                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
+            self.infLine_CsWave_maxPca.setValue(
+                self._workingDataBase['cs_pca_bound_max'][0] * 1000.)
+
         _minPca = \
             int( ( self._workingDataBase['cs_pca_bound_min'][0]\
             + self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] )\

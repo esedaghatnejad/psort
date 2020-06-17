@@ -57,7 +57,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 12], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 13], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -83,7 +83,6 @@ class PsortDataBase():
         self._currentSlotDataBase = self._grandDataBase[-2]
         self._topLevelDataBase = self._grandDataBase[-1]
         self.init_slotsDataBase()
-        self.changeCurrentSlot_to(0)
         self.set_file_fullPath(os.getcwd()+os.sep+"dataBase.psort")
         return None
 
@@ -131,6 +130,8 @@ class PsortDataBase():
             np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
         self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
         self._topLevelDataBase['sample_rate'][0] = sample_rate
+
+        self.changeCurrentSlot_to(0)
         return 0
 
     def loadCurrentSlot_from(self, slot_num):
