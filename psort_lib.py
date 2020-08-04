@@ -20,6 +20,8 @@ from matplotlib import path
 import deepdish_package
 import pymatreader_package
 import openephys_package
+from umap_package import UMAP
+umap_object = UMAP()
 from neo_package import spike2io
 from copy import deepcopy
 import sys
@@ -558,7 +560,7 @@ def inpolygon(xq, yq, xv, yv):
     p = path.Path([(xv[i], yv[i]) for i in range(xv.shape[0])])
     return p.contains_points(q).reshape(shape)
 
-def mean_std_min_max(data):
+def mean_std_plus_minus(data):
     """
     Calculate the mean and std for the input data
     If data is a vector (ndim=1) the output will be 3 scalars
@@ -568,7 +570,7 @@ def mean_std_min_max(data):
     if data.ndim == 1:
         _mean = np.mean(data)
         _interval = scipy.stats.tstd(data)
-        return _mean, _mean-_interval, _mean+_interval
+        return _mean, _mean+_interval, _mean-_interval
     elif data.ndim == 2:
         num_col = data.shape[1]
         _mean = np.full((num_col),np.NaN, dtype=np.float)
@@ -579,57 +581,76 @@ def mean_std_min_max(data):
             _col_interval = scipy.stats.tstd(_col_data)
             _mean[counter_col] = _col_mean
             _interval[counter_col] = _col_interval
-        return _mean, _mean-_interval, _mean+_interval
+        return _mean, _mean+_interval, _mean-_interval
     else:
         return 0, 0, 0
 
-def kmeans(pca_mat, n_clusters=2, init_val=None):
+def kmeans(input_data, n_clusters=2, init_val=None):
     """
-    n_clusters: int, default=2
-    pca_mat:  ndarray of shape (n_samples,  n_features)
-    init_val: ndarray of shape (n_clusters, n_features)
-    labels:   ndarray of shape (n_samples, ) , dtype=int32
-    centers:  ndarray of shape (n_clusters, n_features)
+    Args:
+        input_data (np.ndarray):  shape (n_samples,  n_features)
+        n_clusters (int): default = 2
+        init_val (np.ndarray): ndarray of shape (n_clusters, n_features)
+    Returns:
+        labels (np.ndarray):   shape (n_samples, ) , dtype=int32
+        centers (np.ndarray):  shape (n_clusters, n_features)
     """
     if init_val is None:
         init_val = 'k-means++'
         n_init=10
     else:
         n_init=1
-    _kmeans = KMeans(n_clusters=n_clusters, init=init_val, n_init=n_init).fit(pca_mat)
+    _kmeans = KMeans(n_clusters=n_clusters, init=init_val, n_init=n_init).fit(input_data)
     labels = _kmeans.labels_
     centers = _kmeans.cluster_centers_
     return labels, centers
 
-def AgglomerativeClustering(pca_mat, n_clusters=2):
+def AgglomerativeClustering(input_data, n_clusters=2):
     """
-    n_clusters: int, default=2
-    pca_mat:  ndarray of shape (n_samples,  n_features)
-    labels:   ndarray of shape (n_samples, ) , dtype=int32
-    centers:  ndarray of shape (n_clusters, n_features)
+    Args:
+        input_data (np.ndarray): shape (n_samples,  n_features)
+        n_clusters (int): default = 2
+    Returns:
+        labels (np.ndarray):  shape (n_samples, ) , dtype=int32
+        centers (np.ndarray): shape (n_clusters, n_features)
     """
     ward = cluster.AgglomerativeClustering(n_clusters=n_clusters, linkage='ward')
-    ward.fit(pca_mat)
+    ward.fit(input_data)
     labels = ward.labels_
-    centers = np.zeros((n_clusters, pca_mat.shape[1]))
+    centers = np.zeros((n_clusters, input_data.shape[1]))
     for counter_cluster in range(n_clusters):
         index_cluster = (labels == counter_cluster)
-        centers[counter_cluster,:] = np.mean(pca_mat[index_cluster,:],axis=0)
+        centers[counter_cluster,:] = np.mean(input_data[index_cluster,:],axis=0)
     return labels, centers
 
-def GaussianMixture(gmm_data, n_clusters=2, init_val=None, covariance_type='full'):
+def GaussianMixture(input_data, n_clusters=2, init_val=None, covariance_type='full'):
     """
-    n_clusters: int, default=2
-    gmm_data: ndarray of shape (n_samples,  n_features)
-    init_val: ndarray of shape (n_clusters, n_features)
-    labels:   ndarray of shape (n_samples, ) , dtype=int32
-    centers:  ndarray of shape (n_clusters, n_features)
+    Args:
+        input_data (np.ndarray): shape (n_samples,  n_features)
+        n_clusters (int):      default = 2
+        init_val (np.ndarray): shape (n_clusters, n_features)
+        covariance_type (string): default = 'full'
+    Returns:
+        labels (np.ndarray):   shape (n_samples, ) , dtype=int32
+        centers (np.ndarray):  shape (n_clusters, n_features)
     """
-    if gmm_data.size < 1:
+    if input_data.size < 1:
         return np.zeros((0)), np.zeros((0))
     gmm = mixture.GaussianMixture(n_components=n_clusters,
         means_init=init_val, covariance_type=covariance_type)
-    gmm.fit(gmm_data)
-    labels = gmm.predict(gmm_data)
+    gmm.fit(input_data)
+    labels = gmm.predict(input_data)
     centers = gmm.means_
     return labels, centers
+
+def umap(waveform):
+    """
+        Uniform Manifold Approximation and Projection (UMAP)
+    Args:
+        waveform (np.ndarray): shape (num_spikes,num_data_points), containing the waveform
+            of each spike within the region of interest
+    Returns:
+        embedding (np.ndarray): shape (num_spikes, 2), embedded dimensions
+    """
+    embedding = umap_object.fit_transform(waveform)
+    return embedding

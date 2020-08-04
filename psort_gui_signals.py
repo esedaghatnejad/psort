@@ -57,14 +57,14 @@ _workingDataBase = {
     'ss_xprob_span':          np.zeros((0), dtype=np.float32),
     'cs_xprob':               np.zeros((0), dtype=np.float32),
     'cs_xprob_span':          np.zeros((0), dtype=np.float32),
-    'ss_pca1':                np.zeros((0), dtype=np.float32),
-    'ss_pca2':                np.zeros((0), dtype=np.float32),
     'ss_pca_mat':             np.zeros((0, 0), dtype=np.float32),
     'ss_pca_variance':        np.zeros((0), dtype=np.float32),
-    'cs_pca1':                np.zeros((0), dtype=np.float32),
-    'cs_pca2':                np.zeros((0), dtype=np.float32),
+    'ss_pca1':                np.zeros((0), dtype=np.float32),
+    'ss_pca2':                np.zeros((0), dtype=np.float32),
     'cs_pca_mat':             np.zeros((0, 0), dtype=np.float32),
     'cs_pca_variance':        np.zeros((0), dtype=np.float32),
+    'cs_pca1':                np.zeros((0), dtype=np.float32),
+    'cs_pca2':                np.zeros((0), dtype=np.float32),
     'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
     'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
@@ -2581,6 +2581,11 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_pca_mat'], self._workingDataBase['ss_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
+            ss_embedding = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
+            self._workingDataBase['ss_pca_mat'] = np.vstack((
+                                                    ss_embedding[:, 0],
+                                                    ss_embedding[:, 1],
+                                                    self._workingDataBase['ss_pca_mat']))
             self._workingDataBase['ss_pca1'] = self._workingDataBase['ss_pca_mat'][0,:]
             self._workingDataBase['ss_pca2'] = self._workingDataBase['ss_pca_mat'][1,:]
         else:
@@ -2620,12 +2625,19 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_mat'], self._workingDataBase['cs_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
+            cs_embedding = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
+            self._workingDataBase['cs_pca_mat'] = np.vstack((
+                                                    cs_embedding[:, 0],
+                                                    cs_embedding[:, 1],
+                                                    self._workingDataBase['cs_pca_mat']))
             self._workingDataBase['cs_pca1'] = self._workingDataBase['cs_pca_mat'][0,:]
             self._workingDataBase['cs_pca2'] = self._workingDataBase['cs_pca_mat'][1,:]
         else:
             self._workingDataBase['cs_pca_mat'] = np.zeros((0, 0), dtype=np.float32)
             self._workingDataBase['cs_pca1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_pca2'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_umap1'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['cs_umap2'] = np.zeros((0), dtype=np.float32)
         self.update_CSPcaNum_comboBx()
         return 0
 
@@ -2701,9 +2713,11 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
             num_D = np.min([10, num_D])
             comboBx_Items = []
+            comboBx_Items.append('umap1')
+            comboBx_Items.append('umap2')
             for counter_pca in range(num_D):
-                comboBx_Items.append(str(counter_pca+1)+' - '+\
-                    str('{:.1f}').format(pca_variance[counter_pca]*100))
+                comboBx_Items.append('pca' + str(counter_pca+1)+' ('+\
+                    str('{:.1f}').format(pca_variance[counter_pca]*100) + '%)')
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
@@ -2729,11 +2743,9 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ss_pca2'] = self._workingDataBase['ss_pca_mat'][1,:]
                 self._workingDataBase['ss_pca2_index'][0] = 1
         else:
-            pca_variance = [0, 0]
-            num_D = 2
             comboBx_Items = []
-            for counter_pca in range(num_D):
-                comboBx_Items.append(str(counter_pca+1)+' - '+str(pca_variance[counter_pca]*100))
+            comboBx_Items.append('umap1')
+            comboBx_Items.append('umap2')
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
@@ -2752,9 +2764,11 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
             num_D = np.min([10, num_D])
             comboBx_Items = []
+            comboBx_Items.append('umap1')
+            comboBx_Items.append('umap2')
             for counter_pca in range(num_D):
-                comboBx_Items.append(str(counter_pca+1)+' - '+\
-                    str('{:.1f}').format(pca_variance[counter_pca]*100))
+                comboBx_Items.append('pca' + str(counter_pca+1)+' ('+\
+                    str('{:.1f}').format(pca_variance[counter_pca]*100) + '%)')
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
@@ -2780,11 +2794,9 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_pca2'] = self._workingDataBase['cs_pca_mat'][1,:]
                 self._workingDataBase['cs_pca2_index'][0] = 1
         else:
-            pca_variance = [0, 0]
-            num_D = 2
             comboBx_Items = []
-            for counter_pca in range(num_D):
-                comboBx_Items.append(str(counter_pca+1)+' - '+str(pca_variance[counter_pca]*100))
+            comboBx_Items.append('umap1')
+            comboBx_Items.append('umap2')
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)

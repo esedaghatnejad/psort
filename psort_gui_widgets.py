@@ -421,13 +421,13 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
             setLayout(self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['1', '2'])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['umap1', 'umap2'])
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['1', '2'])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['umap1', 'umap2'])
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
-        self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QLabel("| X: SS_PCA# ")
-        self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QLabel(" Y: SS_PCA# ")
+        self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QLabel("| X: SS_ ")
+        self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QLabel(" Y: SS_ ")
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
             addWidget(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2)
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
@@ -561,13 +561,13 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
             setLayout(self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['1', '2'])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['umap1', 'umap2'])
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['1', '2'])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['umap1', 'umap2'])
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
-        self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QLabel("| X: CS_PCA# ")
-        self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QLabel(" Y: CS_PCA# ")
+        self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QLabel("| X: CS_ ")
+        self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QLabel(" Y: CS_ ")
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
             addWidget(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2)
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\

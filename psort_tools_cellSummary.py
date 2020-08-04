@@ -244,32 +244,32 @@ class CellSummarySignals(CellSummaryWidget):
                 float(self._workingDataBase['ss_index'].sum()) \
                 / self._workingDataBase['duration']
             self._workingDataBase['ss_wave_mean'], \
-                self._workingDataBase['ss_wave_stdv_min'], \
-                self._workingDataBase['ss_wave_stdv_max'] = \
-                    psort_lib.mean_std_min_max(self._workingDataBase['ss_wave'])
+                self._workingDataBase['ss_wave_stdv_plus'], \
+                self._workingDataBase['ss_wave_stdv_minus'] = \
+                    psort_lib.mean_std_plus_minus(self._workingDataBase['ss_wave'])
             self._workingDataBase['ss_wave_span_mean'] = \
                 np.mean(self._workingDataBase['ss_wave_span'][:,:],axis=0)
         else:
             self._workingDataBase['ss_ifr_mean'][0] = 0
             self._workingDataBase['ss_wave_mean'] = np.zeros((0))
-            self._workingDataBase['ss_wave_stdv_min'] = np.zeros((0))
-            self._workingDataBase['ss_wave_stdv_max'] = np.zeros((0))
+            self._workingDataBase['ss_wave_stdv_minus'] = np.zeros((0))
+            self._workingDataBase['ss_wave_stdv_plus'] = np.zeros((0))
             self._workingDataBase['ss_wave_span_mean'] = np.zeros((0))
         if self._workingDataBase['cs_index'].sum() > 0:
             self._workingDataBase['cs_ifr_mean'][0] = \
                 float(self._workingDataBase['cs_index'].sum()) \
                 / self._workingDataBase['duration']
             self._workingDataBase['cs_wave_mean'], \
-                self._workingDataBase['cs_wave_95int_min'], \
-                self._workingDataBase['cs_wave_95int_max'] = \
-                    psort_lib.mean_std_min_max(self._workingDataBase['cs_wave'])
+                self._workingDataBase['cs_wave_stdv_plus'], \
+                self._workingDataBase['cs_wave_stdv_minus'] = \
+                    psort_lib.mean_std_plus_minus(self._workingDataBase['cs_wave'])
             self._workingDataBase['cs_wave_span_mean'] = \
                 np.mean(self._workingDataBase['cs_wave_span'][:,:],axis=0)
         else:
             self._workingDataBase['cs_ifr_mean'][0] = 0
             self._workingDataBase['cs_wave_mean'] = np.zeros((0))
-            self._workingDataBase['cs_wave_95int_min'] = np.zeros((0))
-            self._workingDataBase['cs_wave_95int_max'] = np.zeros((0))
+            self._workingDataBase['cs_wave_stdv_minus'] = np.zeros((0))
+            self._workingDataBase['cs_wave_stdv_plus'] = np.zeros((0))
             self._workingDataBase['cs_wave_span_mean'] = np.zeros((0))
         return 0
 
@@ -330,12 +330,12 @@ class CellSummarySignals(CellSummaryWidget):
         self.pltData_SsWave95Min.\
             setData(
                 self._workingDataBase['ss_wave_span_mean']*1000.,
-                self._workingDataBase['ss_wave_stdv_min'],
+                self._workingDataBase['ss_wave_stdv_minus'],
                 connect="finite")
         self.pltData_SsWave95Max.\
             setData(
                 self._workingDataBase['ss_wave_span_mean']*1000.,
-                self._workingDataBase['ss_wave_stdv_max'],
+                self._workingDataBase['ss_wave_stdv_plus'],
                 connect="finite")
         self.pltData_SsWave.\
             setData(
@@ -345,12 +345,12 @@ class CellSummarySignals(CellSummaryWidget):
         self.pltData_CsWave95Min.\
             setData(
                 self._workingDataBase['cs_wave_span_mean']*1000.,
-                self._workingDataBase['cs_wave_95int_min'],
+                self._workingDataBase['cs_wave_stdv_minus'],
                 connect="finite")
         self.pltData_CsWave95Max.\
             setData(
                 self._workingDataBase['cs_wave_span_mean']*1000.,
-                self._workingDataBase['cs_wave_95int_max'],
+                self._workingDataBase['cs_wave_stdv_plus'],
                 connect="finite")
         self.pltData_CsWave.\
             setData(
