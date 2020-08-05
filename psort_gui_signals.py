@@ -1026,7 +1026,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if gmm_data.size < 1:
             return 0
         labels, centers = psort_lib.GaussianMixture(
-                            gmm_data=gmm_data,
+                            input_data=gmm_data,
                             n_clusters=2,
                             init_val=None,
                             covariance_type='tied')
@@ -1050,7 +1050,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if gmm_data.size < 1:
             return 0
         labels, centers = psort_lib.GaussianMixture(
-                            gmm_data=gmm_data,
+                            input_data=gmm_data,
                             n_clusters=2,
                             init_val=None,
                             covariance_type='tied')
@@ -2040,7 +2040,7 @@ class PsortGuiSignals(PsortGuiWidget):
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
         labels, centers = psort_lib.GaussianMixture(
-            gmm_data=pca_mat_2D,
+            input_data=pca_mat_2D,
             n_clusters=n_clusters,
             init_val=init_val_2D,
             covariance_type='full')
@@ -2053,7 +2053,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 index_cluster = (labels == counter_cluster)
                 init_val_ND[counter_cluster, :] = np.mean(pca_mat_ND[index_cluster,:], axis=0)
             labels, centers = psort_lib.GaussianMixture(
-                gmm_data=pca_mat_ND,
+                input_data=pca_mat_ND,
                 n_clusters=n_clusters,
                 init_val=init_val_ND,
                 covariance_type='full')
@@ -2581,8 +2581,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_pca_mat'], self._workingDataBase['ss_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
-            ss_embedding = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
-            self._workingDataBase['ss_pca_mat'] = np.vstack((
+            if self.actionBtn_menubar_edit_umap.isChecked():
+                ss_embedding = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
+                self._workingDataBase['ss_pca_mat'] = np.vstack((
                                                     ss_embedding[:, 0],
                                                     ss_embedding[:, 1],
                                                     self._workingDataBase['ss_pca_mat']))
@@ -2625,8 +2626,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_mat'], self._workingDataBase['cs_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
-            cs_embedding = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
-            self._workingDataBase['cs_pca_mat'] = np.vstack((
+            if self.actionBtn_menubar_edit_umap.isChecked():
+                cs_embedding = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
+                self._workingDataBase['cs_pca_mat'] = np.vstack((
                                                     cs_embedding[:, 0],
                                                     cs_embedding[:, 1],
                                                     self._workingDataBase['cs_pca_mat']))
@@ -2713,8 +2715,9 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
             num_D = np.min([10, num_D])
             comboBx_Items = []
-            comboBx_Items.append('umap1')
-            comboBx_Items.append('umap2')
+            if self.actionBtn_menubar_edit_umap.isChecked():
+                comboBx_Items.append('umap1')
+                comboBx_Items.append('umap2')
             for counter_pca in range(num_D):
                 comboBx_Items.append('pca' + str(counter_pca+1)+' ('+\
                     str('{:.1f}').format(pca_variance[counter_pca]*100) + '%)')
@@ -2744,8 +2747,12 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ss_pca2_index'][0] = 1
         else:
             comboBx_Items = []
-            comboBx_Items.append('umap1')
-            comboBx_Items.append('umap2')
+            if self.actionBtn_menubar_edit_umap.isChecked():
+                comboBx_Items.append('umap1')
+                comboBx_Items.append('umap2')
+            else:
+                comboBx_Items.append('pca1 (0%)')
+                comboBx_Items.append('pca2 (0%)')
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
@@ -2764,8 +2771,9 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
             num_D = np.min([10, num_D])
             comboBx_Items = []
-            comboBx_Items.append('umap1')
-            comboBx_Items.append('umap2')
+            if self.actionBtn_menubar_edit_umap.isChecked():
+                comboBx_Items.append('umap1')
+                comboBx_Items.append('umap2')
             for counter_pca in range(num_D):
                 comboBx_Items.append('pca' + str(counter_pca+1)+' ('+\
                     str('{:.1f}').format(pca_variance[counter_pca]*100) + '%)')
@@ -2795,8 +2803,12 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_pca2_index'][0] = 1
         else:
             comboBx_Items = []
-            comboBx_Items.append('umap1')
-            comboBx_Items.append('umap2')
+            if self.actionBtn_menubar_edit_umap.isChecked():
+                comboBx_Items.append('umap1')
+                comboBx_Items.append('umap2')
+            else:
+                comboBx_Items.append('pca1 (0%)')
+                comboBx_Items.append('pca2 (0%)')
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)

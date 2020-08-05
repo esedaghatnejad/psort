@@ -712,7 +712,9 @@ class PsortGuiWidget(QMainWindow):
 
         self.menu_menubar_edit = self.menubar.addMenu("Edit")
         self.actionBtn_menubar_edit_prefrences = QAction("Prefrences...", self)
+        self.actionBtn_menubar_edit_umap = QAction("UMAP for dim reduction", self, checkable=True)
         self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_prefrences)
+        self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_umap)
 
         self.menu_menubar_tools = self.menubar.addMenu("Tools")
         self.actionBtn_menubar_tools_csTune = QAction("CS Tuning", self)
