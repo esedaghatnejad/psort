@@ -4,7 +4,8 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% IMPORT PACKAGES
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
@@ -17,6 +18,7 @@ from psort_database import PsortDataBase
 from psort_tools_commonAvg import CommonAvgSignals
 from psort_tools_cellSummary import CellSummarySignals
 from psort_edit_prefrences import EditPrefrencesDialog
+from psort_wavedissect import WaveDissectWidget
 import numpy as np
 from copy import deepcopy
 import os
@@ -25,7 +27,8 @@ import sys
 import decorator
 
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% GLOBAL VARIABLES
 _workingDataBase = {
     'total_slot_num': (       np.full( (1), 30, dtype=np.uint32)),
@@ -89,7 +92,8 @@ def showWaitCursor(func, *args, **kwargs):
     finally:
         QtWidgets.QApplication.restoreOverrideCursor()
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% CLASS PsortGuiSignals
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
@@ -109,10 +113,12 @@ class PsortGuiSignals(PsortGuiWidget):
         self.connect_rawSignalPanel_signals()
         self.connect_ssPanel_signals()
         self.connect_csPanel_signals()
+        self.connect_WaveDissectWidget()
         self.setEnableWidgets(False)
         return None
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% HIGH LEVEL FUNCTIONS
     def refresh_workingDataBase(self):
         if self._workingDataBase['isAnalyzed'][0]:
@@ -154,7 +160,8 @@ class PsortGuiSignals(PsortGuiWidget):
                 + ' Analyzed Slot# ' + str(self.txtedit_toolbar_slotNumCurrent.value()))
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(_workingDataBase)
@@ -440,7 +447,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_CsXProb.autoRange()
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% CONNECT SIGNALS
     def connect_menubar_signals(self):
         self.actionBtn_menubar_file_open.triggered.\
@@ -451,6 +459,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(sys.exit)
         self.actionBtn_menubar_edit_prefrences.triggered.\
             connect(self.onMenubar_prefrences_ButtonClick)
+        self.actionBtn_menubar_edit_umap.triggered.\
+            connect(self.onMenubar_umap_ButtonClick)
         self.actionBtn_menubar_tools_commonAvg.triggered.\
             connect(self.onMenubar_commonAvg_ButtonClick)
         self.actionBtn_menubar_tools_cellSummary.triggered.\
@@ -550,6 +560,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onSsPanel_selectPcaData_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave.clicked.\
             connect(self.onSsPanel_selectWave_Clicked)
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect.clicked.\
+            connect(self.onSsPanel_waveDissect_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
             connect(self.onSsPanel_learnWave_Clicked)
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.clicked.\
@@ -572,6 +584,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onCsPanel_selectPcaData_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave.clicked.\
             connect(self.onCsPanel_selectWave_Clicked)
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect.clicked.\
+            connect(self.onCsPanel_waveDissect_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
             connect(self.onCsPanel_learnWave_Clicked)
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.clicked.\
@@ -588,7 +602,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onCsPanel_PcaNum2_IndexChanged)
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% SIGNALS
     @showWaitCursor
     def onToolbar_next_ButtonClick(self):
@@ -704,6 +719,13 @@ class PsortGuiSignals(PsortGuiWidget):
         self.onCsPanel_learnWave_Clicked()
         return 0
 
+    def onMenubar_umap_ButtonClick(self):
+        self.extract_ss_pca()
+        self.plot_ss_pca()
+        self.extract_cs_pca()
+        self.plot_cs_pca()
+        return 0
+
     def onMenubar_cellSummary_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
@@ -719,7 +741,7 @@ class PsortGuiSignals(PsortGuiWidget):
             and (self.psortDataBase.get_total_slot_isAnalyzed()>0):
             self.menubar_cellSummary = \
                 CellSummarySignals(
-                    psort_grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+                    psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
                 )
         else:
             self.menubar_cellSummary = \
@@ -1393,7 +1415,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_pca()
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% LOAD & SAVE
     def load_process_start(self):
         file_fullPath = self._fileDataBase['load_file_fullPath']
@@ -1520,7 +1543,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 message=message, doubleSpinBx_params=doubleSpinBx_params)
             if self.input_dialog.exec_():
                 scale_value = self.input_dialog.doubleSpinBx.value()
-                psort_grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+                psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
                 psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         # Scale ch_data DOWN and put it in 100-10000 range
         if ch_data_max > 10000.:
@@ -1538,7 +1561,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 message=message, doubleSpinBx_params=doubleSpinBx_params)
             if self.input_dialog.exec_():
                 scale_value = self.input_dialog.doubleSpinBx.value()
-                psort_grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+                psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
                 psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         self.setEnableWidgets(True)
         self.transfer_data_from_psortDataBase_to_guiSignals()
@@ -1570,7 +1593,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def save_process_start(self):
         self.saveData.file_fullPath = self._fileDataBase['save_file_fullPath']
-        self.saveData.grandDataBase = self.psortDataBase.get_gradDataBase_Pointer()
+        self.saveData.grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
         self.saveData.start()
         self.txtlabel_statusBar.setText('Saving data ...')
         self.progress_statusBar.setRange(0,0)
@@ -1589,7 +1612,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.toolbar.setEnabled(True)
         self.menubar.setEnabled(True)
         return 0
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% PLOTS
     def plot_rawSignal(self, just_update_selected=False):
         self.plot_rawSignal_SsIndex()
@@ -1830,7 +1854,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_CsPca.autoRange()
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% POPUP
     def popUpPlot_mouseMoved(self, evt):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
@@ -2090,8 +2115,72 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_index_selected'] = index_cluster
         self.onPopUp_Ok_Clicked()
         return 0
+## ################################################################################################
+## ################################################################################################
+#%% WAVEDISSECT
+    def connect_WaveDissectWidget(self):
+        self.WaveDissectWidget = WaveDissectWidget(self)
+        # Add WaveDissectWidget as the 3rd widget to layout_grand
+        self.layout_grand.addWidget(self.WaveDissectWidget)
+        self.WaveDissectWidget.pushBtn_rawPlot_popup_cancel.clicked.\
+            connect(self.onWaveDissect_Cancel_Clicked)
+        self.WaveDissectWidget.pushBtn_rawPlot_popup_ok.clicked.\
+            connect(self.onWaveDissect_Ok_Clicked)
+        self.proxy_MouseMoved_WaveDissect = \
+            pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseMoved, \
+            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved)
+        self.proxy_MouseClicked_WaveDissect = \
+            pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseClicked, \
+            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseDoubleClicked)
+        return 0
 
-## #############################################################################
+    @showWaitCursor
+    def onWaveDissect_Cancel_Clicked(self):
+        self.WaveDissectWidget.popUp_task_cancelled()
+        self.waveDissect_showWidget(False)
+        return 0
+
+    @showWaitCursor
+    def onWaveDissect_Ok_Clicked(self):
+        self.WaveDissectWidget.popUp_task_completed()
+        self.waveDissect_showWidget(False)
+        self._workingDataBase['ss_index'] = \
+            deepcopy(self.WaveDissectWidget._workingDataBase['ss_index'])
+        self._workingDataBase['ss_index_selected'] = \
+            deepcopy(self.WaveDissectWidget._workingDataBase['ss_index_selected'])
+        self._workingDataBase['cs_index_slow'] = \
+            deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_slow'])
+        self._workingDataBase['cs_index'] = \
+            deepcopy(self.WaveDissectWidget._workingDataBase['cs_index'])
+        self._workingDataBase['cs_index_selected'] = \
+            deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_selected'])
+        self._workingDataBase['flag_index_detection'][0] = False
+        self.refresh_workingDataBase()
+        return 0
+
+    def onSsPanel_waveDissect_Clicked(self):
+        self.onPushBtn_waveDissect_Clicked()
+        return 0
+
+    def onCsPanel_waveDissect_Clicked(self):
+        self.onPushBtn_waveDissect_Clicked()
+        return 0
+
+    def onPushBtn_waveDissect_Clicked(self):
+        self.WaveDissectWidget._workingDataBase = deepcopy(self._workingDataBase)
+        self.WaveDissectWidget.pushBtn_waveDissect_Clicked()
+        self.waveDissect_showWidget(True)
+        return 0
+
+    def waveDissect_showWidget(self, showWaveDissect=False):
+        self.toolbar.setEnabled(not(showWaveDissect))
+        if showWaveDissect:
+            self.layout_grand.setCurrentIndex(2)
+        else:
+            self.layout_grand.setCurrentIndex(0)
+        return 0
+## ################################################################################################
+## ################################################################################################
 #%% DATA MANAGEMENT
     def filter_data(self):
         self._workingDataBase['ch_data_ss'] = \
@@ -2821,7 +2910,8 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca2_index'][0] = 1
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% BIND PSORT_GUI_SIGNALS TO PSORT_DATABASE
     def transfer_data_from_psortDataBase_to_guiSignals(self):
         psortDataBase_currentSlot = \
@@ -2980,5 +3070,6 @@ class PsortGuiSignals(PsortGuiWidget):
         # this section has been implemented in update_CSPcaNum_comboBx
         return 0
 
-## #############################################################################
+## ################################################################################################
+## ################################################################################################
 #%% END OF CODE

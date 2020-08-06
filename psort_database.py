@@ -57,7 +57,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 15], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 16], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -234,7 +234,7 @@ class PsortDataBase():
         file_name_without_ext = self._topLevelDataBase['file_name_without_ext'][0]
         return file_fullPath, file_path, file_name, file_ext, file_name_without_ext
 
-    def get_gradDataBase_Pointer(self):
+    def get_grandDataBase_Pointer(self):
         # This function should be used just for save data function
         return self._grandDataBase
 

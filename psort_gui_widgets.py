@@ -366,13 +366,17 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsWaveBtn = QHBoxLayout()
         self.layout_mainwin_SsPanel_plots_SsPcaBtn = QHBoxLayout()
 
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select Waveform")
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect = QPushButton("Dissect")
+        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform = QPushButton("Learn Template")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave)
+        self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
+            addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setSpacing(1)
@@ -506,13 +510,17 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsWaveBtn = QHBoxLayout()
         self.layout_mainwin_CsPanel_plots_CsPcaBtn = QHBoxLayout()
 
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select Waveform")
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect = QPushButton("Dissect")
+        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform = QPushButton("Learn Template")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave)
+        self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
+            addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setSpacing(1)
