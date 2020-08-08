@@ -468,22 +468,27 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots.setSpacing(1)
         self.layout_mainwin_SsPanel_plots.setContentsMargins(1, 1, 1, 1)
 
+        """Icons made by
+        <a href="https://www.flaticon.com/authors/itim2101" title="itim2101">itim2101</a>
+        from
+        <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>"""
+
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete = QPushButton("Delete")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogCancelButton))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '067-trash-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep = QPushButton("Keep")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsKeep, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogApplyButton))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '023-download-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs = QPushButton("Move to CS")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_MediaSkipForward))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-right-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogNoButton))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-blue.png')))
 
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDelete)
@@ -615,19 +620,19 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete = QPushButton("Delete")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogCancelButton))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '067-trash-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep = QPushButton("Keep")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsKeep, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogApplyButton))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '023-download-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs = QPushButton("Move to SS")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_MediaSkipBackward))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-left-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
-            setIcon(QtGui.QApplication.style().standardIcon(QtGui.QStyle.SP_DialogNoButton))
+            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-red.png')))
 
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDelete)
@@ -654,22 +659,25 @@ class PsortGuiWidget(QMainWindow):
         self.toolbar = QToolBar("Load_Save")
         self.toolbar.setIconSize(QtCore.QSize(30, 30))
         self.addToolBar(self.toolbar)
-
         self.actionBtn_toolbar_next = \
-            QAction(QtGui.QApplication.style().\
-            standardIcon(QtGui.QStyle.SP_ArrowForward), "Next Slot", self)
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '071-right-arrow.png')), "Next Slot", self)
         self.actionBtn_toolbar_previous = \
-            QAction(QtGui.QApplication.style().\
-            standardIcon(QtGui.QStyle.SP_ArrowBack), "Previous Slot", self)
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '036-left-arrow.png')), "Previous Slot", self)
         self.actionBtn_toolbar_refresh = \
-            QAction(QtGui.QApplication.style().\
-            standardIcon(QtGui.QStyle.SP_BrowserReload), "Refresh Slot", self)
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-recycling.png')), "Refresh Slot", self)
         self.actionBtn_toolbar_load = \
-            QAction(QtGui.QApplication.style().\
-            standardIcon(QtGui.QStyle.SP_DialogOpenButton), "Load File", self)
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '029-folder.png')), "Load File", self)
         self.actionBtn_toolbar_save = \
-            QAction(QtGui.QApplication.style().\
-            standardIcon(QtGui.QStyle.SP_DialogSaveButton), "Save Session", self)
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '073-diskette.png')), "Save Session", self)
+        self.actionBtn_toolbar_undo = \
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-undo.png')), "Undo", self)
+        self.actionBtn_toolbar_redo = \
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-redo.png')), "Redo", self)
+
+        self.txtlabel_toolbar_fileName = QLabel("File_Name")
+        psort_lib.setFont(self.txtlabel_toolbar_fileName)
+        self.txtlabel_toolbar_filePath = QLabel("/File_Path/")
+        psort_lib.setFont(self.txtlabel_toolbar_filePath)
 
         self.widget_toolbar_empty = QWidget()
         self.widget_toolbar_empty.\
@@ -685,17 +693,15 @@ class PsortGuiWidget(QMainWindow):
         self.txtlabel_toolbar_slotNumTotal = QLabel("/ 30(0)")
         psort_lib.setFont(self.txtlabel_toolbar_slotNumTotal)
 
-        self.txtlabel_toolbar_fileName = QLabel("File_Name")
-        psort_lib.setFont(self.txtlabel_toolbar_fileName)
-        self.txtlabel_toolbar_filePath = QLabel("/File_Path/")
-        psort_lib.setFont(self.txtlabel_toolbar_filePath)
-
         self.toolbar.addAction(self.actionBtn_toolbar_load)
         self.toolbar.addAction(self.actionBtn_toolbar_save)
         self.toolbar.addSeparator()
         self.toolbar.addWidget(self.txtlabel_toolbar_filePath)
         self.toolbar.addWidget(self.txtlabel_toolbar_fileName)
         self.toolbar.addWidget(self.widget_toolbar_empty)
+        self.toolbar.addAction(self.actionBtn_toolbar_undo)
+        self.toolbar.addAction(self.actionBtn_toolbar_redo)
+        self.toolbar.addSeparator()
         self.toolbar.addWidget(self.txtlabel_toolbar_slotNumLabel)
         self.toolbar.addWidget(self.txtedit_toolbar_slotNumCurrent)
         self.toolbar.addWidget(self.txtlabel_toolbar_slotNumTotal)

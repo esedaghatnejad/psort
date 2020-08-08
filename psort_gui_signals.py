@@ -68,11 +68,17 @@ _workingDataBase = {
     'cs_pca_variance':        np.zeros((0), dtype=np.float32),
     'cs_pca1':                np.zeros((0), dtype=np.float32),
     'cs_pca2':                np.zeros((0), dtype=np.float32),
+    'umap_enable':            np.array([False], dtype=np.bool),
     'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
     'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
     'flag_index_detection':   np.array([True], dtype=np.bool),
     'flag_edit_prefrences':   np.array([False],dtype=np.bool),
+    'ss_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
+    'cs_index_slow_undoRedo': np.zeros((0,0), dtype=np.bool),
+    'cs_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
+    'index_undoRedo':         np.zeros((1), dtype=np.int),
+    'length_undoRedo':        np.zeros((1), dtype=np.int),
 }
 
 for key in psort_database._singleSlotDataBase.keys():
@@ -129,6 +135,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.detect_ss_index()
             self.detect_cs_index_slow()
             self.align_cs()
+            self.undoRedo_add()
         else:
             self._workingDataBase['flag_index_detection'][0] = True
         self.reset_cs_ROI()
@@ -174,6 +181,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.undoRedo_reset()
         return 0
 
     def setEnableWidgets(self, isEnable):
@@ -186,6 +194,11 @@ class PsortGuiSignals(PsortGuiWidget):
         self.actionBtn_toolbar_next.setEnabled(isEnable)
         self.actionBtn_toolbar_save.setEnabled(isEnable)
         self.actionBtn_menubar_file_save.setEnabled(isEnable)
+        if isEnable:
+            self.undoRedo_enable()
+        else:
+            self.actionBtn_toolbar_undo.setEnabled(isEnable)
+            self.actionBtn_toolbar_redo.setEnabled(isEnable)
         return 0
 
     def init_plots(self):
@@ -485,6 +498,10 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onToolbar_load_ButtonClick)
         self.actionBtn_toolbar_save.triggered.\
             connect(self.onToolbar_save_ButtonClick)
+        self.actionBtn_toolbar_undo.triggered.\
+            connect(self.undoRedo_undo)
+        self.actionBtn_toolbar_redo.triggered.\
+            connect(self.undoRedo_redo)
         return 0
 
     def connect_popup_signals(self):
@@ -634,7 +651,14 @@ class PsortGuiSignals(PsortGuiWidget):
             setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
             '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
         self.transfer_data_from_psortDataBase_to_guiSignals()
+        flag_index_detection = self._workingDataBase['flag_index_detection'][0]
+        # if flag_index_detection is False then the refresh_workingDataBase will not call
+        # undoRedo_add and the history will lack the base step. So, the undoRedo_add is called
+        # manually after refresh_workingDataBase 2 lines below
+        self.undoRedo_reset()
         self.refresh_workingDataBase()
+        if not(flag_index_detection):
+            self.undoRedo_add()
         return 0
 
     def onToolbar_load_ButtonClick(self):
@@ -720,6 +744,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onMenubar_umap_ButtonClick(self):
+        self._workingDataBase['umap_enable'][0] = \
+            self.actionBtn_menubar_edit_umap.isChecked()
         self.extract_ss_pca()
         self.plot_ss_pca()
         self.extract_cs_pca()
@@ -1277,6 +1303,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_xprob()
         self.plot_ss_waveform()
         self.plot_ss_pca()
+        self.undoRedo_add()
         return 0
 
     @showWaitCursor
@@ -1303,6 +1330,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_xprob()
         self.plot_cs_waveform()
         self.plot_cs_pca()
+        self.undoRedo_add()
         return 0
 
     @showWaitCursor
@@ -1327,6 +1355,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_xprob()
         self.plot_ss_waveform()
         self.plot_ss_pca()
+        self.undoRedo_add()
         return 0
 
     @showWaitCursor
@@ -1353,6 +1382,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_xprob()
         self.plot_cs_waveform()
         self.plot_cs_pca()
+        self.undoRedo_add()
         return 0
 
     @showWaitCursor
@@ -1360,29 +1390,8 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
         self.move_selected_from_ss_to_cs()
-        self.reset_ss_ROI(forced_reset = True)
-        self.reset_cs_ROI(forced_reset = True)
-        self.extract_ss_peak()
-        self.extract_cs_peak()
-        self.extract_ss_waveform()
-        self.extract_cs_waveform()
-        self.extract_ss_ifr()
-        self.extract_cs_ifr()
-        self.extract_ss_xprob()
-        self.extract_cs_xprob()
-        self.extract_ss_pca()
-        self.extract_cs_pca()
-        self.plot_rawSignal(just_update_selected=True)
-        self.plot_ss_peaks_histogram()
-        self.plot_cs_peaks_histogram()
-        self.plot_ss_ifr_histogram()
-        self.plot_cs_ifr_histogram()
-        self.plot_ss_xprob()
-        self.plot_cs_xprob()
-        self.plot_ss_waveform()
-        self.plot_cs_waveform()
-        self.plot_ss_pca()
-        self.plot_cs_pca()
+        self.undoRedo_updatePlots()
+        self.undoRedo_add()
         return 0
 
     @showWaitCursor
@@ -1390,29 +1399,8 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
         self.move_selected_from_cs_to_ss()
-        self.reset_ss_ROI(forced_reset = True)
-        self.reset_cs_ROI(forced_reset = True)
-        self.extract_ss_peak()
-        self.extract_cs_peak()
-        self.extract_ss_waveform()
-        self.extract_cs_waveform()
-        self.extract_ss_ifr()
-        self.extract_cs_ifr()
-        self.extract_ss_xprob()
-        self.extract_cs_xprob()
-        self.extract_ss_pca()
-        self.extract_cs_pca()
-        self.plot_rawSignal(just_update_selected=True)
-        self.plot_ss_peaks_histogram()
-        self.plot_cs_peaks_histogram()
-        self.plot_ss_ifr_histogram()
-        self.plot_cs_ifr_histogram()
-        self.plot_ss_xprob()
-        self.plot_cs_xprob()
-        self.plot_ss_waveform()
-        self.plot_cs_waveform()
-        self.plot_ss_pca()
-        self.plot_cs_pca()
+        self.undoRedo_updatePlots()
+        self.undoRedo_add()
         return 0
 
 ## ################################################################################################
@@ -1564,7 +1552,6 @@ class PsortGuiSignals(PsortGuiWidget):
                 psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
                 psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         self.setEnableWidgets(True)
-        self.transfer_data_from_psortDataBase_to_guiSignals()
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
         self.txtlabel_toolbar_fileName.setText(file_name)
         self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
@@ -1581,14 +1568,20 @@ class PsortGuiSignals(PsortGuiWidget):
             setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
             '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
         self.transfer_data_from_psortDataBase_to_guiSignals()
-        self.refresh_workingDataBase()
-        self.txtedit_toolbar_slotNumCurrent.setValue(1)
-        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
-            connect(self.onToolbar_slotNumCurrent_ValueChanged)
         if not(file_ext=='.psort'):
+            self.update_guiDataBase_from_guiWidgets()
+            self.filter_data()
             self.onRawSignal_SsAutoThresh_Clicked()
             self.onRawSignal_CsAutoThresh_Clicked()
-            self.onToolbar_refresh_ButtonClick()
+            self.undoRedo_reset()
+            self.refresh_workingDataBase()
+        else:
+            self.undoRedo_reset()
+            self.refresh_workingDataBase()
+            self.undoRedo_add()
+        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            connect(self.onToolbar_slotNumCurrent_ValueChanged)
         return 0
 
     def save_process_start(self):
@@ -2117,6 +2110,141 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 ## ################################################################################################
 ## ################################################################################################
+#%% UNDO/REDO
+    def undoRedo_reset(self):
+        """
+        To make the code fast and efficient, instead of appending and removing from the history at
+        each time step, we allocate batch_size steps as default and then if more steps where
+        necessary we will allocate more steps on the go.
+        """
+        len_data = len(self._workingDataBase['ch_data'])
+        batch_size = int(20)
+        self._workingDataBase['ss_index_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
+        self._workingDataBase['cs_index_slow_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
+        self._workingDataBase['cs_index_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
+        self._workingDataBase['index_undoRedo'][0] = -1
+        self._workingDataBase['length_undoRedo'][0] = 0
+        self.actionBtn_toolbar_undo.setEnabled(False)
+        self.actionBtn_toolbar_redo.setEnabled(False)
+        return 0
+
+    def undoRedo_append(self):
+        len_data = len(self._workingDataBase['ch_data'])
+        batch_size = int(20)
+        self._workingDataBase['ss_index_undoRedo']= np.vstack(
+            self._workingDataBase['ss_index_undoRedo'],
+            np.zeros((batch_size,len_data), dtype=np.bool))
+        self._workingDataBase['cs_index_slow_undoRedo']= np.vstack(
+            self._workingDataBase['cs_index_slow_undoRedo'],
+            np.zeros((batch_size,len_data), dtype=np.bool))
+        self._workingDataBase['cs_index_undoRedo']= np.vstack(
+            self._workingDataBase['cs_index_undoRedo'],
+            np.zeros((batch_size,len_data), dtype=np.bool))
+        return 0
+
+    def undoRedo_enable(self):
+        # UNDO Enable conditions
+        if (self._workingDataBase['index_undoRedo'][0] <= 0):
+            self.actionBtn_toolbar_undo.setEnabled(False)
+        elif (self._workingDataBase['index_undoRedo'][0] <= \
+                self._workingDataBase['length_undoRedo'][0] - 1):
+            self.actionBtn_toolbar_undo.setEnabled(True)
+        else:
+            self.actionBtn_toolbar_undo.setEnabled(False)
+        # REDO Enable conditions
+        if (self._workingDataBase['index_undoRedo'][0] >= \
+                self._workingDataBase['length_undoRedo'][0] - 1):
+            self.actionBtn_toolbar_redo.setEnabled(False)
+        elif (self._workingDataBase['index_undoRedo'][0] >= 0):
+            self.actionBtn_toolbar_redo.setEnabled(True)
+        else:
+            self.actionBtn_toolbar_redo.setEnabled(False)
+        return 0
+
+    def undoRedo_add(self):
+        if ( self._workingDataBase['ss_index_undoRedo'].shape[1] !=
+            len(self._workingDataBase['ch_data']) ):
+            self.undoRedo_reset()
+        batch_size = int(20)
+        index_undoRedo = self._workingDataBase['index_undoRedo'][0] + 1
+        if ( index_undoRedo >= self._workingDataBase['ss_index_undoRedo'].shape[0] ):
+            self.undoRedo_append() # append another patch if neccessary
+        self._workingDataBase['ss_index_undoRedo'][index_undoRedo,:] = \
+            deepcopy(self._workingDataBase['ss_index'])
+        self._workingDataBase['cs_index_slow_undoRedo'][index_undoRedo,:] = \
+            deepcopy(self._workingDataBase['cs_index_slow'])
+        self._workingDataBase['cs_index_undoRedo'][index_undoRedo,:] = \
+            deepcopy(self._workingDataBase['cs_index'])
+        self._workingDataBase['index_undoRedo'][0] = index_undoRedo
+        self._workingDataBase['length_undoRedo'][0] = index_undoRedo + 1
+        self.undoRedo_enable()
+        return 0
+
+    def undoRedo_undo(self):
+        # if index_undoRedo is 0 then there is no more UNDO left
+        if (self._workingDataBase['index_undoRedo'][0] <= 0):
+            self.undoRedo_enable()
+            return 0
+        # if index_undoRedo is more than 0 then UNDO
+        index_undoRedo = self._workingDataBase['index_undoRedo'][0] - 1
+        self._workingDataBase['ss_index'] = \
+            deepcopy(self._workingDataBase['ss_index_undoRedo'][index_undoRedo,:])
+        self._workingDataBase['cs_index_slow'] = \
+            deepcopy(self._workingDataBase['cs_index_slow_undoRedo'][index_undoRedo,:])
+        self._workingDataBase['cs_index'] = \
+            deepcopy(self._workingDataBase['cs_index_undoRedo'][index_undoRedo,:])
+        self._workingDataBase['index_undoRedo'][0] = index_undoRedo
+        self.undoRedo_enable()
+        self.undoRedo_updatePlots()
+        return 0
+
+    def undoRedo_redo(self):
+        # if index_undoRedo is length_undoRedo-1 then there is no more REDO left
+        if (self._workingDataBase['index_undoRedo'][0] >= \
+                self._workingDataBase['length_undoRedo'][0] - 1):
+            self.undoRedo_enable()
+            return 0
+        # if index_undoRedo is less than length_undoRedo-1 then REDO
+        index_undoRedo = self._workingDataBase['index_undoRedo'][0] + 1
+        self._workingDataBase['ss_index'] = \
+            deepcopy(self._workingDataBase['ss_index_undoRedo'][index_undoRedo,:])
+        self._workingDataBase['cs_index_slow'] = \
+            deepcopy(self._workingDataBase['cs_index_slow_undoRedo'][index_undoRedo,:])
+        self._workingDataBase['cs_index'] = \
+            deepcopy(self._workingDataBase['cs_index_undoRedo'][index_undoRedo,:])
+        self._workingDataBase['index_undoRedo'][0] = index_undoRedo
+        self.undoRedo_enable()
+        self.undoRedo_updatePlots()
+        return 0
+
+    def undoRedo_updatePlots(self):
+        self.reset_ss_ROI(forced_reset = True)
+        self.reset_cs_ROI(forced_reset = True)
+        self.extract_ss_peak()
+        self.extract_cs_peak()
+        self.extract_ss_waveform()
+        self.extract_cs_waveform()
+        self.extract_ss_ifr()
+        self.extract_cs_ifr()
+        self.extract_ss_xprob()
+        self.extract_cs_xprob()
+        self.extract_ss_pca()
+        self.extract_cs_pca()
+        self.plot_rawSignal(just_update_selected=True)
+        self.plot_ss_peaks_histogram()
+        self.plot_cs_peaks_histogram()
+        self.plot_ss_ifr_histogram()
+        self.plot_cs_ifr_histogram()
+        self.plot_ss_xprob()
+        self.plot_cs_xprob()
+        self.plot_ss_waveform()
+        self.plot_cs_waveform()
+        self.plot_ss_pca()
+        self.plot_cs_pca()
+        return 0
+
+## ################################################################################################
+## ################################################################################################
 #%% WAVEDISSECT
     def connect_WaveDissectWidget(self):
         self.WaveDissectWidget = WaveDissectWidget(self)
@@ -2144,18 +2272,30 @@ class PsortGuiSignals(PsortGuiWidget):
     def onWaveDissect_Ok_Clicked(self):
         self.WaveDissectWidget.popUp_task_completed()
         self.waveDissect_showWidget(False)
-        self._workingDataBase['ss_index'] = \
-            deepcopy(self.WaveDissectWidget._workingDataBase['ss_index'])
+        flag_update = False
+        if ( np.sum(np.logical_xor(self._workingDataBase['ss_index'],
+            self.WaveDissectWidget._workingDataBase['ss_index'])) > 0 ):
+            self._workingDataBase['ss_index'] = \
+                deepcopy(self.WaveDissectWidget._workingDataBase['ss_index'])
+            flag_update = True
+        if ( np.sum(np.logical_xor(self._workingDataBase['cs_index_slow'],
+            self.WaveDissectWidget._workingDataBase['cs_index_slow'])) > 0 ):
+            self._workingDataBase['cs_index_slow'] = \
+                deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_slow'])
+            flag_update = True
+        if ( np.sum(np.logical_xor(self._workingDataBase['ss_index'],
+            self.WaveDissectWidget._workingDataBase['ss_index'])) > 0 ):
+            self._workingDataBase['cs_index'] = \
+                deepcopy(self.WaveDissectWidget._workingDataBase['cs_index'])
+            flag_update = True
         self._workingDataBase['ss_index_selected'] = \
             deepcopy(self.WaveDissectWidget._workingDataBase['ss_index_selected'])
-        self._workingDataBase['cs_index_slow'] = \
-            deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_slow'])
-        self._workingDataBase['cs_index'] = \
-            deepcopy(self.WaveDissectWidget._workingDataBase['cs_index'])
         self._workingDataBase['cs_index_selected'] = \
             deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_selected'])
         self._workingDataBase['flag_index_detection'][0] = False
         self.refresh_workingDataBase()
+        if flag_update:
+            self.undoRedo_add()
         return 0
 
     def onSsPanel_waveDissect_Clicked(self):
@@ -2670,7 +2810,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_pca_mat'], self._workingDataBase['ss_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
-            if self.actionBtn_menubar_edit_umap.isChecked():
+            if self._workingDataBase['umap_enable'][0]:
                 ss_embedding = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
                 self._workingDataBase['ss_pca_mat'] = np.vstack((
                                                     ss_embedding[:, 0],
@@ -2715,7 +2855,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_pca_mat'], self._workingDataBase['cs_pca_variance'] = \
                 psort_lib.extract_pca(
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
-            if self.actionBtn_menubar_edit_umap.isChecked():
+            if self._workingDataBase['umap_enable'][0]:
                 cs_embedding = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
                 self._workingDataBase['cs_pca_mat'] = np.vstack((
                                                     cs_embedding[:, 0],
@@ -2804,7 +2944,7 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
             num_D = np.min([10, num_D])
             comboBx_Items = []
-            if self.actionBtn_menubar_edit_umap.isChecked():
+            if self._workingDataBase['umap_enable'][0]:
                 comboBx_Items.append('umap1')
                 comboBx_Items.append('umap2')
             for counter_pca in range(num_D):
@@ -2836,7 +2976,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['ss_pca2_index'][0] = 1
         else:
             comboBx_Items = []
-            if self.actionBtn_menubar_edit_umap.isChecked():
+            if self._workingDataBase['umap_enable'][0]:
                 comboBx_Items.append('umap1')
                 comboBx_Items.append('umap2')
             else:
@@ -2860,7 +3000,7 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
             num_D = np.min([10, num_D])
             comboBx_Items = []
-            if self.actionBtn_menubar_edit_umap.isChecked():
+            if self._workingDataBase['umap_enable'][0]:
                 comboBx_Items.append('umap1')
                 comboBx_Items.append('umap2')
             for counter_pca in range(num_D):
@@ -2892,7 +3032,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_pca2_index'][0] = 1
         else:
             comboBx_Items = []
-            if self.actionBtn_menubar_edit_umap.isChecked():
+            if self._workingDataBase['umap_enable'][0]:
                 comboBx_Items.append('umap1')
                 comboBx_Items.append('umap2')
             else:
@@ -2914,19 +3054,13 @@ class PsortGuiSignals(PsortGuiWidget):
 ## ################################################################################################
 #%% BIND PSORT_GUI_SIGNALS TO PSORT_DATABASE
     def transfer_data_from_psortDataBase_to_guiSignals(self):
-        psortDataBase_currentSlot = \
-            self.psortDataBase.get_currentSlotDataBase()
-        self._workingDataBase['isAnalyzed'] = \
-            psortDataBase_currentSlot['isAnalyzed']
-        self._workingDataBase['index_start_on_ch_data'] = \
-            psortDataBase_currentSlot['index_start_on_ch_data']
-        self._workingDataBase['index_end_on_ch_data'] = \
-            psortDataBase_currentSlot['index_end_on_ch_data']
-
-        psortDataBase_topLevel = \
-            self.psortDataBase.get_topLevelDataBase()
-        index_start_on_ch_data = self._workingDataBase['index_start_on_ch_data'][0]
-        index_end_on_ch_data = self._workingDataBase['index_end_on_ch_data'][0]
+        psortDataBase_currentSlot = self.psortDataBase.get_currentSlotDataBase()
+        psortDataBase_topLevel = self.psortDataBase.get_topLevelDataBase()
+        self._workingDataBase['isAnalyzed'] = psortDataBase_currentSlot['isAnalyzed']
+        index_start_on_ch_data = psortDataBase_currentSlot['index_start_on_ch_data'][0]
+        index_end_on_ch_data = psortDataBase_currentSlot['index_end_on_ch_data'][0]
+        self._workingDataBase['index_start_on_ch_data'][0] = index_start_on_ch_data
+        self._workingDataBase['index_end_on_ch_data'][0] = index_end_on_ch_data
         self._workingDataBase['ch_data'] = \
             psortDataBase_topLevel['ch_data'][index_start_on_ch_data:index_end_on_ch_data]
         self._workingDataBase['ch_time'] = \
