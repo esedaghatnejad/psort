@@ -35,14 +35,18 @@ class WaveDissectWidget(QWidget):
     def build_rawPlot_popup_Widget(self):
         self.layout_rawPlot_popup = QVBoxLayout()
         self.layout_rawPlot_popup_Btn = QHBoxLayout()
-        self.layout_rawPlot_popup_belowMainBtn = QGridLayout() #J
-        self.layout_rawPlot_popup_actionBtn = QVBoxLayout()
-        self.layout_rawPlot_popup_actionBtn_row1 = QHBoxLayout()
-        self.layout_rawPlot_popup_actionBtn_row2 = QHBoxLayout()
-        self.layout_rawPlot_popup_actionBtn_row2_col1 = QVBoxLayout()
-        self.layout_rawPlot_popup_actionBtn_row3 = QHBoxLayout()
-        self.layout_rawPlot_popup_actionBtn_row4 = QHBoxLayout()
-        self.layout_rawPlot_popup_actionBtn_row5 = QHBoxLayout()
+        self.layout_rawPlot_popup_actionBtn = QHBoxLayout()
+        self.layoutWidget_rawPlot_popup_belowMainBtn = QSplitter(Qt.Horizontal)
+        self.layoutWidget_rawPlot_popup_belowMainBtn.setChildrenCollapsible(False)
+        self.layoutWidget_rawPlot_popup_belowMainBtn_waveform = QSplitter(Qt.Vertical)
+        self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.setChildrenCollapsible(False)
+
+        self.layout_rawPlot_popup_spike = QGridLayout()
+        self.layout_rawPlot_popup_zoom = QGridLayout()
+        self.layout_rawPlot_popup_mode = QHBoxLayout()
+        self.layout_rawPlot_popup_xAxis = QHBoxLayout()
+        self.layout_rawPlot_popup_yAxis = QHBoxLayout()
+        self.layout_rawPlot_popup_axes = QVBoxLayout()
 
         # Main buttons
         # Cancel push button for closing the window and terminating the process
@@ -58,67 +62,98 @@ class WaveDissectWidget(QWidget):
                 CREATICCA DESIGN AGENCY
             from www.flaticon.com
         '''
-        self.pushBtn_rawPlot_popup_select = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'select.png')),'')
-        self.pushBtn_rawPlot_popup_select.setIconSize(QtCore.QSize(50,50))
+        icon_size = 30
+        self.pushBtn_rawPlot_popup_select = QPushButton("Select area")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_select, color="black")
+        self.pushBtn_rawPlot_popup_select.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'select.png')))
         self.pushBtn_rawPlot_popup_select.setToolTip('<b>S</b>elect spikes in<br>the region of interest')
-        self.pushBtn_rawPlot_popup_clear = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'clear.png')),'')
-        self.pushBtn_rawPlot_popup_clear.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_clear = QPushButton("Clear Area")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_clear, color="black")
+        self.pushBtn_rawPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'clear.png')))
         self.pushBtn_rawPlot_popup_clear.setToolTip('<b>C</b>lear the regions<br>of interest')
-        self.pushBtn_rawPlot_popup_delete = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'delete.png')),'')
-        self.pushBtn_rawPlot_popup_delete.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_delete = QPushButton("Delete spikes")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_delete, color="black")
+        self.pushBtn_rawPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'delete.png')))
         self.pushBtn_rawPlot_popup_delete.setToolTip('<b>D</b>elete the selected spikes')
-        self.pushBtn_rawPlot_popup_move = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'move.png')),'')
-        self.pushBtn_rawPlot_popup_move.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_move = QPushButton("Move spikes")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_move, color="black")
+        self.pushBtn_rawPlot_popup_move.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'move.png')))
         self.pushBtn_rawPlot_popup_move.setToolTip('<b>M</b>ove the selected<br>spikes to different<br>type')
-        self.pushBtn_rawPlot_popup_prev_spike = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'previous_spike.png')),'')
-        self.pushBtn_rawPlot_popup_prev_spike.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_prev_spike = QPushButton("Prev spike")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_spike, color="black")
+        self.pushBtn_rawPlot_popup_prev_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'previous_spike.png')))
         self.pushBtn_rawPlot_popup_prev_spike.setToolTip('Move to the previous spike<br><b>(Left Arrow)')
         self.pushBtn_rawPlot_popup_prev_spike.setAutoRepeat(True) # allow holding button
-        self.pushBtn_rawPlot_popup_next_spike = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'next_spike.png')),'')
-        self.pushBtn_rawPlot_popup_next_spike.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_next_spike = QPushButton("Next spike")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_next_spike, color="black")
+        self.pushBtn_rawPlot_popup_next_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'next_spike.png')))
         self.pushBtn_rawPlot_popup_next_spike.setToolTip('Move to the next spike<br><b>(Right Arrow)')
         self.pushBtn_rawPlot_popup_next_spike.setAutoRepeat(True) # allow holding button
-        self.pushBtn_rawPlot_popup_zoom_out = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_out.png')),'')
-        self.pushBtn_rawPlot_popup_zoom_out.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_zoom_out = QPushButton("Zoom out")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_out, color="black")
+        self.pushBtn_rawPlot_popup_zoom_out.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_out.png')))
         self.pushBtn_rawPlot_popup_zoom_out.setToolTip('Zoom out<br><b>(A)')
-        self.pushBtn_rawPlot_popup_zoom_in = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_in.png')),'')
-        self.pushBtn_rawPlot_popup_zoom_in.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_zoom_in = QPushButton("Zoom in")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_in, color="black")
+        self.pushBtn_rawPlot_popup_zoom_in.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_in.png')))
         self.pushBtn_rawPlot_popup_zoom_in.setToolTip('<b>Z</b>oom in')
-        self.checkBx_rawPlot_popup_zoom_hold = QCheckBox("Auto Zoom")
-        self.pushBtn_rawPlot_popup_zoom_getRange = QPushButton("Get Zoom Range")
+        self.checkBx_rawPlot_popup_zoom_hold = QCheckBox("Auto zoom")
+        psort_lib.setFont(self.checkBx_rawPlot_popup_zoom_hold, color="black")
+        self.pushBtn_rawPlot_popup_zoom_getRange = QPushButton("Get range")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_getRange, color="black")
         self.pushBtn_rawPlot_popup_zoom_getRange.setToolTip('<b>G</b>et zoom range<br>from current plot')
-        self.pushBtn_rawPlot_popup_prev_window = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'previous_window.png')),'')
-        self.pushBtn_rawPlot_popup_prev_window.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_prev_window = QPushButton("Pan back")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_window, color="black")
+        self.pushBtn_rawPlot_popup_prev_window.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'previous_window.png')))
         self.pushBtn_rawPlot_popup_prev_window.setToolTip('Move to the previous<br>time window<br><b>(Q)')
         self.pushBtn_rawPlot_popup_prev_window.setAutoRepeat(True)
-        self.pushBtn_rawPlot_popup_next_window = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'next_window.png')),'')
-        self.pushBtn_rawPlot_popup_next_window.setIconSize(QtCore.QSize(50,50))
+        self.pushBtn_rawPlot_popup_next_window = QPushButton("Pan next")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_next_window, color="black")
+        self.pushBtn_rawPlot_popup_next_window.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'next_window.png')))
         self.pushBtn_rawPlot_popup_next_window.setToolTip('Move to the next<br>time window<br><b>(E)')
         self.pushBtn_rawPlot_popup_next_window.setAutoRepeat(True)
         self.slider_rawPlot_popup_x_zoom_level = QSlider(QtCore.Qt.Horizontal)
         self.spinBx_rawPlot_popup_x_zoom_level_indicator = QSpinBox()
-        self.label_rawPlot_popup_x_zoom = QLabel("X axis zoom level:")
-        psort_lib.setFont(self.label_rawPlot_popup_x_zoom)
-        self.label_rawPlot_popup_x_zoom_unit = QLabel("ms")
-        psort_lib.setFont(self.label_rawPlot_popup_x_zoom_unit)
+        self.label_rawPlot_popup_x_zoom = QLabel("X-axis range:")
+        psort_lib.setFont(self.label_rawPlot_popup_x_zoom, color="black")
+        self.label_rawPlot_popup_x_zoom_unit = QLabel(" ms ")
+        psort_lib.setFont(self.label_rawPlot_popup_x_zoom_unit, color="black")
         self.slider_rawPlot_popup_y_zoom_level = QSlider(QtCore.Qt.Horizontal)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator = QSpinBox()
-        self.label_rawPlot_popup_y_zoom = QLabel("Y axis zoom level:")
-        psort_lib.setFont(self.label_rawPlot_popup_y_zoom)
-        self.label_rawPlot_popup_y_zoom_unit = QLabel("uV")
-        psort_lib.setFont(self.label_rawPlot_popup_y_zoom_unit)
+        self.label_rawPlot_popup_y_zoom = QLabel("Y-axis range:")
+        psort_lib.setFont(self.label_rawPlot_popup_y_zoom, color="black")
+        self.label_rawPlot_popup_y_zoom_unit = QLabel(" uV ")
+        psort_lib.setFont(self.label_rawPlot_popup_y_zoom_unit, color="black")
         self.comboBx_rawPlot_popup_spike_of_interest = QComboBox()
         self.comboBx_rawPlot_popup_spike_of_interest.addItems(["CS","SS"])
-        self.label_rawPlot_popup_spike_of_interest = QLabel("Spike of Interest:")
-        psort_lib.setFont(self.label_rawPlot_popup_spike_of_interest)
-        self.pushBtn_rawPlot_popup_find_other_spike = QPushButton(QtGui.QIcon(os.path.join('.', 'icon', 'find_other_spike.png')),'')
-        self.pushBtn_rawPlot_popup_find_other_spike.setIconSize(QtCore.QSize(25,25))
+        psort_lib.setFont(self.comboBx_rawPlot_popup_spike_of_interest, color="black")
+        self.label_rawPlot_popup_spike_of_interest = QLabel("Current mode: ")
+        psort_lib.setFont(self.label_rawPlot_popup_spike_of_interest, color="black")
+        self.pushBtn_rawPlot_popup_find_other_spike = QPushButton("Toggle mode")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_find_other_spike, color="black")
+        self.pushBtn_rawPlot_popup_find_other_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'toggle.png')))
         self.pushBtn_rawPlot_popup_find_other_spike.setToolTip("If spike selected,<br>find the nearest spike<br>of different type<br>If not, only change type<br><b>(Up or Down Arrow or W)")
 
+        # Housekeeping items
+        self.line_rawPlot_popup_l0 = QtGui.QFrame()
+        self.line_rawPlot_popup_l0.setFrameShape(QFrame.VLine)
+        self.line_rawPlot_popup_l0.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_l1 = QtGui.QFrame()
+        self.line_rawPlot_popup_l1.setFrameShape(QFrame.VLine)
+        self.line_rawPlot_popup_l1.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_l2 = QtGui.QFrame()
+        self.line_rawPlot_popup_l2.setFrameShape(QFrame.VLine)
+        self.line_rawPlot_popup_l2.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_l3 = QtGui.QFrame()
+        self.line_rawPlot_popup_l3.setFrameShape(QFrame.VLine)
+        self.line_rawPlot_popup_l3.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_l4 = QtGui.QFrame()
+        self.line_rawPlot_popup_l4.setFrameShape(QFrame.VLine)
+        self.line_rawPlot_popup_l4.setFrameShadow(QFrame.Sunken)
         # Waveform plots
         self.plot_popup_rawPlot = pg.PlotWidget()
-        self.plot_popup_sidePlot1 = pg.PlotWidget() #J
-        self.plot_popup_sidePlot2 = pg.PlotWidget() #J
+        self.plot_popup_sidePlot1 = pg.PlotWidget()
+        self.plot_popup_sidePlot2 = pg.PlotWidget()
 
         psort_lib.set_plotWidget(self.plot_popup_rawPlot)
         psort_lib.set_plotWidget(self.plot_popup_sidePlot1)
@@ -135,53 +170,82 @@ class WaveDissectWidget(QWidget):
         # Add widgets to the layout
         self.layout_rawPlot_popup_Btn.addWidget(self.pushBtn_rawPlot_popup_cancel)
         self.layout_rawPlot_popup_Btn.addWidget(self.pushBtn_rawPlot_popup_ok)
+        self.layout_rawPlot_popup_Btn.setSpacing(1)
+        self.layout_rawPlot_popup_Btn.setContentsMargins(1,1,1,1)
         self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_Btn)
 
-        self.layout_rawPlot_popup_actionBtn_row1.addWidget(self.pushBtn_rawPlot_popup_select)
-        self.layout_rawPlot_popup_actionBtn_row1.addWidget(self.pushBtn_rawPlot_popup_clear)
-        self.layout_rawPlot_popup_actionBtn_row1.addWidget(self.pushBtn_rawPlot_popup_delete)
-        self.layout_rawPlot_popup_actionBtn_row1.addWidget(self.pushBtn_rawPlot_popup_move)
-        self.layout_rawPlot_popup_actionBtn_row1.addWidget(self.pushBtn_rawPlot_popup_prev_spike)
-        self.layout_rawPlot_popup_actionBtn_row1.addWidget(self.pushBtn_rawPlot_popup_next_spike)
+        # Add action widgets
+        self.layout_rawPlot_popup_mode.addWidget(self.label_rawPlot_popup_spike_of_interest)
+        self.layout_rawPlot_popup_mode.addWidget(self.comboBx_rawPlot_popup_spike_of_interest)
+        self.layout_rawPlot_popup_mode.setSpacing(1)
+        self.layout_rawPlot_popup_mode.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_actionBtn_row2.addWidget(self.pushBtn_rawPlot_popup_zoom_out)
-        self.layout_rawPlot_popup_actionBtn_row2.addWidget(self.pushBtn_rawPlot_popup_zoom_in)
-        self.layout_rawPlot_popup_actionBtn_row2_col1.addWidget(self.checkBx_rawPlot_popup_zoom_hold)
-        self.layout_rawPlot_popup_actionBtn_row2_col1.addWidget(self.pushBtn_rawPlot_popup_zoom_getRange)
-        self.layout_rawPlot_popup_actionBtn_row2.addLayout(self.layout_rawPlot_popup_actionBtn_row2_col1)
-        self.layout_rawPlot_popup_actionBtn_row2.addWidget(self.pushBtn_rawPlot_popup_prev_window)
-        self.layout_rawPlot_popup_actionBtn_row2.addWidget(self.pushBtn_rawPlot_popup_next_window)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_select,      0, 0)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_clear,       0, 1)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_delete,      0, 2)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_move,        0, 3)
+        self.layout_rawPlot_popup_spike.addLayout(self.layout_rawPlot_popup_mode, 0, 4)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_prev_spike,  1, 0)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_next_spike,  1, 1)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_prev_window, 1, 2)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_next_window, 1, 3)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_find_other_spike, 1, 4)
+        self.layout_rawPlot_popup_spike.setSpacing(1)
+        self.layout_rawPlot_popup_spike.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_actionBtn_row3.addWidget(self.label_rawPlot_popup_x_zoom)
-        self.layout_rawPlot_popup_actionBtn_row3.addWidget(self.slider_rawPlot_popup_x_zoom_level)
-        self.layout_rawPlot_popup_actionBtn_row3.addWidget(self.spinBx_rawPlot_popup_x_zoom_level_indicator)
-        self.layout_rawPlot_popup_actionBtn_row3.addWidget(self.label_rawPlot_popup_x_zoom_unit)
+        self.layout_rawPlot_popup_zoom.addWidget(self.pushBtn_rawPlot_popup_zoom_in,       0, 0)
+        self.layout_rawPlot_popup_zoom.addWidget(self.pushBtn_rawPlot_popup_zoom_out,      0, 1)
+        self.layout_rawPlot_popup_zoom.addWidget(self.checkBx_rawPlot_popup_zoom_hold,     1, 0)
+        self.layout_rawPlot_popup_zoom.addWidget(self.pushBtn_rawPlot_popup_zoom_getRange, 1, 1)
+        self.layout_rawPlot_popup_zoom.setSpacing(1)
+        self.layout_rawPlot_popup_zoom.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_actionBtn_row4.addWidget(self.label_rawPlot_popup_y_zoom)
-        self.layout_rawPlot_popup_actionBtn_row4.addWidget(self.slider_rawPlot_popup_y_zoom_level)
-        self.layout_rawPlot_popup_actionBtn_row4.addWidget(self.spinBx_rawPlot_popup_y_zoom_level_indicator)
-        self.layout_rawPlot_popup_actionBtn_row4.addWidget(self.label_rawPlot_popup_y_zoom_unit)
+        self.layout_rawPlot_popup_xAxis.addWidget(self.label_rawPlot_popup_x_zoom)
+        self.layout_rawPlot_popup_xAxis.addWidget(self.slider_rawPlot_popup_x_zoom_level)
+        self.layout_rawPlot_popup_xAxis.addWidget(self.spinBx_rawPlot_popup_x_zoom_level_indicator)
+        self.layout_rawPlot_popup_xAxis.addWidget(self.label_rawPlot_popup_x_zoom_unit)
+        self.layout_rawPlot_popup_xAxis.setSpacing(1)
+        self.layout_rawPlot_popup_xAxis.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_actionBtn_row5.addWidget(self.label_rawPlot_popup_spike_of_interest)
-        self.layout_rawPlot_popup_actionBtn_row5.addWidget(self.comboBx_rawPlot_popup_spike_of_interest)
-        self.layout_rawPlot_popup_actionBtn_row5.addWidget(self.pushBtn_rawPlot_popup_find_other_spike)
+        self.layout_rawPlot_popup_yAxis.addWidget(self.label_rawPlot_popup_y_zoom)
+        self.layout_rawPlot_popup_yAxis.addWidget(self.slider_rawPlot_popup_y_zoom_level)
+        self.layout_rawPlot_popup_yAxis.addWidget(self.spinBx_rawPlot_popup_y_zoom_level_indicator)
+        self.layout_rawPlot_popup_yAxis.addWidget(self.label_rawPlot_popup_y_zoom_unit)
+        self.layout_rawPlot_popup_yAxis.setSpacing(1)
+        self.layout_rawPlot_popup_yAxis.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_actionBtn_row1)
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_actionBtn_row2)
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_actionBtn_row3)
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_actionBtn_row4)
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_actionBtn_row5)
+        self.layout_rawPlot_popup_axes.addLayout(self.layout_rawPlot_popup_xAxis)
+        self.layout_rawPlot_popup_axes.addLayout(self.layout_rawPlot_popup_yAxis)
+        self.layout_rawPlot_popup_axes.setSpacing(1)
+        self.layout_rawPlot_popup_axes.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_belowMainBtn.addLayout(self.layout_rawPlot_popup_actionBtn, 2, 1, 1, 1)
+        self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l0)
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_spike)
+        self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l1)
+        self.layout_rawPlot_popup_actionBtn.addStretch()
+        self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l2)
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_zoom)
+        self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l3)
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_axes)
+        self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l4)
+        self.layout_rawPlot_popup_actionBtn.setSpacing(1)
+        self.layout_rawPlot_popup_actionBtn.setContentsMargins(1,1,1,1)
+        self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_actionBtn)
 
-        self.layout_rawPlot_popup_belowMainBtn.addWidget(self.plot_popup_rawPlot, 0, 0, 3, 1) #J
-        self.layout_rawPlot_popup_belowMainBtn.addWidget(self.plot_popup_sidePlot1, 0, 1, 1, 1) #J
-        self.layout_rawPlot_popup_belowMainBtn.addWidget(self.plot_popup_sidePlot2, 1, 1, 1, 2) #J
 
-        self.layout_rawPlot_popup_belowMainBtn.setColumnStretch(0, 4)
-        self.layout_rawPlot_popup_belowMainBtn.setColumnStretch(1, 1)
-        self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_belowMainBtn)
-        self.setLayout(self.layout_rawPlot_popup) #J
+        self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.addWidget(self.plot_popup_sidePlot1)
+        self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.addWidget(self.plot_popup_sidePlot2)
+        self.layoutWidget_rawPlot_popup_belowMainBtn.addWidget(self.plot_popup_rawPlot)
+        self.layoutWidget_rawPlot_popup_belowMainBtn.addWidget(self.layoutWidget_rawPlot_popup_belowMainBtn_waveform)
+
+        self.layout_rawPlot_popup.addWidget(self.layoutWidget_rawPlot_popup_belowMainBtn)
+
+        self.layout_rawPlot_popup.setStretch(0,0)
+        self.layout_rawPlot_popup.setStretch(1,0)
+        self.layout_rawPlot_popup.setStretch(2,1)
+        self.layout_rawPlot_popup.setSpacing(1)
+        self.layout_rawPlot_popup.setContentsMargins(1,1,1,1)
+        self.setLayout(self.layout_rawPlot_popup)
         return 0
 
 ## ################################################################################################
@@ -208,48 +272,12 @@ class WaveDissectWidget(QWidget):
         self.pick_SS = QShortcut(Qt.Key_2, self)
         self.pick_SS.activated.connect(self.comboBx_rawPlot_popup_spike_of_interest_SS_shortcut)
         return 0
-
-#J Raw signal dissection
-    def connect_rawPlot_popup_signals(self):
-        # self.pushBtn_mainwin_filterPanel_plots_rawSignalBtn.clicked.\
-        #     connect(self.pushBtn_mainwin_filterPanel_plots_rawSignalBtn_Clicked)
-        self.pushBtn_rawPlot_popup_select.clicked.\
-            connect(self.pushBtn_rawPlot_popup_select_Clicked)
-        self.pushBtn_rawPlot_popup_clear.clicked.\
-            connect(self.pushBtn_rawPlot_popup_clear_Clicked)
-        self.pushBtn_rawPlot_popup_delete.clicked.\
-            connect(self.pushBtn_rawPlot_popup_delete_Clicked)
-        self.pushBtn_rawPlot_popup_move.clicked.\
-            connect(self.pushBtn_rawPlot_popup_move_Clicked)
-        self.pushBtn_rawPlot_popup_prev_spike.clicked.\
-            connect(self.pushBtn_rawPlot_popup_prev_spike_Clicked)
-        self.pushBtn_rawPlot_popup_next_spike.clicked.\
-            connect(self.pushBtn_rawPlot_popup_next_spike_Clicked)
-        self.pushBtn_rawPlot_popup_zoom_out.clicked.\
-            connect(self.pushBtn_rawPlot_popup_zoom_out_Clicked)
-        self.pushBtn_rawPlot_popup_zoom_in.clicked.\
-            connect(self.pushBtn_rawPlot_popup_zoom_in_Clicked)
-        self.slider_rawPlot_popup_x_zoom_level.valueChanged.\
-            connect(self.slider_rawPlot_popup_x_zoom_level_SliderMoved)
-        self.slider_rawPlot_popup_y_zoom_level.valueChanged.\
-            connect(self.slider_rawPlot_popup_y_zoom_level_SliderMoved)
-        self.spinBx_rawPlot_popup_x_zoom_level_indicator.valueChanged.\
-            connect(self.spinBx_rawPlot_popup_x_zoom_level_indicator_ValueChanged)
-        self.spinBx_rawPlot_popup_y_zoom_level_indicator.valueChanged.\
-            connect(self.spinBx_rawPlot_popup_y_zoom_level_indicator_ValueChanged)
-        self.pushBtn_rawPlot_popup_zoom_getRange.clicked.\
-            connect(self.pushBtn_rawPlot_popup_zoom_getRange_Clicked)
-        self.pushBtn_rawPlot_popup_find_other_spike.clicked.\
-            connect(self.pushBtn_rawPlot_popup_find_other_spike_Clicked)
-        self.pushBtn_rawPlot_popup_prev_window.clicked.\
-            connect(self.pushBtn_rawPlot_popup_prev_window_Clicked)
-        self.pushBtn_rawPlot_popup_next_window.clicked.\
-            connect(self.pushBtn_rawPlot_popup_next_window_Clicked)
-        return 0
-
+#%% INIT
     def init_rawPlot_popup_var(self):
         self.x_zoom_level = 200 # initialize zoom level (ms)
         self.y_zoom_level = 300 # (uV)
+        self.which_plot_active = 0 # indicator for which plot is currently active for the purpose of using ROI
+                                   # 0: raw plot; 1: sideplot1 (ss); 2: sideplot2 (cs)
         return 0
 
     def init_rawPlot_popup_plot(self):
@@ -295,7 +323,7 @@ class WaveDissectWidget(QWidget):
                         labelOpts={'position':0.95})
         self.plot_popup_rawPlot.\
             addItem(self.infLine_rawSignal_CsThresh_popUpPlot, ignoreBounds=True)
-        # popUp ROI
+        # popUp raw plot ROI
         self.pltData_rawSignal_popUpPlot_ROI =\
             self.plot_popup_rawPlot.\
             plot(np.zeros((0)), np.zeros((0)), name="ROI", \
@@ -315,18 +343,19 @@ class WaveDissectWidget(QWidget):
         self.infLine_popUpPlot_hLine = \
             pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
                         movable=False, hoverPen='g')
-        self.plot_popup_rawPlot.\
-            addItem(self.infLine_popUpPlot_vLine, ignoreBounds=True)
-        self.plot_popup_rawPlot.\
-            addItem(self.infLine_popUpPlot_hLine, ignoreBounds=True)
+        # self.plot_popup_rawPlot.\
+        #     addItem(self.infLine_popUpPlot_vLine, ignoreBounds=True)
+        # self.plot_popup_rawPlot.\
+        #     addItem(self.infLine_popUpPlot_hLine, ignoreBounds=True)
             # Viewbox
         self.viewBox_rawSignal_popUpPlot = self.plot_popup_rawPlot.getViewBox()
         self.viewBox_rawSignal_popUpPlot.autoRange()
+
         # Sideplot 1 - ssWave
         self.pltData_SsWave_rawSignal_sidePlot1_popUpPlot =\
             self.plot_popup_sidePlot1.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWave", \
-                pen=pg.mkPen(color=(0, 0, 0, 20), width=1, style=QtCore.Qt.SolidLine))
+                pen=pg.mkPen(color=(0, 0, 0, 150), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveSelected_rawSignal_sidePlot1_popUpPlot =\
             self.plot_popup_sidePlot1.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelected", \
@@ -335,8 +364,32 @@ class WaveDissectWidget(QWidget):
             self.plot_popup_sidePlot1.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemplate", \
                 pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
+            # Viewbox
         self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot = self.plot_popup_sidePlot1.getViewBox()
         self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.autoRange()
+        # popUp SS plot ROI
+        self.pltData_SS_popUpPlot_ROI =\
+            self.plot_popup_sidePlot1.\
+            plot(np.zeros((0)), np.zeros((0)), name="ROI", \
+                pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine),
+                symbol='o', symbolSize=5, symbolBrush='m', symbolPen=None)
+        self.pltData_SS_popUpPlot_ROI2 =\
+            self.plot_popup_sidePlot1.\
+            plot(np.zeros((0)), np.zeros((0)), name="ROI2", \
+                pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine),
+                symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+        # Adding crosshair
+        # cross hair
+        self.infLine_popUpPlot_vLine_SS = \
+            pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
+                        movable=False, hoverPen='g')
+        self.infLine_popUpPlot_hLine_SS = \
+            pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
+                        movable=False, hoverPen='g')
+        # self.plot_popup_sidePlot1.\
+        #     addItem(self.infLine_popUpPlot_vLine_SS, ignoreBounds=True)
+        # self.plot_popup_sidePlot1.\
+        #     addItem(self.infLine_popUpPlot_hLine_SS, ignoreBounds=True)
 
         # Sideplot 2 - csWave
         self.pltData_CsWave_rawSignal_sidePlot2_popUpPlot =\
@@ -351,16 +404,77 @@ class WaveDissectWidget(QWidget):
             self.plot_popup_sidePlot2.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveTemplate", \
                 pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
+            # Viewbox
         self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot = self.plot_popup_sidePlot2.getViewBox()
         self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.autoRange()
+
+        # popUp CS plot ROI
+        self.pltData_CS_popUpPlot_ROI =\
+            self.plot_popup_sidePlot2.\
+            plot(np.zeros((0)), np.zeros((0)), name="ROI", \
+                pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine),
+                symbol='o', symbolSize=5, symbolBrush='m', symbolPen=None)
+        self.pltData_CS_popUpPlot_ROI2 =\
+            self.plot_popup_sidePlot2.\
+            plot(np.zeros((0)), np.zeros((0)), name="ROI2", \
+                pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine),
+                symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+
+        # Adding crosshair
+        # cross hair
+        self.infLine_popUpPlot_vLine_CS = \
+            pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
+                        movable=False, hoverPen='g')
+        self.infLine_popUpPlot_hLine_CS = \
+            pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
+                        movable=False, hoverPen='g')
+        # self.plot_popup_sidePlot2.\
+        #     addItem(self.infLine_popUpPlot_vLine_CS, ignoreBounds=True)
+        # self.plot_popup_sidePlot2.\
+        #     addItem(self.infLine_popUpPlot_hLine_CS, ignoreBounds=True)
+
         return 0
 
-## ################################################################################################
-## ################################################################################################
-#J Raw signal dissection siganls
+#%% CONNECT SIGNALS
+    def connect_rawPlot_popup_signals(self):
+        self.pushBtn_rawPlot_popup_select.clicked.\
+            connect(self.pushBtn_rawPlot_popup_select_Clicked)
+        self.pushBtn_rawPlot_popup_clear.clicked.\
+            connect(self.pushBtn_rawPlot_popup_clear_Clicked)
+        self.pushBtn_rawPlot_popup_delete.clicked.\
+            connect(self.pushBtn_rawPlot_popup_delete_Clicked)
+        self.pushBtn_rawPlot_popup_move.clicked.\
+            connect(self.pushBtn_rawPlot_popup_move_Clicked)
+        self.pushBtn_rawPlot_popup_prev_spike.clicked.\
+            connect(self.pushBtn_rawPlot_popup_prev_spike_Clicked)
+        self.pushBtn_rawPlot_popup_next_spike.clicked.\
+            connect(self.pushBtn_rawPlot_popup_next_spike_Clicked)
+        self.pushBtn_rawPlot_popup_zoom_out.clicked.\
+            connect(self.pushBtn_rawPlot_popup_zoom_out_Clicked)
+        self.pushBtn_rawPlot_popup_zoom_in.clicked.\
+            connect(self.pushBtn_rawPlot_popup_zoom_in_Clicked)
+        self.slider_rawPlot_popup_x_zoom_level.valueChanged.\
+            connect(self.slider_rawPlot_popup_x_zoom_level_SliderMoved)
+        self.slider_rawPlot_popup_y_zoom_level.valueChanged.\
+            connect(self.slider_rawPlot_popup_y_zoom_level_SliderMoved)
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator.valueChanged.\
+            connect(self.spinBx_rawPlot_popup_x_zoom_level_indicator_ValueChanged)
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.valueChanged.\
+            connect(self.spinBx_rawPlot_popup_y_zoom_level_indicator_ValueChanged)
+        self.pushBtn_rawPlot_popup_zoom_getRange.clicked.\
+            connect(self.pushBtn_rawPlot_popup_zoom_getRange_Clicked)
+        self.pushBtn_rawPlot_popup_find_other_spike.clicked.\
+            connect(self.pushBtn_rawPlot_popup_find_other_spike_Clicked)
+        self.pushBtn_rawPlot_popup_prev_window.clicked.\
+            connect(self.pushBtn_rawPlot_popup_prev_window_Clicked)
+        self.pushBtn_rawPlot_popup_next_window.clicked.\
+            connect(self.pushBtn_rawPlot_popup_next_window_Clicked)
+        return 0
+
+#%% SIGNAL
+
     def pushBtn_waveDissect_Clicked(self):
         self.popUp_rawPlot()
-
         # Set X axis zoom level range and initial setting
         x_range_max = (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 # (max. - min. time) / 2 ms
         x_range_min = 5 # 5 ms
@@ -382,22 +496,29 @@ class WaveDissectWidget(QWidget):
 
     # 'S' - Select the waveforms in ROI
     def pushBtn_rawPlot_popup_select_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            if len(self._workingDataBase['popUp_ROI_x']) > 1: # if any region of interest is chosen
+        if len(self._workingDataBase['popUp_ROI_x']) > 1: # if any region of interest is chosen
+            # Raw plot active
+            if self.which_plot_active == 0:
                 wave_span_ROI = \
-                    np.append(self._workingDataBase['popUp_ROI_x'],
-                            self._workingDataBase['popUp_ROI_x'][0])
+                np.append(self._workingDataBase['popUp_ROI_x'],
+                        self._workingDataBase['popUp_ROI_x'][0])
                 wave_ROI = \
-                    np.append(self._workingDataBase['popUp_ROI_y'],
-                            self._workingDataBase['popUp_ROI_y'][0])
-                _ss_wave_multiple = self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
-                _ss_wave_span_multiple = self._workingDataBase['ch_time'][self._workingDataBase['ss_index']]
+                np.append(self._workingDataBase['popUp_ROI_y'],
+                        self._workingDataBase['popUp_ROI_y'][0])
+                if self._workingDataBase['ss_index_selected'].size == 0:
+                    _ss_wave_multiple = np.array([0])
+                    _ss_wave_span_multiple = np.array([0])
+                else:
+                    _ss_wave_multiple = self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
+                    _ss_wave_span_multiple = self._workingDataBase['ch_time'][self._workingDataBase['ss_index']]
                 _ss_index_selected = psort_lib.inpolygon(_ss_wave_span_multiple, _ss_wave_multiple, wave_span_ROI, wave_ROI)
 
-                _cs_wave_multiple = self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
-                _cs_wave_span_multiple = self._workingDataBase['ch_time'][self._workingDataBase['cs_index']]
+                if self._workingDataBase['cs_index_selected'].size == 0:
+                     _cs_wave_multiple = np.array([0])
+                     _cs_wave_span_multiple = np.array([0])
+                else:
+                    _cs_wave_multiple = self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
+                    _cs_wave_span_multiple = self._workingDataBase['ch_time'][self._workingDataBase['cs_index']]
                 _cs_index_selected = psort_lib.inpolygon(_cs_wave_span_multiple, _cs_wave_multiple, wave_span_ROI, wave_ROI)
 
                 # If no spikes in ROI, unselect all
@@ -419,19 +540,111 @@ class WaveDissectWidget(QWidget):
                     else:
                         self._workingDataBase['cs_index_selected'] = _cs_index_selected
 
-                # Re-plot to update the selected spikes
-                self.plot_rawSignal_CsIndexSelected_popUp()
-                self.plot_cs_waveform_popUp()
-                self.plot_rawSignal_SsIndexSelected_popUp()
-                self.plot_ss_waveform_popUp()
+            # sideplot1 (ss) active
+            elif self.which_plot_active == 1:
+                self._workingDataBase['ss_wave_span_ROI'] = \
+                    np.append(self._workingDataBase['popUp_ROI_x'],
+                            self._workingDataBase['popUp_ROI_x'][0])
+                self._workingDataBase['ss_wave_ROI'] = \
+                    np.append(self._workingDataBase['popUp_ROI_y'],
+                            self._workingDataBase['popUp_ROI_y'][0])
 
+                # Loop over each waveform and inspect if any of its point are inside ROI
+                self._workingDataBase['ss_index_selected'] = \
+                    np.zeros((self._workingDataBase['ss_wave'].shape[0]),dtype=np.bool)
+                for counter_ss in range(self._workingDataBase['ss_wave'].shape[0]):
+                    _ss_wave_single = self._workingDataBase['ss_wave'][counter_ss,:]
+                    _ss_wave_span_single = self._workingDataBase['ss_wave_span'][counter_ss,:]
+                    _ss_wave_single_inpolygon = \
+                        psort_lib.inpolygon(_ss_wave_span_single * 1000.,
+                                            _ss_wave_single,
+                                            self._workingDataBase['ss_wave_span_ROI'],
+                                            self._workingDataBase['ss_wave_ROI'])
+                    self._workingDataBase['ss_index_selected'][counter_ss,] = \
+                        (_ss_wave_single_inpolygon.sum() > 0)
+
+            # sideplot2 (cs) active
+            elif self.which_plot_active == 2:
+                self._workingDataBase['cs_wave_span_ROI'] = \
+                    np.append(self._workingDataBase['popUp_ROI_x'],
+                            self._workingDataBase['popUp_ROI_x'][0])
+                self._workingDataBase['cs_wave_ROI'] = \
+                    np.append(self._workingDataBase['popUp_ROI_y'],
+                            self._workingDataBase['popUp_ROI_y'][0])
+
+                # Loop over each waveform and inspect if any of its point are inside ROI
+                self._workingDataBase['cs_index_selected'] = \
+                    np.zeros((self._workingDataBase['cs_wave'].shape[0]),dtype=np.bool)
+                for counter_cs in range(self._workingDataBase['cs_wave'].shape[0]):
+                    _cs_wave_single = self._workingDataBase['cs_wave'][counter_cs,:]
+                    _cs_wave_span_single = self._workingDataBase['cs_wave_span'][counter_cs,:]
+                    _cs_wave_single_inpolygon = \
+                        psort_lib.inpolygon(_cs_wave_span_single * 1000.,
+                                            _cs_wave_single,
+                                            self._workingDataBase['cs_wave_span_ROI'],
+                                            self._workingDataBase['cs_wave_ROI'])
+                    self._workingDataBase['cs_index_selected'][counter_cs] = \
+                        (_cs_wave_single_inpolygon.sum() > 0)
+
+            # Re-plot to update the selected spikes
+            self.plot_rawSignal_CsIndexSelected_popUp()
+            self.plot_cs_waveform_popUp()
+            self.plot_rawSignal_SsIndexSelected_popUp()
+            self.plot_ss_waveform_popUp()
         return 0
 
     # 'C' - Clear the ROI
     def pushBtn_rawPlot_popup_clear_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
+        # Reset and remove ROI from the plot
+        self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
+        self.pltData_rawSignal_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_rawSignal_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_SS_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_SS_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_CS_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_CS_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        return 0
+
+    # 'D' - delete the selected waveforms of the type currently of interest
+    # Then select the waveform closest in time to the deleted waveform
+    def pushBtn_rawPlot_popup_delete_Clicked(self):
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+        current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+        current_index_key = "%s_index" % which_waveform_current.lower()
+
+        # Check to see if any of CS or SS waveforms is selected
+        if any(self._workingDataBase[current_index_selected_key]):
+
+            # Save the index of the waveform that will be selected after the current selection is deleted
+            current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
+            saved_index = current_index_selected[0] - 1
+
+            # Delete the currently selected waveforms
+            _spike_index_int = np.where(self._workingDataBase[current_index_key])[0]
+            _spike_index_selected_int = \
+                    _spike_index_int[self._workingDataBase[current_index_selected_key]]
+            self._workingDataBase[current_index_key][_spike_index_selected_int] = False
+            if which_waveform_current == "CS":
+                _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+                _cs_index_slow_selected_int = \
+                    _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
+                self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
+            self._workingDataBase[current_index_selected_key] = \
+                np.zeros((self._workingDataBase[current_index_key].sum()), dtype=np.bool)
+
+            # Re-extract waveforms
+            if which_waveform_current == "CS":
+                self.PsortGuiSignals.extract_cs_waveform(self)
+            else:
+                self.PsortGuiSignals.extract_ss_waveform(self)
+
             # Reset and remove ROI from the plot
             self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
@@ -439,319 +652,258 @@ class WaveDissectWidget(QWidget):
                 setData(np.zeros((0)), np.zeros((0)) )
             self.pltData_rawSignal_popUpPlot_ROI2.\
                 setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_SS_popUpPlot_ROI.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_SS_popUpPlot_ROI2.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_CS_popUpPlot_ROI.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_CS_popUpPlot_ROI2.\
+                setData(np.zeros((0)), np.zeros((0)) )
 
-        return 0
-
-    # 'D' - delete the selected waveforms of the type currently of interest
-    # Then select the waveform closest in time to the deleted waveform
-    def pushBtn_rawPlot_popup_delete_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
-            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
-            currrent_index_key = "%s_index" % which_waveform_current.lower()
-            # Check to see if any of CS or SS waveforms is selected
-            if any(self._workingDataBase[current_index_selected_key]):
-
-                # Save the index of the waveform that will be selected after the current selection is deleted
-                current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
-                saved_index = current_index_selected[0] - 1
-
-                # Delete the currently selected waveforms
-                _spike_index_int = np.where(self._workingDataBase[currrent_index_key])[0]
-                _spike_index_selected_int = \
-                        _spike_index_int[self._workingDataBase[current_index_selected_key]]
-                self._workingDataBase[currrent_index_key][_spike_index_selected_int] = False
-                if which_waveform_current == "CS":
-                    _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
-                    _cs_index_slow_selected_int = \
-                        _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
-                    self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
-                if self._workingDataBase[currrent_index_key].sum() > 1:
-                    self._workingDataBase[current_index_selected_key] = \
-                        np.zeros((self._workingDataBase[currrent_index_key].sum()), dtype=np.bool)
-
-                # Re-extract waveforms
-                if which_waveform_current == "CS":
-                    self.PsortGuiSignals.extract_cs_waveform(self)
+            # If there is at least one waveform left after deletion, select the next waveform
+            if np.sum(self._workingDataBase[current_index_key]) > 0 :
+                if saved_index < 0 :
+                    # Select the saved index
+                    self._workingDataBase[current_index_selected_key][0] = True
                 else:
-                    self.PsortGuiSignals.extract_ss_waveform(self)
+                    # Select the saved index
+                    self._workingDataBase[current_index_selected_key][saved_index] = True
 
-                # Reset and remove ROI from the plot
-                self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
-                self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
-                self.pltData_rawSignal_popUpPlot_ROI.\
-                    setData(np.zeros((0)), np.zeros((0)) )
-                self.pltData_rawSignal_popUpPlot_ROI2.\
-                    setData(np.zeros((0)), np.zeros((0)) )
-
-                # If there is at least one waveform left after deletion, select the next waveform
-                if len(self._workingDataBase[current_index_selected_key]) > 0 :
-                    if saved_index < 0 :
-                        # Select the saved index
-                        self._workingDataBase[current_index_selected_key][0] = True
-                    else:
-                        # Select the saved index
-                        self._workingDataBase[current_index_selected_key][saved_index] = True
-
-                # Re-plot
-                if which_waveform_current == "CS":
-                    self.plot_rawSignal_CsIndex_popUp()
-                    self.plot_rawSignal_CsIndexSelected_popUp()
-                    self.plot_cs_waveform_popUp()
-                else:
-                    self.plot_rawSignal_SsIndex_popUp()
-                    self.plot_rawSignal_SsIndexSelected_popUp()
-                    self.plot_ss_waveform_popUp()
-
-                # If zoom hold on, zoom into the new type
-                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
-                    self.pushBtn_rawPlot_popup_zoom_in_Clicked()
-        return 0
-    # 'M' - Move the selected waveforms of the type currently of interest to a different type
-    # Then select the waveform closest in time to the moved waveform
-    def pushBtn_rawPlot_popup_move_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
-            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
-            # Check to see if any of waveforms of the interested type is selected
-            if any(self._workingDataBase[current_index_selected_key]):
-
-                # Save the index of the waveform that will be selected after the current selection is deleted
-                current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
-                saved_index = current_index_selected[0] - 1
-                # Move the currently selected waveforms to a differnt type
-                if which_waveform_current == "CS":
-                    self.onMoveToSs_Clicked()
-                else:
-                    self.onMoveToCs_Clicked()
-                self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-                self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-                self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-                self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
-                if self._workingDataBase['ss_index'].sum() > 1:
-                    self._workingDataBase['ss_index_selected'] = \
-                        np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
-                else:
-                    self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
-                if self._workingDataBase['cs_index'].sum() > 1:
-                    self._workingDataBase['cs_index_selected'] = \
-                        np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
-                else:
-                    self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
-                self.PsortGuiSignals.extract_ss_peak(self)
-                self.PsortGuiSignals.extract_cs_peak(self)
-                self.PsortGuiSignals.extract_ss_waveform(self)
-                self.PsortGuiSignals.extract_cs_waveform(self)
-                # Reset and remove ROI from the plot
-                self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
-                self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
-                self.pltData_rawSignal_popUpPlot_ROI.\
-                    setData(np.zeros((0)), np.zeros((0)) )
-                self.pltData_rawSignal_popUpPlot_ROI2.\
-                    setData(np.zeros((0)), np.zeros((0)) )
-
-                # If there is at least one waveform left after deletion, select the next waveform
-                if len(self._workingDataBase[current_index_selected_key]) > 0 :
-                    if saved_index < 0 :
-                        # Select the saved index
-                        self._workingDataBase[current_index_selected_key][0] = True
-                    else:
-                        # Select the saved index
-                        self._workingDataBase[current_index_selected_key][saved_index] = True
-
-                # Re-plot
+            # Re-plot
+            if which_waveform_current == "CS":
                 self.plot_rawSignal_CsIndex_popUp()
                 self.plot_rawSignal_CsIndexSelected_popUp()
                 self.plot_cs_waveform_popUp()
-
+            else:
                 self.plot_rawSignal_SsIndex_popUp()
                 self.plot_rawSignal_SsIndexSelected_popUp()
                 self.plot_ss_waveform_popUp()
 
-                # 8.4.20 - disabled automatic zoom to a next spike bc. moving a spike to a different type
-                # sometiems results in picking an unintended peak, so requires a review
-                # # If zoom hold on, zoom into the new type
-                # if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
-                #     self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+            # If zoom hold on, zoom into the new type
+            if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                self.pushBtn_rawPlot_popup_zoom_in_Clicked()
         return 0
+
+    # 'M' - Move the selected waveforms of the type currently of interest to a different type
+    # Then select the waveform closest in time to the moved waveform
+    def pushBtn_rawPlot_popup_move_Clicked(self):
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+        current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+        current_index_key = "%s_index" % which_waveform_current.lower()
+        # Check to see if any of waveforms of the interested type is selected
+        if any(self._workingDataBase[current_index_selected_key]):
+
+            # Save the index of the waveform that will be selected after the current selection is deleted
+            current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
+            saved_index = current_index_selected[0] - 1
+            # Move the currently selected waveforms to a differnt type
+            if which_waveform_current == "CS":
+                self.move_selected_from_cs_to_ss()
+            else:
+                self.move_selected_from_ss_to_cs()
+            if self._workingDataBase['ss_index'].sum() > 1:
+                self._workingDataBase['ss_index_selected'] = \
+                    np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
+            else:
+                self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
+            if self._workingDataBase['cs_index'].sum() > 1:
+                self._workingDataBase['cs_index_selected'] = \
+                    np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
+            else:
+                self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+            self.PsortGuiSignals.extract_ss_peak(self)
+            self.PsortGuiSignals.extract_cs_peak(self)
+            self.PsortGuiSignals.extract_ss_waveform(self)
+            self.PsortGuiSignals.extract_cs_waveform(self)
+            # Reset and remove ROI from the plot
+            self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
+            self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
+            self.pltData_rawSignal_popUpPlot_ROI.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_rawSignal_popUpPlot_ROI2.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_SS_popUpPlot_ROI.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_SS_popUpPlot_ROI2.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_CS_popUpPlot_ROI.\
+                setData(np.zeros((0)), np.zeros((0)) )
+            self.pltData_CS_popUpPlot_ROI2.\
+                setData(np.zeros((0)), np.zeros((0)) )
+
+            # If there is at least one waveform left after deletion, select the next waveform
+            if np.sum(self._workingDataBase[current_index_key]) > 0 :
+                if saved_index < 0 :
+                    # Select the saved index
+                    self._workingDataBase[current_index_selected_key][0] = True
+                else:
+                    # Select the saved index
+                    self._workingDataBase[current_index_selected_key][saved_index] = True
+
+            # Re-plot
+            self.plot_rawSignal_CsIndex_popUp()
+            self.plot_rawSignal_CsIndexSelected_popUp()
+            self.plot_cs_waveform_popUp()
+
+            self.plot_rawSignal_SsIndex_popUp()
+            self.plot_rawSignal_SsIndexSelected_popUp()
+            self.plot_ss_waveform_popUp()
+
+            # 8.4.20 - disabled automatic zoom to a next spike bc. moving a spike to a different type
+            # sometiems results in picking an unintended peak, so requires a review
+            # # If zoom hold on, zoom into the new type
+            # if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+            #     self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+        return 0
+
     # 'Left arrow' - select the next waveform backward in time
     def pushBtn_rawPlot_popup_prev_spike_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            # Determine which waveform is currently of interest
-            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
-            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+        # Determine which waveform is currently of interest
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+        current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
 
-            # If no waveform is initially selected, select the last spike
-            if all(~self._workingDataBase[current_index_selected_key]):
-                if len(self._workingDataBase[current_index_selected_key]) > 1:
-                    self._workingDataBase[current_index_selected_key][-1] = True
-                else:
-                    return 0
-            # If more than one waveform is selected...
+        # If no waveform is initially selected, select the last spike
+        if all(~self._workingDataBase[current_index_selected_key]):
+            if len(self._workingDataBase[current_index_selected_key]) > 1:
+                self._workingDataBase[current_index_selected_key][-1] = True
             else:
-                _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
-                # If trying to select the previous waveform but one one of selected waveforms is the first waveform,
-                # select the first waveform. Otherwise, select the waveform previous to the last of selected waveforms
-                if _selected_waveform_index[0] == 0:
-                    next_waveform_index = 0
-                else:
-                    next_waveform_index = _selected_waveform_index[0]-1
-
-                # De-selecting currently selected waveforms
-                for waveform_index in _selected_waveform_index:
-                    self._workingDataBase[current_index_selected_key][waveform_index] = False
-
-                # Select the new waveform
-                self._workingDataBase[current_index_selected_key][next_waveform_index] = True
-
-            # If zoom hold on, zoom into the new type
-                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
-                    self.pushBtn_rawPlot_popup_zoom_in_Clicked()
-
-            # Update the selected waveform index plot
-            if which_waveform_current == "SS":
-                self.plot_rawSignal_SsIndexSelected_popUp()
-                self.plot_ss_waveform_popUp()
+                return 0
+        # If more than one waveform is selected...
+        else:
+            _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
+            # If trying to select the previous waveform but one one of selected waveforms is the first waveform,
+            # select the first waveform. Otherwise, select the waveform previous to the last of selected waveforms
+            if _selected_waveform_index[0] == 0:
+                next_waveform_index = 0
             else:
-                self.plot_rawSignal_CsIndexSelected_popUp()
-                self.plot_cs_waveform_popUp()
+                next_waveform_index = _selected_waveform_index[0]-1
 
+            # De-selecting currently selected waveforms
+            for waveform_index in _selected_waveform_index:
+                self._workingDataBase[current_index_selected_key][waveform_index] = False
+
+            # Select the new waveform
+            self._workingDataBase[current_index_selected_key][next_waveform_index] = True
+
+        # If zoom hold on, zoom into the new type
+            if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+
+        # Update the selected waveform index plot
+        if which_waveform_current == "SS":
+            self.plot_rawSignal_SsIndexSelected_popUp()
+            self.plot_ss_waveform_popUp()
+        else:
+            self.plot_rawSignal_CsIndexSelected_popUp()
+            self.plot_cs_waveform_popUp()
         return 0
 
     # 'Right arrow' - select the next waveform forward in time
     def pushBtn_rawPlot_popup_next_spike_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            # Determine which waveform is currently of interest
-            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
-            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+        # Determine which waveform is currently of interest
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+        current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
 
-            # If no waveform is initially selected, select the first spike
-            if all(~self._workingDataBase[current_index_selected_key]):
-                if len(self._workingDataBase[current_index_selected_key]) > 1:
-                    self._workingDataBase[current_index_selected_key][0] = True
-                else:
-                    return 0
-            # If more than one waveform is selected...
+        # If no waveform is initially selected, select the first spike
+        if all(~self._workingDataBase[current_index_selected_key]):
+            if len(self._workingDataBase[current_index_selected_key]) > 1:
+                self._workingDataBase[current_index_selected_key][0] = True
             else:
-                _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
-                # If trying to select the upcoming waveform but one one of selected waveforms is the last waveform,
-                # select the last waveform. Otherwise, select the waveform after the last of selected waveforms
-                last_waveform_index = len(self._workingDataBase[current_index_selected_key]) - 1
-                if _selected_waveform_index[-1] == last_waveform_index:
-                    next_waveform_index = last_waveform_index
-                else:
-                    next_waveform_index = _selected_waveform_index[-1]+1
-
-                # De-selecting currently selected waveforms
-                for waveform_index in _selected_waveform_index:
-                    self._workingDataBase[current_index_selected_key][waveform_index] = False
-
-                # Select the new waveform
-                self._workingDataBase[current_index_selected_key][next_waveform_index] = True
-
-            # If zoom hold on, zoom into the new type
-            if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
-                self.pushBtn_rawPlot_popup_zoom_in_Clicked()
-
-            # Update the selected waveform index plot
-            if which_waveform_current == "SS":
-                self.plot_rawSignal_SsIndexSelected_popUp()
-                self.plot_ss_waveform_popUp()
+                return 0
+        # If more than one waveform is selected...
+        else:
+            _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
+            # If trying to select the upcoming waveform but one one of selected waveforms is the last waveform,
+            # select the last waveform. Otherwise, select the waveform after the last of selected waveforms
+            last_waveform_index = len(self._workingDataBase[current_index_selected_key]) - 1
+            if _selected_waveform_index[-1] == last_waveform_index:
+                next_waveform_index = last_waveform_index
             else:
-                self.plot_rawSignal_CsIndexSelected_popUp()
-                self.plot_cs_waveform_popUp()
+                next_waveform_index = _selected_waveform_index[-1]+1
 
+            # De-selecting currently selected waveforms
+            for waveform_index in _selected_waveform_index:
+                self._workingDataBase[current_index_selected_key][waveform_index] = False
+
+            # Select the new waveform
+            self._workingDataBase[current_index_selected_key][next_waveform_index] = True
+
+        # If zoom hold on, zoom into the new type
+        if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+            self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+
+        # Update the selected waveform index plot
+        if which_waveform_current == "SS":
+            self.plot_rawSignal_SsIndexSelected_popUp()
+            self.plot_ss_waveform_popUp()
+        else:
+            self.plot_rawSignal_CsIndexSelected_popUp()
+            self.plot_cs_waveform_popUp()
         return 0
+
     # 'A' - zoom out
     def pushBtn_rawPlot_popup_zoom_out_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.viewBox_rawSignal_popUpPlot.autoRange()
+        self.viewBox_rawSignal_popUpPlot.autoRange()
         return 0
+
     # 'Z' - zoom into selected waveforms
     def pushBtn_rawPlot_popup_zoom_in_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            # Determine which waveform is currently of interest
-            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
-            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
-            currrent_index_key = "%s_index" % which_waveform_current.lower()
+        # Determine which waveform is currently of interest
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+        current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+        current_index_key = "%s_index" % which_waveform_current.lower()
 
-            # Check to see if at least one waveform is selected
-            if any(self._workingDataBase[current_index_selected_key]):
-                _index_int = np.where(self._workingDataBase[currrent_index_key])[0] # all indices of raw data with boolean True for detected spikes
-                _index_selected_int = \
-                    _index_int[self._workingDataBase[current_index_selected_key]] # raw indices of selected CS among the one detected
-                time_point = self._workingDataBase['ch_time']
-                min_XRange = time_point[_index_selected_int[0]] - self.slider_rawPlot_popup_x_zoom_level.value()/2/1000
-                max_XRange = time_point[_index_selected_int[-1]] + self.slider_rawPlot_popup_x_zoom_level.value()/2/1000
-                min_YRange = self.slider_rawPlot_popup_y_zoom_level.value()/-2
-                max_YRange = self.slider_rawPlot_popup_y_zoom_level.value()/2
-                self.viewBox_rawSignal_popUpPlot.setRange(xRange = (min_XRange, max_XRange), yRange = (min_YRange, max_YRange))
-
+        # Check to see if at least one waveform is selected
+        if any(self._workingDataBase[current_index_selected_key]):
+            _index_int = np.where(self._workingDataBase[current_index_key])[0] # all indices of raw data with boolean True for detected spikes
+            _index_selected_int = \
+                _index_int[self._workingDataBase[current_index_selected_key]] # raw indices of selected CS among the one detected
+            time_point = self._workingDataBase['ch_time']
+            min_XRange = time_point[_index_selected_int[0]] - self.slider_rawPlot_popup_x_zoom_level.value()/2/1000
+            max_XRange = time_point[_index_selected_int[-1]] + self.slider_rawPlot_popup_x_zoom_level.value()/2/1000
+            min_YRange = self.slider_rawPlot_popup_y_zoom_level.value()/-2
+            max_YRange = self.slider_rawPlot_popup_y_zoom_level.value()/2
+            self.viewBox_rawSignal_popUpPlot.setRange(xRange = (min_XRange, max_XRange), yRange = (min_YRange, max_YRange))
         return 0
 
-    # X zoom level slider changed
+    # X-Axis zoom level slider changed
     def slider_rawPlot_popup_x_zoom_level_SliderMoved(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(\
-                self.slider_rawPlot_popup_x_zoom_level.value())
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(\
+            self.slider_rawPlot_popup_x_zoom_level.value())
         return 0
 
-    # Y zoom level changed
+    # Y-Axis zoom level changed
     def slider_rawPlot_popup_y_zoom_level_SliderMoved(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(\
-                self.slider_rawPlot_popup_y_zoom_level.value())
-        return 0
-    # X zoom level spinbox changed
-    def spinBx_rawPlot_popup_x_zoom_level_indicator_ValueChanged(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.slider_rawPlot_popup_x_zoom_level.\
-                setValue(self.spinBx_rawPlot_popup_x_zoom_level_indicator.value())
-        return 0
-    # Y zoom level spinbox changed
-    def spinBx_rawPlot_popup_y_zoom_level_indicator_ValueChanged(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.slider_rawPlot_popup_y_zoom_level.\
-                setValue(self.spinBx_rawPlot_popup_y_zoom_level_indicator.value())
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(\
+            self.slider_rawPlot_popup_y_zoom_level.value())
         return 0
 
-    # 'G'
-    # Set zoom level from raw plot
+    # X-Axis zoom level spinbox changed
+    def spinBx_rawPlot_popup_x_zoom_level_indicator_ValueChanged(self):
+        self.slider_rawPlot_popup_x_zoom_level.\
+            setValue(self.spinBx_rawPlot_popup_x_zoom_level_indicator.value())
+        return 0
+
+    # Y-Axis zoom level spinbox changed
+    def spinBx_rawPlot_popup_y_zoom_level_indicator_ValueChanged(self):
+        self.slider_rawPlot_popup_y_zoom_level.\
+            setValue(self.spinBx_rawPlot_popup_y_zoom_level_indicator.value())
+        return 0
+
+    # 'G' - Set zoom level from raw plot
     def pushBtn_rawPlot_popup_zoom_getRange_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            viewBox_range = self.viewBox_rawSignal_popUpPlot.viewRange()
-            xmin = viewBox_range[0][0]
-            xmax = viewBox_range[0][1]
-            self.x_zoom_level = int((xmax-xmin)*1000)
-            ymin = viewBox_range[1][0]
-            ymax = viewBox_range[1][1]
-            self.y_zoom_level = int(ymax-ymin)
-            self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(self.x_zoom_level)
-            self.slider_rawPlot_popup_x_zoom_level.setValue(self.x_zoom_level)
-            self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.y_zoom_level)
-            self.slider_rawPlot_popup_y_zoom_level.setValue(self.y_zoom_level)
+        viewBox_range = self.viewBox_rawSignal_popUpPlot.viewRange()
+        xmin = viewBox_range[0][0]
+        xmax = viewBox_range[0][1]
+        self.x_zoom_level = int((xmax-xmin)*1000)
+        ymin = viewBox_range[1][0]
+        ymax = viewBox_range[1][1]
+        self.y_zoom_level = int(ymax-ymin)
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(self.x_zoom_level)
+        self.slider_rawPlot_popup_x_zoom_level.setValue(self.x_zoom_level)
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.y_zoom_level)
+        self.slider_rawPlot_popup_y_zoom_level.setValue(self.y_zoom_level)
         return 0
 
     # 'Up Arrow' or 'Down Arrow' or 'W'
@@ -760,107 +912,93 @@ class WaveDissectWidget(QWidget):
     # Unselect any previously selected waveform of different type
     # If none selected, only change the type of interest
     def pushBtn_rawPlot_popup_find_other_spike_Clicked(self):
-       # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
-            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
-            current_index_key = "%s_index" % which_waveform_current.lower()
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+        current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+        current_index_key = "%s_index" % which_waveform_current.lower()
 
-            # Change the spike type of interest
-            if which_waveform_current == "CS":
-                self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText("SS")
-                next_index_key = 'ss_index'
-                next_index_selected_key = 'ss_index_selected'
-                which_waveform_next = "SS"
+        # Change the spike type of interest
+        if which_waveform_current == "CS":
+            self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText("SS")
+            next_index_key = 'ss_index'
+            next_index_selected_key = 'ss_index_selected'
+            which_waveform_next = "SS"
+        else:
+            self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText("CS")
+            next_index_key = 'cs_index'
+            next_index_selected_key = 'cs_index_selected'
+            which_waveform_next = "CS"
+        # Check to see any waveform of the current type is selected
+        if any(self._workingDataBase[current_index_selected_key]):
+            current_index_int = np.where(self._workingDataBase[current_index_key])[0] # all indices of raw data with boolean True for detected waveforms of the current type
+            current_index_selected_int = \
+                current_index_int[self._workingDataBase[current_index_selected_key]] # raw indices of selected waveforms of the current type among the ones detected
+
+            # If more than one waveform of the current type selected, select the first one
+            if len(current_index_selected_int) > 1:
+                current_index_selected_int = current_index_selected_int[0]
+
+            next_index_int = np.where(self._workingDataBase[next_index_key])[0]
+
+            # Find the waveform index of different type, closest in time to the selected index of the current type
+            next_waveform_counter = 0
+            for waveform_index in next_index_int:
+                if waveform_index >= current_index_selected_int:
+                    break
+                next_waveform_counter += 1
+            # If the selected index of the current type is greater than any of waveform index of different type,
+            # 'break' statement would not have been reached in the previous 'for' loop, so the waveform counter needs to be subtracted once to be
+            # within the range of found indices
+            if waveform_index == next_index_int[-1]:
+                next_waveform_counter -= 1
+
+            # De-selecting currently selected waveforms of different type
+            selected_index_in_order = np.where(self._workingDataBase[next_index_selected_key])[0]
+            for waveform_index in selected_index_in_order:
+                self._workingDataBase[next_index_selected_key][waveform_index] = False
+
+            # Select the closest waveform of the different type
+            self._workingDataBase[next_index_selected_key][next_waveform_counter] = True
+
+            # If zoom hold on, zoom into the new type
+            if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+
+            # Update the selected waveform index plot
+            if which_waveform_next == "SS":
+                self.plot_rawSignal_SsIndexSelected_popUp()
+                self.plot_ss_waveform_popUp()
             else:
-                self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText("CS")
-                next_index_key = 'cs_index'
-                next_index_selected_key = 'cs_index_selected'
-                which_waveform_next = "CS"
-            # Check to see any waveform of the current type is selected
-            if any(self._workingDataBase[current_index_selected_key]):
-                current_index_int = np.where(self._workingDataBase[current_index_key])[0] # all indices of raw data with boolean True for detected waveforms of the current type
-                current_index_selected_int = \
-                    current_index_int[self._workingDataBase[current_index_selected_key]] # raw indices of selected waveforms of the current type among the ones detected
-
-                # If more than one waveform of the current type selected, select the first one
-                if len(current_index_selected_int) > 1:
-                    current_index_selected_int = current_index_selected_int[0]
-
-                next_index_int = np.where(self._workingDataBase[next_index_key])[0]
-
-                # Find the waveform index of different type, closest in time to the selected index of the current type
-                next_waveform_counter = 0
-                for waveform_index in next_index_int:
-                    if waveform_index >= current_index_selected_int:
-                        break
-                    next_waveform_counter += 1
-                # If the selected index of the current type is greater than any of waveform index of different type,
-                # 'break' statement would not have been reached in the previous 'for' loop, so the waveform counter needs to be subtracted once to be
-                # within the range of found indices
-                if waveform_index == next_index_int[-1]:
-                    next_waveform_counter -= 1
-
-                # De-selecting currently selected waveforms of different type
-                selected_index_in_order = np.where(self._workingDataBase[next_index_selected_key])[0]
-                for waveform_index in selected_index_in_order:
-                    self._workingDataBase[next_index_selected_key][waveform_index] = False
-
-                # Select the closest waveform of the different type
-                self._workingDataBase[next_index_selected_key][next_waveform_counter] = True
-
-                # If zoom hold on, zoom into the new type
-                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
-                    self.pushBtn_rawPlot_popup_zoom_in_Clicked()
-
-                # Update the selected waveform index plot
-                if which_waveform_next == "SS":
-                    self.plot_rawSignal_SsIndexSelected_popUp()
-                    self.plot_ss_waveform_popUp()
-                else:
-                    self.plot_rawSignal_CsIndexSelected_popUp()
-                    self.plot_cs_waveform_popUp()
+                self.plot_rawSignal_CsIndexSelected_popUp()
+                self.plot_cs_waveform_popUp()
         return 0
 
     # 'E' - View next time window
     def pushBtn_rawPlot_popup_next_window_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            viewBox_range = self.viewBox_rawSignal_popUpPlot.viewRange()
-            xmin = viewBox_range[0][0]
-            xmax = viewBox_range[0][1]
-
-            self.viewBox_rawSignal_popUpPlot.setRange(xRange = (xmax-0.15, 2*xmax - xmin-0.15))
+        viewBox_range = self.viewBox_rawSignal_popUpPlot.viewRange()
+        xmin = viewBox_range[0][0]
+        xmax = viewBox_range[0][1]
+        self.viewBox_rawSignal_popUpPlot.setRange(xRange = (xmax-0.15, 2*xmax - xmin-0.15))
         return 0
+
     # 'Q' - View previous time window
     def pushBtn_rawPlot_popup_prev_window_Clicked(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            viewBox_range = self.viewBox_rawSignal_popUpPlot.viewRange()
-            xmin = viewBox_range[0][0]
-            xmax = viewBox_range[0][1]
-
-            self.viewBox_rawSignal_popUpPlot.setRange(xRange = (2*xmin+0.15 - xmax, xmin+0.15))
+        viewBox_range = self.viewBox_rawSignal_popUpPlot.viewRange()
+        xmin = viewBox_range[0][0]
+        xmax = viewBox_range[0][1]
+        self.viewBox_rawSignal_popUpPlot.setRange(xRange = (2*xmin+0.15 - xmax, xmin+0.15))
         return 0
 
     # '1' - Change the spike of interest to CS
     def comboBx_rawPlot_popup_spike_of_interest_CS_shortcut(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('CS')
+        self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('CS')
+        return 0
 
     # '2' - Change the spike of interest to SS
     def comboBx_rawPlot_popup_spike_of_interest_SS_shortcut(self):
-        # Check to see if data loaded AND raw signal dissection pop-up open; if not, do nothing
-        # if self.widget_mainwin_rawSignalPanel.isEnabled() and self.layout_grand.currentIndex() == 2:
-        if True:
-            self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('SS')
+        self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('SS')
+        return 0
 
-    def onMoveToSs_Clicked(self):
+    def move_selected_from_cs_to_ss(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
         _cs_index_bool = self._workingDataBase['cs_index']
@@ -871,9 +1009,13 @@ class WaveDissectWidget(QWidget):
             return 0
         _cs_index_bool[_cs_index_selected_int] = False
         _ss_index_bool[_cs_index_selected_int] = True
+        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
         return 0
 
-    def onMoveToCs_Clicked(self):
+    def move_selected_from_ss_to_cs(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
         _cs_index_bool = self._workingDataBase['cs_index']
@@ -884,11 +1026,18 @@ class WaveDissectWidget(QWidget):
             return 0
         _ss_index_bool[_ss_index_selected_int] = False
         _cs_index_bool[_ss_index_selected_int] = True
+        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
         return 0
+
 ## ################################################################################################
 ## ################################################################################################
     # Instead of the copy of the functions, better to pass into a function which plot to be plotted
     # Need to make change to deepcopy the data
+
+#%% FUNCTIONS
 
     def plot_rawSignal_popUp(self, just_update_selected=False):
         self.plot_rawSignal_SsIndex_popUp()
@@ -938,6 +1087,7 @@ class WaveDissectWidget(QWidget):
         return 0
 
     def plot_rawSignal_CsIndexSelected_popUp(self):
+        # import pdb; pdb.set_trace()
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
         _cs_index_selected_int = \
             _cs_index_int[self._workingDataBase['cs_index_selected']]
@@ -1028,8 +1178,8 @@ class WaveDissectWidget(QWidget):
             setValue(self._workingDataBase['cs_threshold'][0]*_sign)
         self.plot_rawSignal_popUp()
         return 0
-    #J
-    def popUpPlot_mouseMoved(self, evt):
+
+    def popUpPlot_mouseMoved_raw(self, evt):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
         if self.plot_popup_rawPlot.sceneBoundingRect().contains(pos):
             mousePoint = self.viewBox_rawSignal_popUpPlot.mapSceneToView(pos)
@@ -1037,12 +1187,31 @@ class WaveDissectWidget(QWidget):
             self.infLine_popUpPlot_hLine.setPos(mousePoint.y())
         return 0
 
-    def popUpPlot_mouseDoubleClicked(self, evt):
+    def popUpPlot_mouseMoved_SS(self, evt):
+        pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+        if self.plot_popup_sidePlot1.sceneBoundingRect().contains(pos):
+            mousePoint = self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.mapSceneToView(pos)
+            self.infLine_popUpPlot_vLine_SS.setPos(mousePoint.x())
+            self.infLine_popUpPlot_hLine_SS.setPos(mousePoint.y())
+        return 0
+
+    def popUpPlot_mouseMoved_CS(self, evt):
+        pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+        if self.plot_popup_sidePlot2.sceneBoundingRect().contains(pos):
+            mousePoint = self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.mapSceneToView(pos)
+            self.infLine_popUpPlot_vLine_CS.setPos(mousePoint.x())
+            self.infLine_popUpPlot_hLine_CS.setPos(mousePoint.y())
+        return 0
+
+    def popUpPlot_mouseClicked_raw(self, evt):
+        # If this plot is not currently active, remove all ROI points and set it to the active plot
+        if self.which_plot_active != 0:
+            self.pushBtn_rawPlot_popup_clear_Clicked()
+            self.which_plot_active = 0
+
         if evt[0].button() == QtCore.Qt.LeftButton:
             pos = evt[0].scenePos()
-            if self.plot_popup_rawPlot.sceneBoundingRect().contains(pos): #J
-            #J #######################################################################
-                # if self._workingDataBase['popUp_mode'][0] == 'raw_signal_manual':
+            if self.plot_popup_rawPlot.sceneBoundingRect().contains(pos):
                 mousePoint = self.viewBox_rawSignal_popUpPlot.mapSceneToView(pos)
                 self._workingDataBase['popUp_ROI_x'] = \
                     np.append(self._workingDataBase['popUp_ROI_x'], [mousePoint.x()])
@@ -1053,8 +1222,61 @@ class WaveDissectWidget(QWidget):
                             self._workingDataBase['popUp_ROI_y'],
                             pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine))
                 if self._workingDataBase['popUp_ROI_x'].size > 2:
-                        #self.pushBtn_popup_ok.setEnabled(True)
                         self.pltData_rawSignal_popUpPlot_ROI2.\
+                            setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
+                                    self._workingDataBase['popUp_ROI_y'][[0,-1],],
+                                    pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
+        return 0
+    def popUpPlot_mouseClicked_SS(self, evt):
+        # If this plot is not currently active, remove all ROI points and set it to the active plot
+        if self.which_plot_active != 1:
+            self.pushBtn_rawPlot_popup_clear_Clicked()
+            self.which_plot_active = 1
+            self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText("SS")
+
+
+        if evt[0].button() == QtCore.Qt.LeftButton:
+            ss_pos = evt[0].scenePos()
+            if self.plot_popup_sidePlot1.sceneBoundingRect().contains(ss_pos):
+                mousePoint = self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.mapSceneToView(ss_pos)
+                self._workingDataBase['popUp_ROI_x'] = \
+                    np.append(self._workingDataBase['popUp_ROI_x'], [mousePoint.x()])
+                self._workingDataBase['popUp_ROI_y'] = \
+                    np.append(self._workingDataBase['popUp_ROI_y'], [mousePoint.y()])
+                self.pltData_SS_popUpPlot_ROI.\
+                        setData(self._workingDataBase['popUp_ROI_x'],
+                            self._workingDataBase['popUp_ROI_y'],
+                            pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine))
+                if self._workingDataBase['popUp_ROI_x'].size > 2:
+                        self.pltData_SS_popUpPlot_ROI2.\
+                            setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
+                                    self._workingDataBase['popUp_ROI_y'][[0,-1],],
+                                    pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
+        return 0
+
+    def popUpPlot_mouseClicked_CS(self, evt):
+        # If this plot is not currently active, remove all ROI points and set it to the active plot
+        if self.which_plot_active != 2:
+            self.pushBtn_rawPlot_popup_clear_Clicked()
+            self.which_plot_active = 2
+            self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText("CS")
+
+
+
+        if evt[0].button() == QtCore.Qt.LeftButton:
+            cs_pos = evt[0].scenePos()
+            if self.plot_popup_sidePlot2.sceneBoundingRect().contains(cs_pos):
+                mousePoint = self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.mapSceneToView(cs_pos)
+                self._workingDataBase['popUp_ROI_x'] = \
+                    np.append(self._workingDataBase['popUp_ROI_x'], [mousePoint.x()])
+                self._workingDataBase['popUp_ROI_y'] = \
+                    np.append(self._workingDataBase['popUp_ROI_y'], [mousePoint.y()])
+                self.pltData_CS_popUpPlot_ROI.\
+                        setData(self._workingDataBase['popUp_ROI_x'],
+                            self._workingDataBase['popUp_ROI_y'],
+                            pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine))
+                if self._workingDataBase['popUp_ROI_x'].size > 2:
+                        self.pltData_CS_popUpPlot_ROI2.\
                             setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
                                     self._workingDataBase['popUp_ROI_y'][[0,-1],],
                                     pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))

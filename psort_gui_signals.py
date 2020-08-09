@@ -2254,12 +2254,26 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onWaveDissect_Cancel_Clicked)
         self.WaveDissectWidget.pushBtn_rawPlot_popup_ok.clicked.\
             connect(self.onWaveDissect_Ok_Clicked)
-        self.proxy_MouseMoved_WaveDissect = \
-            pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseMoved, \
-            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved)
-        self.proxy_MouseClicked_WaveDissect = \
+
+        # self.proxy_MouseMoved_WaveDissectRaw = \
+        #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseMoved, \
+        #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_raw) #J
+        # self.proxy_MouseMoved_WaveDissectSS = \
+        #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot1.scene().sigMouseMoved, \
+        #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_SS) #J
+        # self.proxy_MouseMoved_WaveDissectCS = \
+        #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot2.scene().sigMouseMoved, \
+        #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_CS) #J
+
+        self.proxy_MouseClicked_WaveDissectRaw = \
             pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseClicked, \
-            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseDoubleClicked)
+            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseClicked_raw) #J
+        self.proxy_MouseClicked_WaveDissectSS = \
+            pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot1.scene().sigMouseClicked, \
+            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseClicked_SS) #J
+        self.proxy_MouseClicked_WaveDissectCS = \
+            pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot2.scene().sigMouseClicked, \
+            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseClicked_CS) #J
         return 0
 
     @showWaitCursor
@@ -2278,15 +2292,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_index'] = \
                 deepcopy(self.WaveDissectWidget._workingDataBase['ss_index'])
             flag_update = True
-        if ( np.sum(np.logical_xor(self._workingDataBase['cs_index_slow'],
-            self.WaveDissectWidget._workingDataBase['cs_index_slow'])) > 0 ):
-            self._workingDataBase['cs_index_slow'] = \
-                deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_slow'])
-            flag_update = True
-        if ( np.sum(np.logical_xor(self._workingDataBase['ss_index'],
-            self.WaveDissectWidget._workingDataBase['ss_index'])) > 0 ):
+        if ( np.sum(np.logical_xor(self._workingDataBase['cs_index'],
+            self.WaveDissectWidget._workingDataBase['cs_index'])) > 0 ):
             self._workingDataBase['cs_index'] = \
                 deepcopy(self.WaveDissectWidget._workingDataBase['cs_index'])
+            self._workingDataBase['cs_index_slow'] = \
+                deepcopy(self.WaveDissectWidget._workingDataBase['cs_index_slow'])
             flag_update = True
         self._workingDataBase['ss_index_selected'] = \
             deepcopy(self.WaveDissectWidget._workingDataBase['ss_index_selected'])
@@ -2307,7 +2318,16 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onPushBtn_waveDissect_Clicked(self):
+        # copy _workingDataBase over to WaveDissectWidget
         self.WaveDissectWidget._workingDataBase = deepcopy(self._workingDataBase)
+        # set y_zoom_level to match the signal
+        viewBox_range = self.viewBox_rawSignal.viewRange()
+        ymin = viewBox_range[1][0]
+        ymax = viewBox_range[1][1]
+        self.WaveDissectWidget.y_zoom_level = int(ymax-ymin)
+        self.WaveDissectWidget.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.WaveDissectWidget.y_zoom_level)
+        self.WaveDissectWidget.slider_rawPlot_popup_y_zoom_level.setValue(self.WaveDissectWidget.y_zoom_level)
+        # Enable the WaveDissectWidget module
         self.WaveDissectWidget.pushBtn_waveDissect_Clicked()
         self.waveDissect_showWidget(True)
         return 0
