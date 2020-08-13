@@ -666,7 +666,7 @@ class PsortGuiWidget(QMainWindow):
         self.actionBtn_toolbar_refresh = \
             QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-recycling.png')), "Refresh Slot", self)
         self.actionBtn_toolbar_load = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '029-folder.png')), "Load File", self)
+            QAction(QtGui.QIcon(os.path.join('.', 'icon', '029-folder.png')), "Open File...", self)
         self.actionBtn_toolbar_save = \
             QAction(QtGui.QIcon(os.path.join('.', 'icon', '073-diskette.png')), "Save Session", self)
         self.actionBtn_toolbar_undo = \
@@ -718,9 +718,11 @@ class PsortGuiWidget(QMainWindow):
 
         self.menu_menubar_file = self.menubar.addMenu("File")
         self.actionBtn_menubar_file_open = QAction("Open File...", self)
+        self.actionBtn_menubar_file_restart = QAction("Restart Session", self)
         self.actionBtn_menubar_file_save = QAction("Save Session", self)
         self.actionBtn_menubar_file_exit = QAction("Exit", self)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_open)
+        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_restart)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_save)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_exit)
 

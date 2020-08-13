@@ -18,7 +18,8 @@ from psort_database import PsortDataBase
 from psort_tools_commonAvg import CommonAvgSignals
 from psort_tools_cellSummary import CellSummarySignals
 from psort_edit_prefrences import EditPrefrencesDialog
-from psort_wavedissect import WaveDissectWidget
+from psort_waveDissect import WaveDissectWidget
+from psort_slotBoundary import SlotBoundaryWidget
 import numpy as np
 from copy import deepcopy
 import os
@@ -31,7 +32,7 @@ import decorator
 ## ################################################################################################
 #%% GLOBAL VARIABLES
 _workingDataBase = {
-    'total_slot_num': (       np.full( (1), 30, dtype=np.uint32)),
+    'total_slot_num':         np.full( (1), 30, dtype=np.uint32),
     'current_slot_num':       np.zeros((1), dtype=np.uint32),
     'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint32),
     'sample_rate':            np.zeros((1), dtype=np.uint32),
@@ -79,6 +80,7 @@ _workingDataBase = {
     'cs_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
     'index_undoRedo':         np.zeros((1), dtype=np.int),
     'length_undoRedo':        np.zeros((1), dtype=np.int),
+    'batch_size_undoRedo':    np.full( (1), 20, dtype=np.uint32),
 }
 
 for key in psort_database._singleSlotDataBase.keys():
@@ -119,7 +121,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.connect_rawSignalPanel_signals()
         self.connect_ssPanel_signals()
         self.connect_csPanel_signals()
-        self.connect_WaveDissectWidget()
+        self.connect_WaveDissectWidget() # Add WaveDissectWidget as the 3rd widget to layout_grand
+        self.connect_SlotBoundaryWidget() # Add SlotBoundaryWidget as the 4th widget to layout_grand
         self.setEnableWidgets(False)
         return None
 
@@ -181,6 +184,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.actionBtn_menubar_edit_umap.setChecked(False)
         self.undoRedo_reset()
         return 0
 
@@ -194,6 +198,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.actionBtn_toolbar_next.setEnabled(isEnable)
         self.actionBtn_toolbar_save.setEnabled(isEnable)
         self.actionBtn_menubar_file_save.setEnabled(isEnable)
+        # self.actionBtn_menubar_file_restart.setEnabled(isEnable)
         if isEnable:
             self.undoRedo_enable()
         else:
@@ -466,6 +471,8 @@ class PsortGuiSignals(PsortGuiWidget):
     def connect_menubar_signals(self):
         self.actionBtn_menubar_file_open.triggered.\
             connect(self.onToolbar_load_ButtonClick)
+        self.actionBtn_menubar_file_restart.triggered.\
+            connect(self.onToolbar_restart_ButtonClick)
         self.actionBtn_menubar_file_save.triggered.\
             connect(self.onToolbar_save_ButtonClick)
         self.actionBtn_menubar_file_exit.triggered.\
@@ -673,6 +680,10 @@ class PsortGuiSignals(PsortGuiWidget):
             self._fileDataBase['isCommonAverage'][0] = False
             self.init_workingDataBase()
             self.load_process_start()
+        return 0
+
+    def onToolbar_restart_ButtonClick(self):
+        self.slotBoundary_showWidget(True)
         return 0
 
     def onToolbar_save_ButtonClick(self):
@@ -2118,7 +2129,7 @@ class PsortGuiSignals(PsortGuiWidget):
         necessary we will allocate more steps on the go.
         """
         len_data = len(self._workingDataBase['ch_data'])
-        batch_size = int(20)
+        batch_size = self._workingDataBase['batch_size_undoRedo'][0]
         self._workingDataBase['ss_index_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
         self._workingDataBase['cs_index_slow_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
         self._workingDataBase['cs_index_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
@@ -2130,16 +2141,16 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def undoRedo_append(self):
         len_data = len(self._workingDataBase['ch_data'])
-        batch_size = int(20)
+        batch_size = self._workingDataBase['batch_size_undoRedo'][0]
         self._workingDataBase['ss_index_undoRedo']= np.vstack(
-            self._workingDataBase['ss_index_undoRedo'],
-            np.zeros((batch_size,len_data), dtype=np.bool))
+            (self._workingDataBase['ss_index_undoRedo'],
+            np.zeros((batch_size,len_data), dtype=np.bool)))
         self._workingDataBase['cs_index_slow_undoRedo']= np.vstack(
-            self._workingDataBase['cs_index_slow_undoRedo'],
-            np.zeros((batch_size,len_data), dtype=np.bool))
+            (self._workingDataBase['cs_index_slow_undoRedo'],
+            np.zeros((batch_size,len_data), dtype=np.bool)))
         self._workingDataBase['cs_index_undoRedo']= np.vstack(
-            self._workingDataBase['cs_index_undoRedo'],
-            np.zeros((batch_size,len_data), dtype=np.bool))
+            (self._workingDataBase['cs_index_undoRedo'],
+            np.zeros((batch_size,len_data), dtype=np.bool)))
         return 0
 
     def undoRedo_enable(self):
@@ -2165,7 +2176,6 @@ class PsortGuiSignals(PsortGuiWidget):
         if ( self._workingDataBase['ss_index_undoRedo'].shape[1] !=
             len(self._workingDataBase['ch_data']) ):
             self.undoRedo_reset()
-        batch_size = int(20)
         index_undoRedo = self._workingDataBase['index_undoRedo'][0] + 1
         if ( index_undoRedo >= self._workingDataBase['ss_index_undoRedo'].shape[0] ):
             self.undoRedo_append() # append another patch if neccessary
@@ -2336,6 +2346,52 @@ class PsortGuiSignals(PsortGuiWidget):
         self.toolbar.setEnabled(not(showWaveDissect))
         if showWaveDissect:
             self.layout_grand.setCurrentIndex(2)
+        else:
+            self.layout_grand.setCurrentIndex(0)
+        return 0
+## ################################################################################################
+## ################################################################################################
+#%% SLOTBOUNDARY
+    def connect_SlotBoundaryWidget(self):
+        self.SlotBoundaryWidget = SlotBoundaryWidget(self)
+        # Add SlotBoundaryWidget as the 4th widget to layout_grand
+        self.layout_grand.addWidget(self.SlotBoundaryWidget)
+        self.SlotBoundaryWidget.pushBtn_slotBoundary_cancel.clicked.\
+            connect(self.onSlotBoundary_Cancel_Clicked)
+        self.SlotBoundaryWidget.pushBtn_slotBoundary_ok.clicked.\
+            connect(self.onSlotBoundary_Ok_Clicked)
+        self.proxy_MouseMoved_SlotBoundary = \
+            pg.SignalProxy(self.SlotBoundaryWidget.plot_slotBoundary_mainPlot.scene().sigMouseMoved, \
+            rateLimit=60, slot=self.SlotBoundaryWidget.slotBoundary_mouseMoved)
+        self.proxy_MouseClicked_SlotBoundary = \
+            pg.SignalProxy(self.SlotBoundaryWidget.plot_slotBoundary_mainPlot.scene().sigMouseClicked, \
+            rateLimit=60, slot=self.SlotBoundaryWidget.slotBoundary_mouseClicked)
+        return 0
+
+    @showWaitCursor
+    def onSlotBoundary_Cancel_Clicked(self):
+        self.slotBoundary_showWidget(False)
+        return 0
+
+    @showWaitCursor
+    def onSlotBoundary_Ok_Clicked(self):
+        self.slotBoundary_showWidget(False)
+        return 0
+
+    def slotBoundary_showWidget(self, showSlotBoundary=False):
+        self.toolbar.setEnabled(not(showSlotBoundary))
+        if showSlotBoundary:
+            psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
+            self.SlotBoundaryWidget._workingDataBase['ch_data'] = \
+                psort_grandDataBase[-1]['ch_data']
+            self.SlotBoundaryWidget._workingDataBase['sample_rate'][0] = \
+                psort_grandDataBase[-1]['sample_rate'][0]
+            self.SlotBoundaryWidget._workingDataBase['index_slot_edges'] = \
+                deepcopy(psort_grandDataBase[-1]['index_slot_edges'])
+            self.SlotBoundaryWidget.set_chData()
+            self.SlotBoundaryWidget.clear_infLine_list()
+            self.SlotBoundaryWidget.build_infLine_list()
+            self.layout_grand.setCurrentIndex(3)
         else:
             self.layout_grand.setCurrentIndex(0)
         return 0

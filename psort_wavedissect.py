@@ -101,6 +101,7 @@ class WaveDissectWidget(QWidget):
         psort_lib.setFont(self.checkBx_rawPlot_popup_zoom_hold, color="black")
         self.pushBtn_rawPlot_popup_zoom_getRange = QPushButton("Get range")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_getRange, color="black")
+        self.pushBtn_rawPlot_popup_zoom_getRange.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'range.png')))
         self.pushBtn_rawPlot_popup_zoom_getRange.setToolTip('<b>G</b>et zoom range<br>from current plot')
         self.pushBtn_rawPlot_popup_prev_window = QPushButton("Pan back")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_window, color="black")
