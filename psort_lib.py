@@ -27,6 +27,9 @@ from copy import deepcopy
 import sys
 import os
 ## #############################################################################
+#%% list_color
+list_color = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
+## #############################################################################
 #%% GLOBAL_VARIABLES
 GLOBAL_FONT = QtGui.QFont()
 GLOBAL_FONT.setStyleHint(QtGui.QFont.Helvetica)

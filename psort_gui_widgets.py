@@ -26,41 +26,18 @@ class PsortGuiWidget(QMainWindow):
         # Set up menu bar
         self.build_menubar()
         # the grand window consist of a main_window
-        # and a pop up window for complementary actions stacked over each other
+        # and multiple popup windows for complementary actions stacked over each other
         self.layout_grand = QStackedLayout()
         self.widget_mainwin = QWidget()
-        self.widget_popup = QWidget()
         # build the main_window
         self.build_main_window_Widget()
-        # buid the pop up window
-        self.build_popup_Widget()
 
         self.layout_grand.addWidget(self.widget_mainwin)
-        self.layout_grand.addWidget(self.widget_popup)
         self.layout_grand.setCurrentIndex(0)
         self.widget_grand = QWidget()
         self.widget_grand.setLayout(self.layout_grand)
         self.setCentralWidget(self.widget_grand)
         return None
-
-    def build_popup_Widget(self):
-        self.layout_popup = QVBoxLayout()
-        self.layout_popup_Btn = QHBoxLayout()
-        # Cancel push button for closing the pop up window and terminating the pop up process
-        self.pushBtn_popup_cancel = QPushButton("Cancel")
-        psort_lib.setFont(self.pushBtn_popup_cancel)
-        self.pushBtn_popup_ok = QPushButton("OK")
-        psort_lib.setFont(self.pushBtn_popup_ok)
-        self.layout_popup_Btn.addWidget(self.pushBtn_popup_cancel)
-        self.layout_popup_Btn.addWidget(self.pushBtn_popup_ok)
-        # pop up plot
-        self.plot_popup_mainPlot = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_popup_mainPlot)
-        # add widgets to the layout
-        self.layout_popup.addLayout(self.layout_popup_Btn)
-        self.layout_popup.addWidget(self.plot_popup_mainPlot)
-        self.widget_popup.setLayout(self.layout_popup)
-        return 0
 
     def build_main_window_Widget(self):
         self.layout_mainwin = QVBoxLayout()
@@ -751,42 +728,3 @@ class PsortGuiWidget(QMainWindow):
         self.statusBar().addWidget(self.txtlabel_statusBar,0)
         self.statusBar().addWidget(self.progress_statusBar,1)
         return 0
-## #############################################################################
-#%% PsortInputDialog
-class PsortInputDialog(QDialog):
-    def __init__(self, parent=None, message='message', doubleSpinBx_params=None):
-        super(PsortInputDialog, self).__init__(parent)
-        if message is None:
-            message = 'message'
-        if doubleSpinBx_params is None:
-            doubleSpinBx_params = {}
-            doubleSpinBx_params['value'] = 0.0
-            doubleSpinBx_params['dec'] = 0
-            doubleSpinBx_params['step'] = 1.
-            doubleSpinBx_params['max'] = 10.
-            doubleSpinBx_params['min'] = 0.
-        self.setWindowTitle("Input Dialog")
-        self.layout_grand = QVBoxLayout()
-        self.scrollArea = QScrollArea()
-
-        self.label = QLabel(message)
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollArea.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.scrollArea.setWidget(self.label)
-
-        self.doubleSpinBx = QDoubleSpinBox()
-        self.doubleSpinBx.setDecimals(int(doubleSpinBx_params['dec']))
-        self.doubleSpinBx.setSingleStep(doubleSpinBx_params['step'])
-        self.doubleSpinBx.setMaximum(doubleSpinBx_params['max'])
-        self.doubleSpinBx.setMinimum(doubleSpinBx_params['min'])
-        self.doubleSpinBx.setValue(doubleSpinBx_params['value'])
-
-        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        self.buttonBox.accepted.connect(self.accept)
-        self.buttonBox.rejected.connect(self.reject)
-
-        self.layout_grand.addWidget(self.scrollArea)
-        self.layout_grand.addWidget(self.doubleSpinBx)
-        self.layout_grand.addWidget(self.buttonBox)
-        self.setLayout(self.layout_grand)
