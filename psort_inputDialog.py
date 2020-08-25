@@ -18,10 +18,15 @@ class PsortInputDialog(QDialog):
             message = 'message'
         if doubleSpinBx_params is None:
             doubleSpinBx_params = {}
+        if not('value' in doubleSpinBx_params):
             doubleSpinBx_params['value'] = 0.0
+        if not('dec' in doubleSpinBx_params):
             doubleSpinBx_params['dec'] = 0
+        if not('step' in doubleSpinBx_params):
             doubleSpinBx_params['step'] = 1.
+        if not('max' in doubleSpinBx_params):
             doubleSpinBx_params['max'] = 10.
+        if not('min' in doubleSpinBx_params):
             doubleSpinBx_params['min'] = 0.
         self.setWindowTitle("Input Dialog")
         self.layout_grand = QVBoxLayout()
@@ -41,6 +46,22 @@ class PsortInputDialog(QDialog):
         self.doubleSpinBx.setValue(doubleSpinBx_params['value'])
 
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        okBtn = self.buttonBox.button(QDialogButtonBox.Ok)
+        cancelBtn = self.buttonBox.button(QDialogButtonBox.Cancel)
+        if not('okDefault' in doubleSpinBx_params):
+            doubleSpinBx_params['okDefault'] = True
+        if doubleSpinBx_params['okDefault']:
+            okBtn.setAutoDefault(True)
+            okBtn.setDefault(True)
+            cancelBtn.setAutoDefault(False)
+            cancelBtn.setDefault(False)
+        else:
+            okBtn.setAutoDefault(False)
+            okBtn.setDefault(False)
+            cancelBtn.setAutoDefault(True)
+            cancelBtn.setDefault(True)
+
+
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
 

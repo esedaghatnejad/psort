@@ -359,12 +359,10 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setSpacing(1)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select Data")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual", \
-                                                                             "GMM-2D", \
-                                                                             "GMM-ND"])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.setCurrentIndex(1)
         psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
@@ -402,10 +400,10 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
             setLayout(self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['umap1', 'umap2'])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QComboBox()
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['umap1', 'umap2'])
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QLabel("| X: SS_ ")
         self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QLabel(" Y: SS_ ")
@@ -417,12 +415,18 @@ class PsortGuiWidget(QMainWindow):
             addWidget(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1)
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
             addWidget(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(0, 0)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(1, 1)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(2, 0)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(3, 1)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setSpacing(1)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setContentsMargins(1, 1, 1, 1)
         self.layout_mainwin_SsPanel_plots_SsPcaPlot.\
             addWidget(self.widget_mainwin_SsPanel_plots_SsPcaPlot_PcaNum)
         self.layout_mainwin_SsPanel_plots_SsPcaPlot.\
             addWidget(self.plot_mainwin_SsPanel_plots_SsPca)
-        self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.setContentsMargins(0, 0, 0, 0)
-        self.layout_mainwin_SsPanel_plots_SsPcaPlot.setSpacing(0)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot.setSpacing(1)
+        self.layout_mainwin_SsPanel_plots_SsPcaPlot.setContentsMargins(1, 1, 1, 1)
 
         self.layout_mainwin_SsPanel_plots.\
             addLayout(self.layout_mainwin_SsPanel_plots_SsWaveBtn, 0, 0)
@@ -508,12 +512,10 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setSpacing(1)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select PCA Data")
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select Data")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual", \
-                                                                             "GMM-2D", \
-                                                                             "GMM-ND"])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.setCurrentIndex(1)
         psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
@@ -551,10 +553,10 @@ class PsortGuiWidget(QMainWindow):
         self.widget_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
             setLayout(self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['umap1', 'umap2'])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QComboBox()
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['umap1', 'umap2'])
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QLabel("| X: CS_ ")
         self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QLabel(" Y: CS_ ")
@@ -566,12 +568,19 @@ class PsortGuiWidget(QMainWindow):
             addWidget(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1)
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
             addWidget(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(0, 0)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(1, 1)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(2, 0)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(3, 1)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setSpacing(1)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setContentsMargins(1, 1, 1, 1)
         self.layout_mainwin_CsPanel_plots_CsPcaPlot.\
             addWidget(self.widget_mainwin_CsPanel_plots_CsPcaPlot_PcaNum)
         self.layout_mainwin_CsPanel_plots_CsPcaPlot.\
             addWidget(self.plot_mainwin_CsPanel_plots_CsPca)
-        self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.setContentsMargins(0, 0, 0, 0)
-        self.layout_mainwin_CsPanel_plots_CsPcaPlot.setSpacing(0)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot.setSpacing(1)
+        self.layout_mainwin_CsPanel_plots_CsPcaPlot.setContentsMargins(1, 1, 1, 1)
+
 
         self.layout_mainwin_CsPanel_plots.\
             addLayout(self.layout_mainwin_CsPanel_plots_CsWaveBtn, 0, 0)

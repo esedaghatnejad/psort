@@ -24,6 +24,7 @@ from umap_package import UMAP
 umap_object = UMAP()
 from neo_package import spike2io
 from copy import deepcopy
+from numba import jit
 import sys
 import os
 ## #############################################################################
@@ -657,3 +658,46 @@ def umap(waveform):
     """
     embedding = umap_object.fit_transform(waveform)
     return embedding
+
+@jit(nopython=True)
+def hold_index_prev(bool_array):
+    index_ = np.where(bool_array)[0]
+    diff_index_ = np.diff(index_)
+    hold_diff_ = np.zeros(len(bool_array)+1, dtype=np.int64)
+    hold_diff_[(index_[0]+1)] = index_[0]
+    hold_diff_[(index_[1:]+1)] = diff_index_
+    out_ = np.cumsum(hold_diff_)
+    out_[:(index_[0]+1)] = -1
+    out_ = out_[:-1].copy()
+    return out_
+
+@jit(nopython=True)
+def hold_index_next(bool_array):
+    index_ = np.where(bool_array)[0]
+    diff_index_ = np.diff(index_)
+    hold_diff_ = np.zeros(len(bool_array), dtype=np.int64)
+    hold_diff_[0] = index_[0]
+    hold_diff_[index_[0:-1]] = diff_index_
+    out_ = np.cumsum(hold_diff_)
+    out_[index_[-1]:] = -1
+    return out_
+
+@jit(nopython=True)
+def distance_from_prev_element(bool_array_from, bool_array_to):
+    index_from_ = np.zeros(len(bool_array_from), dtype=np.int64)
+    index_from_[bool_array_from] =np.where(bool_array_from)[0]
+    hold_index_prev_to = hold_index_prev(bool_array_to)
+    out_ = index_from_ - hold_index_prev_to
+    out_[hold_index_prev_to==-1] = 0
+    out_[np.logical_not(bool_array_from)] = 0
+    return out_
+
+@jit(nopython=True)
+def distance_to_next_element(bool_array_from, bool_array_to):
+    index_from_ = np.zeros(len(bool_array_from), dtype=np.int64)
+    index_from_[bool_array_from] =np.where(bool_array_from)[0]
+    hold_index_next_to = hold_index_next(bool_array_to)
+    out_ = hold_index_next_to - index_from_
+    out_[hold_index_next_to==-1] = 0
+    out_[np.logical_not(bool_array_from)] = 0
+    return out_

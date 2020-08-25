@@ -149,8 +149,8 @@ class ScatterSelectWidget(QWidget):
             # onSsPanel_selectPcaData_Clicked
             self.pltData_scatterSelectPlot.\
                 setData(
-                    self._workingDataBase['ss_pca1'],
-                    self._workingDataBase['ss_pca2'],
+                    self._workingDataBase['ss_scatter1'],
+                    self._workingDataBase['ss_scatter2'],
                     connect="finite",
                     pen=None,
                     symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
@@ -168,8 +168,8 @@ class ScatterSelectWidget(QWidget):
             # onCsPanel_selectPcaData_Clicked
             self.pltData_scatterSelectPlot.\
                 setData(
-                    self._workingDataBase['cs_pca1'],
-                    self._workingDataBase['cs_pca2'],
+                    self._workingDataBase['cs_scatter1'],
+                    self._workingDataBase['cs_scatter2'],
                     connect="finite",
                     pen=None,
                     symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
@@ -258,18 +258,12 @@ class ScatterSelectWidget(QWidget):
     def scatterSelect_pca_gmm(self):
         n_clusters=int(self.input_dialog.doubleSpinBx.value())
         if self._workingDataBase['popUp_mode'] == np.array(['ss_pca_gmm'], dtype=np.unicode):
-            pca_mat_ND = self._workingDataBase['ss_pca_mat'].T # shape (n_samples,  n_features)
-            pca_variance = self._workingDataBase['ss_pca_variance']
-            pca1_index = self._workingDataBase['ss_pca1_index'][0]
-            pca2_index = self._workingDataBase['ss_pca2_index'][0]
-            flag_ND = self._workingDataBase['popUp_flag_gmmND'][0]
+            scatter1 = self._workingDataBase['ss_scatter1']
+            scatter2 = self._workingDataBase['ss_scatter2']
         elif self._workingDataBase['popUp_mode'] == np.array(['cs_pca_gmm'], dtype=np.unicode):
-            pca_mat_ND = self._workingDataBase['cs_pca_mat'].T # shape (n_samples,  n_features)
-            pca_variance = self._workingDataBase['cs_pca_variance']
-            pca1_index = self._workingDataBase['cs_pca1_index'][0]
-            pca2_index = self._workingDataBase['cs_pca2_index'][0]
-            flag_ND = self._workingDataBase['popUp_flag_gmmND'][0]
-        pca_mat_2D = pca_mat_ND[:,[pca1_index, pca2_index]]
+            scatter1 = self._workingDataBase['cs_scatter1']
+            scatter2 = self._workingDataBase['cs_scatter2']
+        pca_mat_2D = np.hstack((scatter1.reshape(-1,1),scatter2.reshape(-1,1)))
         init_val_2D = np.zeros((n_clusters, 2))
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
@@ -278,19 +272,7 @@ class ScatterSelectWidget(QWidget):
             n_clusters=n_clusters,
             init_val=init_val_2D,
             covariance_type='full')
-        if flag_ND:
-            num_D = np.max([np.argmax(np.cumsum(pca_variance)>0.99), 2])
-            num_D = np.min([10, num_D])
-            pca_mat_ND = pca_mat_ND[:,0:num_D+1]
-            init_val_ND = np.zeros((n_clusters, pca_mat_ND.shape[1]))
-            for counter_cluster in range(n_clusters):
-                index_cluster = (labels == counter_cluster)
-                init_val_ND[counter_cluster, :] = np.mean(pca_mat_ND[index_cluster,:], axis=0)
-            labels, centers = psort_lib.GaussianMixture(
-                input_data=pca_mat_ND,
-                n_clusters=n_clusters,
-                init_val=init_val_ND,
-                covariance_type='full')
+
         self._workingDataBase['popUp_ROI_x'] = centers[:,0].reshape(-1)
         self._workingDataBase['popUp_ROI_y'] = centers[:,1].reshape(-1)
         self.pltData_scatterSelectPlot_ROI.\
@@ -311,6 +293,7 @@ class ScatterSelectWidget(QWidget):
         doubleSpinBx_params['step'] = 1.
         doubleSpinBx_params['max'] = n_clusters
         doubleSpinBx_params['min'] = 1.
+        doubleSpinBx_params['okDefault'] = True
         self.input_dialog = PsortInputDialog(self, \
             message=message, doubleSpinBx_params=doubleSpinBx_params)
         if not(self.input_dialog.exec_()):
