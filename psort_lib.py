@@ -682,8 +682,20 @@ def hold_index_next(bool_array):
     out_[index_[-1]:] = -1
     return out_
 
-@jit(nopython=True)
 def distance_from_prev_element(bool_array_from, bool_array_to):
+    """
+        Distance from a given index of bool_array_from to the nearest previous index of bool_array_to
+    Args:
+        bool_array_from (np.ndarray, bool): shape (total_data_length,), containing the indices for spikes
+        bool_array_to (np.ndarray, bool): shape (total_data_length,), containing the indices for spikes
+    Returns:
+        out_ (np.ndarray, int64): shape (total_data_length,), distance from given index to the previous index
+                contains distanse where there is a spike in bool_array_from and is zero otherwise
+    """
+    if (bool_array_from.size != bool_array_to.size):
+        return np.zeros(len(bool_array_from), dtype=np.int64)
+    if (bool_array_from.sum() < 1) or (bool_array_to.sum() < 1):
+        return np.zeros(len(bool_array_from), dtype=np.int64)
     index_from_ = np.zeros(len(bool_array_from), dtype=np.int64)
     index_from_[bool_array_from] =np.where(bool_array_from)[0]
     hold_index_prev_to = hold_index_prev(bool_array_to)
@@ -692,8 +704,20 @@ def distance_from_prev_element(bool_array_from, bool_array_to):
     out_[np.logical_not(bool_array_from)] = 0
     return out_
 
-@jit(nopython=True)
 def distance_to_next_element(bool_array_from, bool_array_to):
+    """
+        Distance from a given index of bool_array_from to the nearest next index of bool_array_to
+    Args:
+        bool_array_from (np.ndarray, bool): shape (total_data_length,), containing the indices for spikes
+        bool_array_to (np.ndarray, bool): shape (total_data_length,), containing the indices for spikes
+    Returns:
+        out_ (np.ndarray, int64): shape (total_data_length,), distance from given index to the next index
+                contains distanse where there is a spike in bool_array_from and is zero otherwise
+    """
+    if (bool_array_from.size != bool_array_to.size):
+        return np.zeros(len(bool_array_from), dtype=np.int64)
+    if (bool_array_from.sum() < 1) or (bool_array_to.sum() < 1):
+        return np.zeros(len(bool_array_from), dtype=np.int64)
     index_from_ = np.zeros(len(bool_array_from), dtype=np.int64)
     index_from_[bool_array_from] =np.where(bool_array_from)[0]
     hold_index_next_to = hold_index_next(bool_array_to)

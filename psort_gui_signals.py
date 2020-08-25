@@ -971,6 +971,7 @@ class PsortGuiSignals(PsortGuiWidget):
         elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         self.onRawSignal_SsThresh_ValueChanged()
+        self.onRawSignal_SsAutoThresh_Clicked()
         return 0
 
     def onfilterPanel_CsSlow_IndexChanged(self):
@@ -979,6 +980,7 @@ class PsortGuiSignals(PsortGuiWidget):
         elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         self.onRawSignal_CsThresh_ValueChanged()
+        self.onRawSignal_CsAutoThresh_Clicked()
         return 0
 
     def onfilterPanel_CsAlign_IndexChanged(self):
@@ -1158,18 +1160,32 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onSsPanel_learnWave_Clicked(self):
+        if (self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()) and \
+            (self._workingDataBase['ss_index'].sum() < 1):
+            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
         self._workingDataBase['ssLearnTemp_mode'][0] = \
             self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
         self.extract_ss_template()
+        self.extract_ss_similarity()
+        self.extract_cs_similarity()
+        self.update_SSPcaNum_comboBx()
+        self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
         self.plot_ss_waveform()
         return 0
 
     @showWaitCursor
     def onCsPanel_learnWave_Clicked(self):
+        if (self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()) and \
+            (self._workingDataBase['cs_index'].sum() < 1):
+            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
         self._workingDataBase['csLearnTemp_mode'][0] = \
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         self.extract_cs_template()
+        self.extract_ss_similarity()
+        self.extract_cs_similarity()
+        self.update_SSPcaNum_comboBx()
+        self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
         self.plot_cs_waveform()
         return 0
@@ -2683,12 +2699,23 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['ss_pca1'] = deepcopy(ss_pca_mat_[0,:])
             self._workingDataBase['ss_pca2'] = deepcopy(ss_pca_mat_[1,:])
-            self._workingDataBase['ss_pca3'] = deepcopy(ss_pca_mat_[2,:])
+            if (self._workingDataBase['ss_index'].sum() == 2):
+                self._workingDataBase['ss_pca3'] = np.zeros((2), np.float32)
+                ss_pca_variance_ = np.append(ss_pca_variance_, [0.0])
+            else:
+                self._workingDataBase['ss_pca3'] = deepcopy(ss_pca_mat_[2,:])
             self._workingDataBase['ss_pca_variance'] = deepcopy(ss_pca_variance_[0:3])
             if self._workingDataBase['umap_enable'][0]:
-                ss_embedding_ = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
-                self._workingDataBase['ss_umap1'] = deepcopy(ss_embedding_[:, 0])
-                self._workingDataBase['ss_umap2'] = deepcopy(ss_embedding_[:, 1])
+                """ the default n_neighbors for UMAP algorithm is 15 and based on that we will not use
+                    UMAP when we have few datapoints. This will prevent the divergence of UMAP
+                    and program crashing due to that. """
+                if (self._workingDataBase['ss_index'].sum() > 15):
+                    ss_embedding_ = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
+                    self._workingDataBase['ss_umap1'] = deepcopy(ss_embedding_[:, 0])
+                    self._workingDataBase['ss_umap2'] = deepcopy(ss_embedding_[:, 1])
+                else:
+                    self._workingDataBase['ss_umap1'] = np.random.rand(self._workingDataBase['ss_index'].sum())
+                    self._workingDataBase['ss_umap2'] = np.random.rand(self._workingDataBase['ss_index'].sum())
             else:
                 self._workingDataBase['ss_umap1'] = np.zeros((ss_pca_mat_.shape[1]), dtype=np.float32)
                 self._workingDataBase['ss_umap2'] = np.zeros((ss_pca_mat_.shape[1]), dtype=np.float32)
@@ -2735,12 +2762,23 @@ class PsortGuiSignals(PsortGuiWidget):
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['cs_pca1'] = deepcopy(cs_pca_mat_[0,:])
             self._workingDataBase['cs_pca2'] = deepcopy(cs_pca_mat_[1,:])
-            self._workingDataBase['cs_pca3'] = deepcopy(cs_pca_mat_[2,:])
+            if (self._workingDataBase['cs_index'].sum() == 2):
+                self._workingDataBase['cs_pca3'] = np.zeros((2), np.float32)
+                cs_pca_variance_ = np.append(cs_pca_variance_, [0.0])
+            else:
+                self._workingDataBase['cs_pca3'] = deepcopy(cs_pca_mat_[2,:])
             self._workingDataBase['cs_pca_variance'] = deepcopy(cs_pca_variance_[0:3])
             if self._workingDataBase['umap_enable'][0]:
-                cs_embedding_ = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
-                self._workingDataBase['cs_umap1'] = deepcopy(cs_embedding_[:,0])
-                self._workingDataBase['cs_umap2'] = deepcopy(cs_embedding_[:,1])
+                """ the default n_neighbors for UMAP algorithm is 15 and based on that we will not use
+                    UMAP when we have few datapoints. This will prevent the divergence of UMAP
+                    and program crashing due to that. """
+                if (self._workingDataBase['cs_index'].sum() > 15):
+                    cs_embedding_ = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
+                    self._workingDataBase['cs_umap1'] = deepcopy(cs_embedding_[:,0])
+                    self._workingDataBase['cs_umap2'] = deepcopy(cs_embedding_[:,1])
+                else:
+                    self._workingDataBase['cs_umap1'] = np.random.rand(self._workingDataBase['cs_index'].sum())
+                    self._workingDataBase['cs_umap2'] = np.random.rand(self._workingDataBase['cs_index'].sum())
             else:
                 self._workingDataBase['cs_umap1'] = np.zeros((cs_pca_mat_.shape[1]), dtype=np.float32)
                 self._workingDataBase['cs_umap2'] = np.zeros((cs_pca_mat_.shape[1]), dtype=np.float32)
@@ -2802,10 +2840,12 @@ class PsortGuiSignals(PsortGuiWidget):
             ss_wave = self._workingDataBase['ss_wave'][:,_window]
             if self._workingDataBase['ssLearnTemp_mode'][0]:
                 ss_wave_template = self._workingDataBase['ss_wave_template']
+                self._workingDataBase['ss_similarity_to_ss'] = \
+                    np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             else:
                 ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
-            self._workingDataBase['ss_similarity_to_ss'] = \
-                np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
+                self._workingDataBase['ss_similarity_to_ss'] = \
+                    np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             # extract_ss_similarity to cs
             _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
                                 -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
@@ -2817,12 +2857,15 @@ class PsortGuiSignals(PsortGuiWidget):
             ss_wave = self._workingDataBase['ss_wave'][:,_window]
             if self._workingDataBase['csLearnTemp_mode'][0]:
                 cs_wave_template = self._workingDataBase['cs_wave_template']
+                self._workingDataBase['ss_similarity_to_cs'] = \
+                    np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             elif (self._workingDataBase['cs_index'].sum() > 1):
                 cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
+                self._workingDataBase['ss_similarity_to_cs'] = \
+                    np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             else:
-                cs_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
-            self._workingDataBase['ss_similarity_to_cs'] = \
-                np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
+                self._workingDataBase['ss_similarity_to_cs'] = \
+                    np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.float32)
         else:
             self._workingDataBase['ss_similarity_to_ss'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
@@ -2841,10 +2884,12 @@ class PsortGuiSignals(PsortGuiWidget):
             cs_wave = self._workingDataBase['cs_wave'][:,_window]
             if self._workingDataBase['csLearnTemp_mode'][0]:
                 cs_wave_template = self._workingDataBase['cs_wave_template']
+                self._workingDataBase['cs_similarity_to_cs'] = \
+                    np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             else:
                 cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
-            self._workingDataBase['cs_similarity_to_cs'] = \
-                np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
+                self._workingDataBase['cs_similarity_to_cs'] = \
+                    np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             # extract_cs_similarity to ss
             _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
                                 -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
@@ -2856,12 +2901,16 @@ class PsortGuiSignals(PsortGuiWidget):
             cs_wave = self._workingDataBase['cs_wave'][:,_window]
             if self._workingDataBase['ssLearnTemp_mode'][0]:
                 ss_wave_template = self._workingDataBase['ss_wave_template']
+                self._workingDataBase['cs_similarity_to_ss'] = \
+                    np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             elif (self._workingDataBase['ss_index'].sum() > 1):
                 ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
+                self._workingDataBase['cs_similarity_to_ss'] = \
+                    np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             else:
-                ss_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
-            self._workingDataBase['cs_similarity_to_ss'] = \
-                np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
+                self._workingDataBase['cs_similarity_to_ss'] = \
+                    np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.float32)
+
         else:
             self._workingDataBase['cs_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_similarity_to_ss'] = np.zeros((0), dtype=np.float32)
@@ -2871,22 +2920,32 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['ss_index'].sum() > 1:
             scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
             self._workingDataBase['ss_time'] = self._workingDataBase['ch_time'][self._workingDataBase['ss_index']]
+
             ss_time_to_prev_ss = psort_lib.distance_from_prev_element(
                 self._workingDataBase['ss_index'], self._workingDataBase['ss_index'])
             self._workingDataBase['ss_time_to_prev_ss'] = \
                 ss_time_to_prev_ss[self._workingDataBase['ss_index']] / scale_factor
+
             ss_time_to_next_ss = psort_lib.distance_to_next_element(
                 self._workingDataBase['ss_index'], self._workingDataBase['ss_index'])
             self._workingDataBase['ss_time_to_next_ss'] = \
                 ss_time_to_next_ss[self._workingDataBase['ss_index']] / scale_factor
-            ss_time_to_prev_cs = psort_lib.distance_from_prev_element(
-                self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
-            self._workingDataBase['ss_time_to_prev_cs'] = \
-                ss_time_to_prev_cs[self._workingDataBase['ss_index']] / scale_factor
-            ss_time_to_next_cs = psort_lib.distance_to_next_element(
-                self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
-            self._workingDataBase['ss_time_to_next_cs'] = \
-                ss_time_to_next_cs[self._workingDataBase['ss_index']] / scale_factor
+
+            if self._workingDataBase['cs_index'].sum() > 1:
+                ss_time_to_prev_cs = psort_lib.distance_from_prev_element(
+                    self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
+                self._workingDataBase['ss_time_to_prev_cs'] = \
+                    ss_time_to_prev_cs[self._workingDataBase['ss_index']] / scale_factor
+
+                ss_time_to_next_cs = psort_lib.distance_to_next_element(
+                    self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
+                self._workingDataBase['ss_time_to_next_cs'] = \
+                    ss_time_to_next_cs[self._workingDataBase['ss_index']] / scale_factor
+            else:
+                self._workingDataBase['ss_time_to_prev_cs'] = \
+                    np.zeros((self._workingDataBase['ss_index'].sum()), np.float32)
+                self._workingDataBase['ss_time_to_next_cs'] = \
+                    np.zeros((self._workingDataBase['ss_index'].sum()), np.float32)
         else:
             self._workingDataBase['ss_time'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_time_to_prev_ss'] = np.zeros((0), dtype=np.float32)
@@ -2899,22 +2958,32 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['cs_index'].sum() > 1:
             scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
             self._workingDataBase['cs_time'] = self._workingDataBase['ch_time'][self._workingDataBase['cs_index']]
+
             cs_time_to_prev_cs = psort_lib.distance_from_prev_element(
                 self._workingDataBase['cs_index'], self._workingDataBase['cs_index'])
             self._workingDataBase['cs_time_to_prev_cs'] = \
                 cs_time_to_prev_cs[self._workingDataBase['cs_index']] / scale_factor
+
             cs_time_to_next_cs = psort_lib.distance_to_next_element(
                 self._workingDataBase['cs_index'], self._workingDataBase['cs_index'])
             self._workingDataBase['cs_time_to_next_cs'] = \
                 cs_time_to_next_cs[self._workingDataBase['cs_index']] / scale_factor
-            cs_time_to_prev_ss = psort_lib.distance_from_prev_element(
-                self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
-            self._workingDataBase['cs_time_to_prev_ss'] = \
-                cs_time_to_prev_ss[self._workingDataBase['cs_index']] / scale_factor
-            cs_time_to_next_ss = psort_lib.distance_to_next_element(
-                self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
-            self._workingDataBase['cs_time_to_next_ss'] = \
-                cs_time_to_next_ss[self._workingDataBase['cs_index']] / scale_factor
+
+            if self._workingDataBase['ss_index'].sum() > 1:
+                cs_time_to_prev_ss = psort_lib.distance_from_prev_element(
+                    self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
+                self._workingDataBase['cs_time_to_prev_ss'] = \
+                    cs_time_to_prev_ss[self._workingDataBase['cs_index']] / scale_factor
+
+                cs_time_to_next_ss = psort_lib.distance_to_next_element(
+                    self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
+                self._workingDataBase['cs_time_to_next_ss'] = \
+                    cs_time_to_next_ss[self._workingDataBase['cs_index']] / scale_factor
+            else:
+                self._workingDataBase['cs_time_to_prev_ss'] = \
+                    np.zeros((self._workingDataBase['cs_index'].sum()), np.float32)
+                self._workingDataBase['cs_time_to_next_ss'] = \
+                    np.zeros((self._workingDataBase['cs_index'].sum()), np.float32)
         else:
             self._workingDataBase['cs_time'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_time_to_prev_cs'] = np.zeros((0), dtype=np.float32)
