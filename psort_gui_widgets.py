@@ -401,12 +401,16 @@ class PsortGuiWidget(QMainWindow):
             setLayout(self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
+        psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
+        psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QLabel("| X: SS_ ")
+        psort_lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
         self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QLabel(" Y: SS_ ")
+        psort_lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
             addWidget(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2)
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
@@ -554,12 +558,16 @@ class PsortGuiWidget(QMainWindow):
             setLayout(self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
+        psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
+        psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QLabel("| X: CS_ ")
+        psort_lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
         self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QLabel(" Y: CS_ ")
+        psort_lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
             addWidget(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2)
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
