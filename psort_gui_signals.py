@@ -1491,10 +1491,6 @@ class PsortGuiSignals(PsortGuiWidget):
                 psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         self.setEnableWidgets(True)
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
-        self.txtlabel_toolbar_fileName.setText(file_name)
-        self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
-        self.txtedit_toolbar_slotNumCurrent.\
-            setMaximum(self.psortDataBase.get_total_slot_num())
         # Setting the value of slotNumCurrent to 1
         # the disconnet and connect commands are to solve an issue when a new file is loaded
         self.txtedit_toolbar_slotNumCurrent.valueChanged.\
@@ -1517,6 +1513,10 @@ class PsortGuiSignals(PsortGuiWidget):
             self.undoRedo_reset()
             self.refresh_workingDataBase()
             self.undoRedo_add()
+        self.txtlabel_toolbar_fileName.setText(file_name)
+        self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
+        self.txtedit_toolbar_slotNumCurrent.\
+            setMaximum(self.psortDataBase.get_total_slot_num())
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         self.txtedit_toolbar_slotNumCurrent.valueChanged.\
             connect(self.onToolbar_slotNumCurrent_ValueChanged)
