@@ -1425,13 +1425,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self.psortDataBase.get_topLevelDataBase()
         ch_data = psortDataBase_topLevel['ch_data']
         ch_data_max = np.max(ch_data)
+        sample_rate = psortDataBase_topLevel['sample_rate'][0]
+        total_duration = float(ch_data.size) / float(sample_rate)
+        slot_duration = 60.
+        total_slot_num = int(np.ceil(total_duration / slot_duration))
         # Reassign slot duration
         if not(file_ext == '.psort'):
-            sample_rate = psortDataBase_topLevel['sample_rate'][0]
-            total_duration = float(ch_data.size) / float(sample_rate)
-            slot_duration = 60.
-            total_slot_num = int(np.ceil(total_duration / slot_duration))
-
             message = str(
                   'Total data duration is: {:.0f}s.\n'\
                 + 'Current number of slots is: {:.0f}.\n'\
