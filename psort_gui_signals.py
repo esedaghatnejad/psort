@@ -1047,6 +1047,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onRawSignal_SsAutoThresh_Clicked(self):
+        if self._workingDataBase['ch_data_ss'].size < 1:
+            self.filter_data()
         _ss_index = psort_lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=0.0,
@@ -1071,6 +1073,8 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onRawSignal_CsAutoThresh_Clicked(self):
+        if self._workingDataBase['ch_data_cs'].size < 1:
+            self.filter_data()
         _cs_index = psort_lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=0.0,
@@ -1450,44 +1454,44 @@ class PsortGuiSignals(PsortGuiWidget):
             if self.input_dialog.exec_():
                 slot_duration = self.input_dialog.doubleSpinBx.value()
                 self.psortDataBase.reassign_slot_duration(slot_duration, file_fullPath)
-        # Scale ch_data UP and put it in 100-10000 range
-        if ch_data_max < 100.:
-            message = str('Maximum signal value is: {:f}.\n'+\
-                'For best performance the data should be in 100-10,000 range.\n'\
-                'Please specify the scale factor for the signal:'\
-                ).format(ch_data_max, total_slot_num)
-            doubleSpinBx_params = {}
-            doubleSpinBx_params['value'] = 1000.
-            doubleSpinBx_params['dec'] = 1
-            doubleSpinBx_params['step'] = 10.
-            doubleSpinBx_params['max'] = 1e+5
-            doubleSpinBx_params['min'] = 1e-8
-            doubleSpinBx_params['okDefault'] = False
-            self.input_dialog = PsortInputDialog(self, \
-                message=message, doubleSpinBx_params=doubleSpinBx_params)
-            if self.input_dialog.exec_():
-                scale_value = self.input_dialog.doubleSpinBx.value()
-                psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
-                psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
-        # Scale ch_data DOWN and put it in 100-10000 range
-        if ch_data_max > 10000.:
-            message = str('Maximum signal value is: {:f}.\n'+\
-                'For best performance the data should be in 100-10,000 range.\n'\
-                'Please specify the scale factor for the signal:'\
-                ).format(ch_data_max, total_slot_num)
-            doubleSpinBx_params = {}
-            doubleSpinBx_params['value'] = 0.001
-            doubleSpinBx_params['dec'] = 8
-            doubleSpinBx_params['step'] = 0.0001
-            doubleSpinBx_params['max'] = 1e+5
-            doubleSpinBx_params['min'] = 1e-8
-            doubleSpinBx_params['okDefault'] = False
-            self.input_dialog = PsortInputDialog(self, \
-                message=message, doubleSpinBx_params=doubleSpinBx_params)
-            if self.input_dialog.exec_():
-                scale_value = self.input_dialog.doubleSpinBx.value()
-                psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
-                psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
+            # Scale ch_data UP and put it in 100-10000 range
+            if ch_data_max < 100.:
+                message = str('Maximum signal value is: {:f}.\n'+\
+                    'For best performance the data should be in 100-10,000 range.\n'\
+                    'Please specify the scale factor for the signal:'\
+                    ).format(ch_data_max)
+                doubleSpinBx_params = {}
+                doubleSpinBx_params['value'] = 1000.
+                doubleSpinBx_params['dec'] = 1
+                doubleSpinBx_params['step'] = 10.
+                doubleSpinBx_params['max'] = 1e+5
+                doubleSpinBx_params['min'] = 1e-8
+                doubleSpinBx_params['okDefault'] = False
+                self.input_dialog = PsortInputDialog(self, \
+                    message=message, doubleSpinBx_params=doubleSpinBx_params)
+                if self.input_dialog.exec_():
+                    scale_value = self.input_dialog.doubleSpinBx.value()
+                    psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
+                    psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
+            # Scale ch_data DOWN and put it in 100-10000 range
+            if ch_data_max > 10000.:
+                message = str('Maximum signal value is: {:f}.\n'+\
+                    'For best performance the data should be in 100-10,000 range.\n'\
+                    'Please specify the scale factor for the signal:'\
+                    ).format(ch_data_max)
+                doubleSpinBx_params = {}
+                doubleSpinBx_params['value'] = 0.001
+                doubleSpinBx_params['dec'] = 8
+                doubleSpinBx_params['step'] = 0.0001
+                doubleSpinBx_params['max'] = 1e+5
+                doubleSpinBx_params['min'] = 1e-8
+                doubleSpinBx_params['okDefault'] = False
+                self.input_dialog = PsortInputDialog(self, \
+                    message=message, doubleSpinBx_params=doubleSpinBx_params)
+                if self.input_dialog.exec_():
+                    scale_value = self.input_dialog.doubleSpinBx.value()
+                    psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
+                    psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         self.setEnableWidgets(True)
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
         # Setting the value of slotNumCurrent to 1

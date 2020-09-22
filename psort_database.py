@@ -57,7 +57,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 25], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 26], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -160,11 +160,11 @@ class PsortDataBase():
             self._grandDataBase = grandDataBase
             # Backward compatibility to PSORT_VERSION 03
             if not('PSORT_VERSION' in self._grandDataBase[-1].keys()):
-                from psort_update_to_psort04 import UpdateToPsort04Signals
-                UpdateToPsort04Signals.update_grandDataBase(self)
-                self._grandDataBase[-1]['PSORT_VERSION'] = \
-                    deepcopy(_topLevelDataBase['PSORT_VERSION'])
-            # Backward compatibility to PSORT_VERSION 04
+                self.backward_compatibility_for_Psort_03()
+            elif (self._grandDataBase[-1]['PSORT_VERSION'][1] == 4) and \
+                (self._grandDataBase[-1]['PSORT_VERSION'][2] < 10):
+                self.backward_compatibility_for_Psort_03()
+            # Backward compatibility for newly added variables
             for key in _singleSlotDataBase.keys():
                 if not(key in self._grandDataBase[-2].keys()):
                     for counter_slot in range(len(self._grandDataBase)-1):
@@ -277,4 +277,22 @@ class PsortDataBase():
             guiSignals_workingDataBase['cs_index_slow']
         psortDataBase_topLevel['sample_rate'][0] = \
             guiSignals_workingDataBase['sample_rate'][0]
+        return 0
+
+    def backward_compatibility_for_Psort_03(self):
+        file_fullPath = deepcopy(self._grandDataBase[-1]['file_fullPath'][0])
+        _ch_data = deepcopy(self._grandDataBase[-1]['ch_data'])
+        _ch_time = deepcopy(self._grandDataBase[-1]['ch_time'])
+        _ss_index = deepcopy(self._grandDataBase[-1]['ss_index'])
+        _cs_index = deepcopy(self._grandDataBase[-1]['cs_index'])
+        _cs_index_slow = deepcopy(self._grandDataBase[-1]['cs_index_slow'])
+        self.reassign_slot_duration(60, file_fullPath)
+        self._grandDataBase[-1]['ch_data'] = deepcopy(_ch_data)
+        self._grandDataBase[-1]['ch_time'] = deepcopy(_ch_time)
+        self._grandDataBase[-1]['ss_index'] = deepcopy(_ss_index)
+        self._grandDataBase[-1]['cs_index'] = deepcopy(_cs_index)
+        self._grandDataBase[-1]['cs_index_slow'] = deepcopy(_cs_index_slow)
+        for counter_slot in range(len(self._grandDataBase)-1):
+            self._grandDataBase[counter_slot]['isAnalyzed'][0] = True
+        self.get_total_slot_isAnalyzed()
         return 0
