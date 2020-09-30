@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def readme():
     with open('README.md') as f:
@@ -7,15 +7,12 @@ def readme():
 setup(name='psort',
       version='0.4.26',
       description='Graphical application for identifying simple and complex purkinje spikes',
-      long_description="""
-      This is a graphical application intended for use in assisting the sorting process following an extracellular
-      recording of purkinje cells of the cerebellum.
-      """,
+      long_description=readme(),
       url='https://github.com/esedaghatnejad/psort',
       author='Ehsan Sedaghat-Nejad',
       author_email='esedagh1@jhu.edu',
       license='MIT',
-      packages=['psort'],
+      packages=[find_packages()],
       install_requires=[            # NOTE: This is EXTREMELY strict, and we should
             'deepdish==0.3.5',      # allow more versions for future robustness.
             'neo==0.8.0',
