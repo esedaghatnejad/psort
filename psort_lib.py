@@ -17,12 +17,12 @@ from sklearn import cluster
 from sklearn import mixture
 import matplotlib as plt
 from matplotlib import path
-import deepdish_package
-import pymatreader_package
-import openephys_package
-from umap_package import UMAP
+from OpenEphys import load
+import deepdish
+import pymatreader
+from umap import UMAP
 umap_object = UMAP()
-from neo_package import spike2io
+from neo import spike2io
 from copy import deepcopy
 from numba import jit
 import sys
@@ -173,7 +173,7 @@ def load_file_continuous(file_fullPath):
     if not(os.path.isfile(file_fullPath)):
         print('Error: <psort_lib.load_file_continuous: file_fullPath is not valid>')
         return 0, 0, 0
-    data_continuous = openephys_package.OpenEphys.load(file_fullPath)
+    data_continuous = load(file_fullPath)
     ch_data = deepcopy(data_continuous['data'])
     sample_rate = int(data_continuous['header']['sampleRate'])
     ch_time_first_element = float(data_continuous['timestamps'][0])\
@@ -198,7 +198,7 @@ def load_file_matlab(file_fullPath):
     if not(os.path.isfile(file_fullPath)):
         print('Error: <psort_lib.load_file_matlab: file_fullPath is not valid>')
         return 0, 0, 0
-    data_mat = pymatreader_package.pymatreader.read_mat(file_fullPath)
+    data_mat = pymatreader.pymatreader.read_mat(file_fullPath)
     ch_data = deepcopy(data_mat['ch_data'])
     ch_time = deepcopy(data_mat['ch_time'])
     sample_rate = int(data_mat['ch_info']['header']['sampleRate'])
@@ -213,7 +213,7 @@ def load_file_h5(file_fullPath):
     if not(os.path.isfile(file_fullPath)):
         print('Error: <psort_lib.load_file_h5: file_fullPath is not valid>')
         return 0, 0, 0
-    load_dict = deepdish_package.io.load(file_fullPath)
+    load_dict = deepdish.io.load(file_fullPath)
     ch_data = deepcopy(load_dict['ch_data'])
     ch_time = deepcopy(load_dict['ch_time'])
     sample_rate = load_dict['sample_rate'][0]
@@ -228,7 +228,7 @@ def load_file_psort(file_fullPath):
     if not(os.path.isfile(file_fullPath)):
         print('Error: <psort_lib.load_file_psort: file_fullPath is not valid>')
         return 0
-    grandDataBase = deepdish_package.io.load(file_fullPath)
+    grandDataBase = deepdish.io.load(file_fullPath)
     return grandDataBase
 
 def load_file_smr(file_fullPath, ch_index):
@@ -290,7 +290,7 @@ def save_file_h5(file_fullPath, ch_data, ch_time, sample_rate):
         'ch_time': ch_time,
         'sample_rate': np.array([sample_rate]),
         }
-    deepdish_package.io.save(file_fullPath, save_dict, 'zlib')
+    deepdish.io.save(file_fullPath, save_dict, 'zlib')
     del save_dict
     return 0
 
@@ -300,7 +300,7 @@ def save_file_psort(file_fullPath, grandDataBase):
         file_fullPath = file_fullPath + '.psort'
     if not(os.path.isdir(file_path)):
         return 'Error: <psort_lib.save_file_psort: file_path is not valid>'
-    deepdish_package.io.save(file_fullPath, grandDataBase, 'zlib')
+    deepdish.io.save(file_fullPath, grandDataBase, 'zlib')
     return 0
 ## #############################################################################
 #%% load procedure as QThread
