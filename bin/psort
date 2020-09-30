@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+from psort.main import run
+run()
+

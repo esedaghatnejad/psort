@@ -6,21 +6,20 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
-import os
 import pyqtgraph as pg
-import psort_lib
+from psort import lib
 import numpy as np
 from copy import deepcopy
-from psort_inputDialog import PsortInputDialog
+from psort.inputDialog import PsortInputDialog
 ## #############################################################################
 #%% ScatterSelectWidget
 class ScatterSelectWidget(QWidget):
     def __init__(self, parent=None):
         super(ScatterSelectWidget, self).__init__(parent)
         self._workingDataBase = {}
-        self.list_color = deepcopy(psort_lib.list_color)
+        self.list_color = deepcopy(lib.list_color)
         self.input_dialog = PsortInputDialog(self)
         self.build_scatterSelect_Widget()
         self.connect_scatterSelect_signals()
@@ -33,14 +32,14 @@ class ScatterSelectWidget(QWidget):
         self.layout_scatterSelect_Btn = QHBoxLayout()
         # Cancel push button for closing the window and terminating the process
         self.pushBtn_scatterSelect_cancel = QPushButton("Cancel")
-        psort_lib.setFont(self.pushBtn_scatterSelect_cancel)
+        lib.setFont(self.pushBtn_scatterSelect_cancel)
         self.pushBtn_scatterSelect_ok = QPushButton("OK")
-        psort_lib.setFont(self.pushBtn_scatterSelect_ok)
+        lib.setFont(self.pushBtn_scatterSelect_ok)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_cancel)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_ok)
         # plot
         self.plot_scatterSelect_mainPlot = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_scatterSelect_mainPlot)
+        lib.set_plotWidget(self.plot_scatterSelect_mainPlot)
         # add widgets to the layout
         self.layout_scatterSelect.addLayout(self.layout_scatterSelect_Btn)
         self.layout_scatterSelect.addWidget(self.plot_scatterSelect_mainPlot)
@@ -267,7 +266,7 @@ class ScatterSelectWidget(QWidget):
         init_val_2D = np.zeros((n_clusters, 2))
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
-        labels, centers = psort_lib.GaussianMixture(
+        labels, centers = lib.GaussianMixture(
             input_data=pca_mat_2D,
             n_clusters=n_clusters,
             init_val=init_val_2D,

@@ -6,7 +6,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 import pyqtgraph as pg
 import numpy as np
 from scipy import signal
@@ -15,9 +15,8 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn import cluster
 from sklearn import mixture
-import matplotlib as plt
 from matplotlib import path
-from OpenEphys import load
+from psort.OpenEphys import load
 import deepdish
 import pymatreader
 from umap import UMAP
@@ -168,10 +167,10 @@ def get_fullPath_components(file_fullPath):
 def load_file_continuous(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext=='.continuous'):
-        print('Error: <psort_lib.load_file_continuous: file extension is not .continuous.>')
+        print('Error: <lib.load_file_continuous: file extension is not .continuous.>')
         return 0, 0, 0
     if not(os.path.isfile(file_fullPath)):
-        print('Error: <psort_lib.load_file_continuous: file_fullPath is not valid>')
+        print('Error: <lib.load_file_continuous: file_fullPath is not valid>')
         return 0, 0, 0
     data_continuous = load(file_fullPath)
     ch_data = deepcopy(data_continuous['data'])
@@ -185,7 +184,7 @@ def load_file_continuous(file_fullPath):
     ch_time = np.linspace(ch_time_first_element, ch_time_last_element, \
                             num=ch_time_size, endpoint=True, dtype=np.float)
     if not(ch_time.size == ch_data.size):
-        print('Error: <psort_lib.load_file_continuous: ' \
+        print('Error: <lib.load_file_continuous: ' \
             + 'size of ch_time and ch_data are not the same.>')
     del data_continuous
     return ch_data, ch_time, sample_rate
@@ -193,10 +192,10 @@ def load_file_continuous(file_fullPath):
 def load_file_matlab(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext=='.mat'):
-        print('Error: <psort_lib.load_file_matlab: file extension is not .mat.>')
+        print('Error: <lib.load_file_matlab: file extension is not .mat.>')
         return 0, 0, 0
     if not(os.path.isfile(file_fullPath)):
-        print('Error: <psort_lib.load_file_matlab: file_fullPath is not valid>')
+        print('Error: <lib.load_file_matlab: file_fullPath is not valid>')
         return 0, 0, 0
     data_mat = pymatreader.pymatreader.read_mat(file_fullPath)
     ch_data = deepcopy(data_mat['ch_data'])
@@ -208,10 +207,10 @@ def load_file_matlab(file_fullPath):
 def load_file_h5(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext=='.h5'):
-        print('Error: <psort_lib.load_file_h5: file extension is not .h5.>')
+        print('Error: <lib.load_file_h5: file extension is not .h5.>')
         return 0, 0, 0
     if not(os.path.isfile(file_fullPath)):
-        print('Error: <psort_lib.load_file_h5: file_fullPath is not valid>')
+        print('Error: <lib.load_file_h5: file_fullPath is not valid>')
         return 0, 0, 0
     load_dict = deepdish.io.load(file_fullPath)
     ch_data = deepcopy(load_dict['ch_data'])
@@ -223,10 +222,10 @@ def load_file_h5(file_fullPath):
 def load_file_psort(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext=='.psort'):
-        print('Error: <psort_lib.load_file_psort: file extension is not .psort.>')
+        print('Error: <lib.load_file_psort: file extension is not .psort.>')
         return 0
     if not(os.path.isfile(file_fullPath)):
-        print('Error: <psort_lib.load_file_psort: file_fullPath is not valid>')
+        print('Error: <lib.load_file_psort: file_fullPath is not valid>')
         return 0
     grandDataBase = deepdish.io.load(file_fullPath)
     return grandDataBase
@@ -234,10 +233,10 @@ def load_file_psort(file_fullPath):
 def load_file_smr(file_fullPath, ch_index):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext=='.smr'):
-        print('Error: <psort_lib.load_file_smr: file extension is not .smr.>')
+        print('Error: <lib.load_file_smr: file extension is not .smr.>')
         return 0, 0, 0
     if not(os.path.isfile(file_fullPath)):
-        print('Error: <psort_lib.load_file_smr: file_fullPath is not valid>')
+        print('Error: <lib.load_file_smr: file_fullPath is not valid>')
         return 0, 0, 0
     reader = spike2io.Spike2IO(filename=file_fullPath)
     seg = reader.read_segment(lazy=True)
@@ -254,10 +253,10 @@ def load_file_smr(file_fullPath, ch_index):
 def get_smr_file_info(file_fullPath):
     _, _, _, file_ext, _ = get_fullPath_components(file_fullPath)
     if not(file_ext=='.smr'):
-        print('Error: <psort_lib.get_smr_file_info: file extension is not .smr.>')
+        print('Error: <lib.get_smr_file_info: file extension is not .smr.>')
         return 'invalid_file_extension', 0
     if not(os.path.isfile(file_fullPath)):
-        print('Error: <psort_lib.get_smr_file_info: file_fullPath is not valid>')
+        print('Error: <lib.get_smr_file_info: file_fullPath is not valid>')
         return 'invalid_file_fullPath', 0
     reader = spike2io.Spike2IO(filename=file_fullPath)
     seg = reader.read_segment(lazy=True)
@@ -284,7 +283,7 @@ def save_file_h5(file_fullPath, ch_data, ch_time, sample_rate):
     if not(file_ext == '.h5'):
         file_fullPath = file_fullPath + '.h5'
     if not(os.path.isdir(file_path)):
-        return 'Error: <psort_lib.save_file_h5: file_path is not valid>'
+        return 'Error: <lib.save_file_h5: file_path is not valid>'
     save_dict = {
         'ch_data': ch_data,
         'ch_time': ch_time,
@@ -299,7 +298,7 @@ def save_file_psort(file_fullPath, grandDataBase):
     if not(file_ext == '.psort'):
         file_fullPath = file_fullPath + '.psort'
     if not(os.path.isdir(file_path)):
-        return 'Error: <psort_lib.save_file_psort: file_path is not valid>'
+        return 'Error: <lib.save_file_psort: file_path is not valid>'
     deepdish.io.save(file_fullPath, grandDataBase, 'zlib')
     return 0
 ## #############################################################################
@@ -331,7 +330,7 @@ class LoadData(QtCore.QThread):
             grandDataBase = load_file_psort(file_fullPath)
             self.return_signal.emit(grandDataBase, 0, 0)
         else:
-            print('Error: <psort_lib.LoadData: file_ext is not valid>')
+            print('Error: <lib.LoadData: file_ext is not valid>')
             self.return_signal.emit(0, 0, 0)
 
 ## #############################################################################
@@ -356,7 +355,7 @@ class SaveData(QtCore.QThread):
             save_file_psort(self.file_fullPath, self.grandDataBase)
             self.return_signal.emit()
         else:
-            print('Error: <psort_lib.SaveData: file_ext is not valid>')
+            print('Error: <lib.SaveData: file_ext is not valid>')
             self.return_signal.emit()
 
 ## #############################################################################
@@ -370,13 +369,13 @@ def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=
         hi_cutoff_freq = 6000.
     if abs(lo_cutoff_freq - hi_cutoff_freq) < 1.0:
         hi_cutoff_freq = hi_cutoff_freq + 1
-        print('Warning: <psort_lib.bandpass_filter: ' \
+        print('Warning: <lib.bandpass_filter: ' \
             + 'lo_cutoff_freq and hi_cutoff_freq are the same.>')
     elif lo_cutoff_freq > hi_cutoff_freq:
         _temp = lo_cutoff_freq
         lo_cutoff_freq = hi_cutoff_freq
         hi_cutoff_freq = _temp
-        print('Warning: <psort_lib.bandpass_filter: ' \
+        print('Warning: <lib.bandpass_filter: ' \
             + 'lo_cutoff_freq is grater than hi_cutoff_freq.>')
     lo_cutoff_wn = float(lo_cutoff_freq) / (float(sample_rate) / 2.)
     hi_cutoff_wn = float(hi_cutoff_freq) / (float(sample_rate) / 2.)
@@ -396,7 +395,7 @@ def find_peaks(data, threshold=None, peakType=None):
     elif ((peakType == 'min') or (peakType == 'Min')):
         data *= -1.
     else:
-        print('Error: <psort_lib.find_peaks: ' \
+        print('Error: <lib.find_peaks: ' \
             + 'peakType should be either max or min.>', file=sys.stderr)
     peak_index_boolean = np.logical_and((np.diff(data) >=  0)[:-1], (np.diff(data) < 0)[1:])
     peak_index_boolean = np.concatenate(([False], peak_index_boolean, [False]))
@@ -419,11 +418,11 @@ def inter_spike_interval_from_index(index_bool, sample_rate=None):
         pass
     elif index_bool.dtype == np.float:
         print(
-        'Warning: <psort_lib.inter_spike_interval_from_index: ' \
+        'Warning: <lib.inter_spike_interval_from_index: ' \
             + 'index_bool.dtype should not be float.>')
     else:
         print(
-        'Error: <psort_lib.inter_spike_interval_from_index: ' \
+        'Error: <lib.inter_spike_interval_from_index: ' \
             + 'index_bool.dtype is not valid.>',
         file=sys.stderr)
     inter_spike_interval = np.diff(index_value) / float(sample_rate)
@@ -439,11 +438,11 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
         pass
     elif index_bool.dtype == np.float:
         print(
-        'Warning: <psort_lib.inter_spike_interval_from_index: ' \
+        'Warning: <lib.inter_spike_interval_from_index: ' \
             + 'index_bool.dtype should not be float.>')
     else:
         print(
-        'Error: <psort_lib.inter_spike_interval_from_index: ' \
+        'Error: <lib.inter_spike_interval_from_index: ' \
             + 'index_bool.dtype is not valid.>',
         file=sys.stderr)
     inter_spike_interval = np.diff(index_value) / float(sample_rate)
@@ -469,16 +468,16 @@ def cross_probability(spike1_bool, spike2_bool, sample_rate=None, \
         win_len_after = 0.050 # window length in sec, the default is 50ms
     if spike1_bool.size != spike2_bool.size:
         print(
-        'Error: <psort_lib.cross_probability: ' \
+        'Error: <lib.cross_probability: ' \
             + 'size of spike1 and spike2 should be the same.>',
         file=sys.stderr)
     if spike1_bool.dtype != np.bool:
         print(
-        'Error: <psort_lib.cross_probability: spike1 should be np.bool array.>',
+        'Error: <lib.cross_probability: spike1 should be np.bool array.>',
         file=sys.stderr)
     if spike2_bool.dtype != np.bool:
         print(
-        'Error: <psort_lib.cross_probability: spike2 should be np.bool array.>',
+        'Error: <lib.cross_probability: spike2 should be np.bool array.>',
         file=sys.stderr)
     spike1_time = np.where(spike1_bool)[0] / float(sample_rate)
     spike1_int = np.round(spike1_time/float(bin_size)).astype(int)

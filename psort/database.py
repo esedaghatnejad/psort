@@ -7,8 +7,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 ## #############################################################################
 #%% IMPORT PACKAGES
 import numpy as np
-import deepdish
-import psort_lib
+from psort import lib
 from copy import deepcopy
 import os
 
@@ -51,8 +50,8 @@ _singleSlotDataBase = {
         'csLearnTemp_mode':       np.array([False], dtype=np.bool),
         }
 
-for key in psort_lib.GLOBAL_DICT.keys():
-    _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
+for key in lib.GLOBAL_DICT.keys():
+    _singleSlotDataBase[key] = deepcopy(lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
         'PSORT_VERSION':          np.array([0, 4, 25], dtype=np.uint32),
@@ -153,12 +152,12 @@ class PsortDataBase():
 
     def load_dataBase(self, file_fullPath, ch_data=None, ch_time=None, sample_rate=None,
                         grandDataBase=None, isCommonAverage=False):
-        _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        _, _, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self._grandDataBase = grandDataBase
             # Backward compatibility to PSORT_VERSION 03
             if not('PSORT_VERSION' in self._grandDataBase[-1].keys()):
-                from psort_update_to_psort04 import UpdateToPsort04Signals
+                from psort.update_to_psort04 import UpdateToPsort04Signals
                 UpdateToPsort04Signals.update_grandDataBase(self)
                 self._grandDataBase[-1]['PSORT_VERSION'] = \
                     deepcopy(_topLevelDataBase['PSORT_VERSION'])
@@ -204,7 +203,7 @@ class PsortDataBase():
 
     def set_file_fullPath(self, file_fullPath):
         file_fullPath, file_path, file_name, file_ext, file_name_without_ext = \
-            psort_lib.get_fullPath_components(file_fullPath)
+            lib.get_fullPath_components(file_fullPath)
         self._topLevelDataBase['file_fullPath'] = np.array([file_fullPath], dtype=np.unicode)
         self._topLevelDataBase['file_path']     = np.array([file_path], dtype=np.unicode)
         self._topLevelDataBase['file_name']     = np.array([file_name], dtype=np.unicode)

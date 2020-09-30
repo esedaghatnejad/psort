@@ -6,10 +6,10 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 import numpy as np
-from psort_lib import GLOBAL_DICT
+from psort.lib import GLOBAL_DICT
 
 class EditPrefrencesDialog(QDialog):
     def __init__(self, parent=None, workingDataBase=None):

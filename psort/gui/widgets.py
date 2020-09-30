@@ -6,11 +6,13 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
-import psort_lib
+from psort import lib
+from psort.utils import PROJECT_FOLDER
+
 ## #############################################################################
 #%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow):
@@ -90,15 +92,15 @@ class PsortGuiWidget(QMainWindow):
             addItems(["Align CS wrt 'SS Index'", \
                       "Align CS wrt 'SS Template'", \
                       "Align CS wrt 'CS Template'"])
-        psort_lib.setFont(self.comboBx_mainwin_filterPanel_CsAlign, color="red")
+        lib.setFont(self.comboBx_mainwin_filterPanel_CsAlign, color="red")
         self.comboBx_mainwin_filterPanel_CsSlow = QComboBox()
         self.comboBx_mainwin_filterPanel_CsSlow.addItems(["Pos(+) CS Filter Peak", \
                                                           "Neg(-) CS Filter Peak"])
-        psort_lib.setFont(self.comboBx_mainwin_filterPanel_CsSlow, color="red")
+        lib.setFont(self.comboBx_mainwin_filterPanel_CsSlow, color="red")
         self.comboBx_mainwin_filterPanel_SsFast = QComboBox()
         self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS Filter Peak", \
                                                           "Pos(+) SS Filter Peak"])
-        psort_lib.setFont(self.comboBx_mainwin_filterPanel_SsFast, color="blue")
+        lib.setFont(self.comboBx_mainwin_filterPanel_SsFast, color="blue")
         self.line_mainwin_filterPanel_l1 = QtGui.QFrame()
         self.line_mainwin_filterPanel_l1.setFrameShape(QFrame.VLine)
         self.line_mainwin_filterPanel_l1.setFrameShadow(QFrame.Sunken)
@@ -107,44 +109,44 @@ class PsortGuiWidget(QMainWindow):
         self.line_mainwin_filterPanel_l2.setFrameShape(QFrame.VLine)
         self.line_mainwin_filterPanel_l2.setFrameShadow(QFrame.Sunken)
         self.txtlabel_mainwin_filterPanel_csFilter = QLabel("CS Filter (Hz):")
-        psort_lib.setFont(self.txtlabel_mainwin_filterPanel_csFilter, color="red")
+        lib.setFont(self.txtlabel_mainwin_filterPanel_csFilter, color="red")
         self.txtlabel_mainwin_filterPanel_csFilter_dash = QLabel("-")
-        psort_lib.setFont(self.txtlabel_mainwin_filterPanel_csFilter_dash, color="red")
+        lib.setFont(self.txtlabel_mainwin_filterPanel_csFilter_dash, color="red")
         self.txtedit_mainwin_filterPanel_csFilter_min = QDoubleSpinBox()
         self.txtedit_mainwin_filterPanel_csFilter_min.setKeyboardTracking(True)
         self.txtedit_mainwin_filterPanel_csFilter_min.setMinimum(1.0)
         self.txtedit_mainwin_filterPanel_csFilter_min.setMaximum(15000.0)
         self.txtedit_mainwin_filterPanel_csFilter_min.setDecimals(0)
-        psort_lib.setFont(self.txtedit_mainwin_filterPanel_csFilter_min, color="red")
+        lib.setFont(self.txtedit_mainwin_filterPanel_csFilter_min, color="red")
         self.txtedit_mainwin_filterPanel_csFilter_min.setValue(10.0)
         self.txtedit_mainwin_filterPanel_csFilter_max = QDoubleSpinBox()
         self.txtedit_mainwin_filterPanel_csFilter_max.setKeyboardTracking(True)
         self.txtedit_mainwin_filterPanel_csFilter_max.setMinimum(1.0)
         self.txtedit_mainwin_filterPanel_csFilter_max.setMaximum(15000.0)
         self.txtedit_mainwin_filterPanel_csFilter_max.setDecimals(0)
-        psort_lib.setFont(self.txtedit_mainwin_filterPanel_csFilter_max, color="red")
+        lib.setFont(self.txtedit_mainwin_filterPanel_csFilter_max, color="red")
         self.txtedit_mainwin_filterPanel_csFilter_max.setValue(200.0)
 
         self.line_mainwin_filterPanel_l3 = QtGui.QFrame()
         self.line_mainwin_filterPanel_l3.setFrameShape(QFrame.VLine)
         self.line_mainwin_filterPanel_l3.setFrameShadow(QFrame.Sunken)
         self.txtlabel_mainwin_filterPanel_ssFilter = QLabel("SS Filter (Hz):")
-        psort_lib.setFont(self.txtlabel_mainwin_filterPanel_ssFilter, color="blue")
+        lib.setFont(self.txtlabel_mainwin_filterPanel_ssFilter, color="blue")
         self.txtlabel_mainwin_filterPanel_ssFilter_dash = QLabel("-")
-        psort_lib.setFont(self.txtlabel_mainwin_filterPanel_ssFilter_dash, color="blue")
+        lib.setFont(self.txtlabel_mainwin_filterPanel_ssFilter_dash, color="blue")
         self.txtedit_mainwin_filterPanel_ssFilter_min = QDoubleSpinBox()
         self.txtedit_mainwin_filterPanel_ssFilter_min.setKeyboardTracking(True)
         self.txtedit_mainwin_filterPanel_ssFilter_min.setMinimum(1.0)
         self.txtedit_mainwin_filterPanel_ssFilter_min.setMaximum(15000.0)
         self.txtedit_mainwin_filterPanel_ssFilter_min.setDecimals(0)
-        psort_lib.setFont(self.txtedit_mainwin_filterPanel_ssFilter_min, color="blue")
+        lib.setFont(self.txtedit_mainwin_filterPanel_ssFilter_min, color="blue")
         self.txtedit_mainwin_filterPanel_ssFilter_min.setValue(50.0)
         self.txtedit_mainwin_filterPanel_ssFilter_max = QDoubleSpinBox()
         self.txtedit_mainwin_filterPanel_ssFilter_max.setKeyboardTracking(True)
         self.txtedit_mainwin_filterPanel_ssFilter_max.setMinimum(1.0)
         self.txtedit_mainwin_filterPanel_ssFilter_max.setMaximum(15000.0)
         self.txtedit_mainwin_filterPanel_ssFilter_max.setDecimals(0)
-        psort_lib.setFont(self.txtedit_mainwin_filterPanel_ssFilter_max, color="blue")
+        lib.setFont(self.txtedit_mainwin_filterPanel_ssFilter_max, color="blue")
         self.txtedit_mainwin_filterPanel_ssFilter_max.setValue(5000.0)
         # Add to layout
         self.layout_mainwin_filterPanel.\
@@ -188,7 +190,7 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh = QHBoxLayout()
         # rawSignal plot
         self.plot_mainwin_rawSignalPanel_rawSignal = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
+        lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_rawSignal)
         self.plot_mainwin_rawSignalPanel_rawSignal.setTitle("Y: Raw_Signal(uV) | X: Time(s)")
         # SsPeak Panel, containing SsHistogram and SsThresh
         self.widget_mainwin_rawSignalPanel_SsPeakPanel = QWidget()
@@ -200,17 +202,17 @@ class PsortGuiWidget(QMainWindow):
             setLayout(self.layout_mainwin_rawSignalPanel_SsPeak)
 
         self.plot_mainwin_rawSignalPanel_SsPeak = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_SsPeak)
+        lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_SsPeak)
         self.plot_mainwin_rawSignalPanel_SsPeak.setTitle("X: SS_Peak_Dist(uV) | Y: Count(#)")
 
         self.txtlabel_mainwin_rawSignalPanel_SsThresh = QLabel("SS Threshold")
-        psort_lib.setFont(self.txtlabel_mainwin_rawSignalPanel_SsThresh, color="blue")
+        lib.setFont(self.txtlabel_mainwin_rawSignalPanel_SsThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_SsThresh = QDoubleSpinBox()
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setKeyboardTracking(True)
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setMinimum(1.0)
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setMaximum(15000.0)
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setDecimals(0)
-        psort_lib.setFont(self.txtedit_mainwin_rawSignalPanel_SsThresh, color="blue")
+        lib.setFont(self.txtedit_mainwin_rawSignalPanel_SsThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue(300.0)
         self.line_mainwin_rawSignalPanel_SsL1 = QtGui.QFrame()
         self.line_mainwin_rawSignalPanel_SsL1.setFrameShape(QFrame.VLine)
@@ -219,7 +221,7 @@ class PsortGuiWidget(QMainWindow):
         self.line_mainwin_rawSignalPanel_SsL2.setFrameShape(QFrame.VLine)
         self.line_mainwin_rawSignalPanel_SsL2.setFrameShadow(QFrame.Sunken)
         self.pushBtn_mainwin_rawSignalPanel_SsAutoThresh = QPushButton("Auto")
-        psort_lib.setFont(self.pushBtn_mainwin_rawSignalPanel_SsAutoThresh, color="blue")
+        lib.setFont(self.pushBtn_mainwin_rawSignalPanel_SsAutoThresh, color="blue")
 
         self.layout_mainwin_rawSignalPanel_SsPeak_Thresh.\
             addWidget(self.txtlabel_mainwin_rawSignalPanel_SsThresh)
@@ -254,17 +256,17 @@ class PsortGuiWidget(QMainWindow):
             setLayout(self.layout_mainwin_rawSignalPanel_CsPeak)
 
         self.plot_mainwin_rawSignalPanel_CsPeak = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_CsPeak)
+        lib.set_plotWidget(self.plot_mainwin_rawSignalPanel_CsPeak)
         self.plot_mainwin_rawSignalPanel_CsPeak.setTitle("X: CS_Peak_Dist(uV) | Y: Count(#)")
 
         self.txtlabel_mainwin_rawSignalPanel_CsThresh = QLabel("CS Threshold")
-        psort_lib.setFont(self.txtlabel_mainwin_rawSignalPanel_CsThresh, color="red")
+        lib.setFont(self.txtlabel_mainwin_rawSignalPanel_CsThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_CsThresh = QDoubleSpinBox()
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setKeyboardTracking(True)
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setMinimum(1.0)
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setMaximum(15000.0)
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setDecimals(0)
-        psort_lib.setFont(self.txtedit_mainwin_rawSignalPanel_CsThresh, color="red")
+        lib.setFont(self.txtedit_mainwin_rawSignalPanel_CsThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue(300.0)
         self.line_mainwin_rawSignalPanel_CsL1 = QtGui.QFrame()
         self.line_mainwin_rawSignalPanel_CsL1.setFrameShape(QFrame.VLine)
@@ -273,7 +275,7 @@ class PsortGuiWidget(QMainWindow):
         self.line_mainwin_rawSignalPanel_CsL2.setFrameShape(QFrame.VLine)
         self.line_mainwin_rawSignalPanel_CsL2.setFrameShadow(QFrame.Sunken)
         self.pushBtn_mainwin_rawSignalPanel_CsAutoThresh = QPushButton("Auto")
-        psort_lib.setFont(self.pushBtn_mainwin_rawSignalPanel_CsAutoThresh, color="red")
+        lib.setFont(self.pushBtn_mainwin_rawSignalPanel_CsAutoThresh, color="red")
 
         self.layout_mainwin_rawSignalPanel_CsPeak_Thresh.\
             addWidget(self.txtlabel_mainwin_rawSignalPanel_CsThresh)
@@ -344,11 +346,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsPcaBtn = QHBoxLayout()
 
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect = QPushButton("Dissect")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform = QPushButton("Learn Template")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave)
@@ -360,11 +362,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
         self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select Data")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.setCurrentIndex(1)
-        psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
+        lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
@@ -373,21 +375,21 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.setContentsMargins(1, 1, 1, 1)
 
         self.txtlabel_mainwin_SsPanel_plots_SsFiring = QLabel("SS Firing: 00.0Hz")
-        psort_lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsFiring, color="blue")
+        lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsFiring, color="blue")
         self.txtlabel_mainwin_SsPanel_plots_SsFiring.\
             setAlignment(QtCore.Qt.AlignCenter)
 
         self.plot_mainwin_SsPanel_plots_SsWave = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsWave)
+        lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsWave)
         self.plot_mainwin_SsPanel_plots_SsWave.setTitle("Y: SS_Waveform(uV) | X: Time(ms)")
         self.plot_mainwin_SsPanel_plots_SsIfr = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsIfr)
+        lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsIfr)
         self.plot_mainwin_SsPanel_plots_SsIfr.setTitle("Y: SS_IFR(#) | X: Freq(Hz)")
         self.plot_mainwin_SsPanel_plots_SsPca = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsPca)
+        lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsPca)
         self.plot_mainwin_SsPanel_plots_SsPca.setTitle(None)
         self.plot_mainwin_SsPanel_plots_SsXProb = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsXProb)
+        lib.set_plotWidget(self.plot_mainwin_SsPanel_plots_SsXProb)
         self.plot_mainwin_SsPanel_plots_SsXProb.setTitle("Y: SSxSS_XProb(1) | X: Time(ms)")
 
         self.layout_mainwin_SsPanel_plots_SsPcaPlot = QVBoxLayout()
@@ -401,16 +403,16 @@ class PsortGuiWidget(QMainWindow):
             setLayout(self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
-        psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
+        lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
-        psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
+        lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1 = QLabel("| X: SS_ ")
-        psort_lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
+        lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
         self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2 = QLabel(" Y: SS_ ")
-        psort_lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
+        lib.setFont(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
             addWidget(self.txtlabel_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2)
         self.layout_mainwin_SsPanel_plots_SsPcaPlot_PcaNum.\
@@ -459,21 +461,21 @@ class PsortGuiWidget(QMainWindow):
         <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>"""
 
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete = QPushButton("Delete")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '067-trash-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '067-trash-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep = QPushButton("Keep")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsKeep, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsKeep, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '023-download-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '023-download-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs = QPushButton("Move to CS")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-right-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '084-shuffle-right-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
+        lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '030-forbidden-blue.png')))
 
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDelete)
@@ -501,11 +503,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsPcaBtn = QHBoxLayout()
 
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect = QPushButton("Dissect")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform = QPushButton("Learn Template")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave)
@@ -517,11 +519,11 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
         self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select Data")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.setCurrentIndex(1)
-        psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
+        lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
@@ -530,21 +532,21 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.setContentsMargins(1, 1, 1, 1)
 
         self.txtlabel_mainwin_CsPanel_plots_CsFiring = QLabel("CS Firing: 0.00Hz")
-        psort_lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsFiring, color="red")
+        lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsFiring, color="red")
         self.txtlabel_mainwin_CsPanel_plots_CsFiring.\
             setAlignment(QtCore.Qt.AlignCenter)
 
         self.plot_mainwin_CsPanel_plots_CsWave = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsWave)
+        lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsWave)
         self.plot_mainwin_CsPanel_plots_CsWave.setTitle("Y: CS_Waveform(uV) | X: Time(ms)")
         self.plot_mainwin_CsPanel_plots_CsIfr = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsIfr)
+        lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsIfr)
         self.plot_mainwin_CsPanel_plots_CsIfr.setTitle("Y: CS_IFR(#) | X: Freq(Hz)")
         self.plot_mainwin_CsPanel_plots_CsPca = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsPca)
+        lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsPca)
         self.plot_mainwin_CsPanel_plots_CsPca.setTitle(None)
         self.plot_mainwin_CsPanel_plots_CsXProb = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsXProb)
+        lib.set_plotWidget(self.plot_mainwin_CsPanel_plots_CsXProb)
         self.plot_mainwin_CsPanel_plots_CsXProb.setTitle("Y: CSxSS_XProb(1) | X: Time(ms)")
 
         self.layout_mainwin_CsPanel_plots_CsPcaPlot = QVBoxLayout()
@@ -558,16 +560,16 @@ class PsortGuiWidget(QMainWindow):
             setLayout(self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
-        psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
+        lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
-        psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
+        lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1 = QLabel("| X: CS_ ")
-        psort_lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
+        lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
         self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2 = QLabel(" Y: CS_ ")
-        psort_lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
+        lib.setFont(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
             addWidget(self.txtlabel_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2)
         self.layout_mainwin_CsPanel_plots_CsPcaPlot_PcaNum.\
@@ -612,21 +614,21 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots.setContentsMargins(1, 1, 1, 1)
 
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete = QPushButton("Delete")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '067-trash-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '067-trash-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep = QPushButton("Keep")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsKeep, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsKeep, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '023-download-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '023-download-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs = QPushButton("Move to SS")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-left-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '084-shuffle-left-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
+        lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '030-forbidden-red.png')))
 
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDelete)
@@ -654,38 +656,38 @@ class PsortGuiWidget(QMainWindow):
         self.toolbar.setIconSize(QtCore.QSize(30, 30))
         self.addToolBar(self.toolbar)
         self.actionBtn_toolbar_next = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '071-right-arrow.png')), "Next Slot", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '071-right-arrow.png')), "Next Slot", self)
         self.actionBtn_toolbar_previous = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '036-left-arrow.png')), "Previous Slot", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '036-left-arrow.png')), "Previous Slot", self)
         self.actionBtn_toolbar_refresh = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-recycling.png')), "Refresh Slot", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '068-recycling.png')), "Refresh Slot", self)
         self.actionBtn_toolbar_load = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '029-folder.png')), "Open File...", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '029-folder.png')), "Open File...", self)
         self.actionBtn_toolbar_save = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '073-diskette.png')), "Save Session", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '073-diskette.png')), "Save Session", self)
         self.actionBtn_toolbar_undo = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-undo.png')), "Undo", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '068-undo.png')), "Undo", self)
         self.actionBtn_toolbar_redo = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-redo.png')), "Redo", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '068-redo.png')), "Redo", self)
 
         self.txtlabel_toolbar_fileName = QLabel("File_Name")
-        psort_lib.setFont(self.txtlabel_toolbar_fileName)
+        lib.setFont(self.txtlabel_toolbar_fileName)
         self.txtlabel_toolbar_filePath = QLabel("/File_Path/")
-        psort_lib.setFont(self.txtlabel_toolbar_filePath)
+        lib.setFont(self.txtlabel_toolbar_filePath)
 
         self.widget_toolbar_empty = QWidget()
         self.widget_toolbar_empty.\
             setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
 
         self.txtlabel_toolbar_slotNumLabel = QLabel("Slot#")
-        psort_lib.setFont(self.txtlabel_toolbar_slotNumLabel)
+        lib.setFont(self.txtlabel_toolbar_slotNumLabel)
         self.txtedit_toolbar_slotNumCurrent = QSpinBox()
         self.txtedit_toolbar_slotNumCurrent.setKeyboardTracking(False)
         self.txtedit_toolbar_slotNumCurrent.setMinimum(1)
         self.txtedit_toolbar_slotNumCurrent.setMaximum(30)
-        psort_lib.setFont(self.txtedit_toolbar_slotNumCurrent)
+        lib.setFont(self.txtedit_toolbar_slotNumCurrent)
         self.txtlabel_toolbar_slotNumTotal = QLabel("/ 30(0)")
-        psort_lib.setFont(self.txtlabel_toolbar_slotNumTotal)
+        lib.setFont(self.txtlabel_toolbar_slotNumTotal)
 
         self.toolbar.addAction(self.actionBtn_toolbar_load)
         self.toolbar.addAction(self.actionBtn_toolbar_save)
