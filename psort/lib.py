@@ -200,7 +200,12 @@ def load_file_matlab(file_fullPath):
     data_mat = pymatreader.pymatreader.read_mat(file_fullPath)
     ch_data = deepcopy(data_mat['ch_data'])
     ch_time = deepcopy(data_mat['ch_time'])
-    sample_rate = int(data_mat['ch_info']['header']['sampleRate'])
+    if 'ch_info' in data_mat:
+        sample_rate = int(data_mat['ch_info']['header']['sampleRate'])
+    elif 'sample_rate' in data_mat:
+        sample_rate = int(data_mat['sample_rate'])
+    else:
+        sample_rate = int(np.round(1. / np.mean(np.diff(ch_time))))
     del data_mat
     return ch_data, ch_time, sample_rate
 
