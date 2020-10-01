@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='psort',
-      version='0.4.31',
+      version='0.4.26.a',
       description='Graphical application for identifying simple and complex purkinje spikes',
       long_description=readme(),
       url='https://github.com/esedaghatnejad/psort',

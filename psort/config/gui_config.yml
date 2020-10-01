@@ -29,7 +29,7 @@ icons:
   ZOOM_IN: 'zoom_in.png'
   ZOOM_OUT: 'zoom_out.png'
 
-database_vars:
+database_vars:  # TODO: Consolidate these variables into fewer
   total_slot_num: ['full', [1], 30, 'uint32']
   current_slot_num: ['zeros', [1], 'uint32']
   total_slot_isAnalyzed: ['zeros', [1], 'uint32']
