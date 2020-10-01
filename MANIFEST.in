@@ -1,3 +1,5 @@
 include README.md
 include docs
 inlcude psort/icon/*.png
+include LICENSE
+include requirements.txt

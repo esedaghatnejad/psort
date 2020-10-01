@@ -12,8 +12,12 @@ from .utils import PROJECT_FOLDER
 import os
 import sys # We need sys so that we can pass argv to QApplication
 
+def run_from_cmdline():
+    args = sys.argv[1:]
+    run(*args)
 
-def run():
+
+def run(*args):
     if sys.flags.interactive != 1 or not hasattr(QtCore, 'PYQT_VERSION'):
         psort_application = QtWidgets.QApplication(sys.argv)
         psort_application.setWindowIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', 'marmoset.png')))
@@ -23,4 +27,5 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    args = sys.argv[1:]
+    run(*args)
