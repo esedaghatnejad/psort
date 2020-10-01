@@ -698,7 +698,6 @@ class PsortGuiWidget(QMainWindow, ):
         self.setCentralWidget(self.widget_grand)
         return None
 
-
     def build_statusbar(self):
         self.setStatusBar(QStatusBar(self))
         self.txtlabel_statusBar = QLabel('Text')
