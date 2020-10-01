@@ -69,7 +69,7 @@ class SlotBoundaryWidget(QWidget):
         self.pushBtn_slotBoundary_addSlot = QPushButton("Add line at click")
         lib.setFont(self.pushBtn_slotBoundary_addSlot)
         self.pushBtn_slotBoundary_addSlot.setCheckable(True)
-        self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', 'crosshair.png')))
+        self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', 'crosshair.png')))
         self.label_slotBoundary_description = QLabel("Drag line out of boundries to delete.")
         lib.setFont(self.label_slotBoundary_description)
         self.label_slotBoundary_duration = QLabel(f"Avg slot duration: {10}s.")

@@ -1,0 +1,107 @@
+icons:
+  DL_BLUE: '023-download-blue.png'
+  DL_RED: '023-download-red.png'
+  FOLDER: '029-folder.png'
+  FORBID_BLUE: '030-forbidden-blue.png'
+  FORBID_RED: '030-forbidden-red.png'
+  LARROW: '036-left-arrow.png'
+  RARROW: '071-right-arrow.png'
+  TRASH_BLUE: '067-trash-blue.png'
+  TRASH_RED: '067-trash-red.png'
+  RECYCLING: '068-recycling.png'
+  REDO: '068-redo.png'
+  UNDO: '068-undo.png'
+  DISKETTE: '073-diskette.png'
+  SHUFFLE_LEFT_RED: '084-shuffle-left-red.png'
+  SHUFFLE_RIGHT_BLUE: '084-shuffle-right-blue.png'
+  CLEAR: 'clear.png'
+  XHAIR: 'crosshair.png'
+  DELETE: 'delete.png'
+  MARMOSET: 'marmoset.png'
+  MOVE: 'move.png'
+  NEXT_SPIKE: 'next_spike.png'
+  NEXT_WINDOW: 'next_window.png'
+  PREV_SPIKE: 'previous_spike.png'
+  PREV_WINDOW: 'previous_window.png'
+  RANGE: 'range.png'
+  SELECT: 'select.png'
+  TOGGLE: 'toggle.png'
+  ZOOM_IN: 'zoom_in.png'
+  ZOOM_OUT: 'zoom_out.png'
+
+database_vars:
+  total_slot_num: ['full', [1], 30, 'uint32']
+  current_slot_num: ['zeros', [1], 'uint32']
+  total_slot_isAnalyzed: ['zeros', [1], 'uint32']
+  sample_rate: ['zeros', [1], 'uint32']
+  ch_time: ['zeros', [0], 'float64']
+  ch_data: ['zeros', [0], 'float64']
+  ch_data_cs: ['zeros', [0], 'float64']
+  ch_data_ss: ['zeros', [0], 'float64']
+  ss_index: ['zeros', [0], 'bool']
+  cs_index_slow: ['zeros', [0], 'bool']
+  cs_index: ['zeros', [0], 'bool']
+  ss_peak: ['zeros', [0], 'float32']
+  cs_peak: ['zeros', [0], 'float32']
+  ss_wave: ['zeros', [0, 0], 'float32']
+  ss_wave_span: ['zeros', [0, 0], 'float32']
+  cs_wave: ['zeros', [0, 0], 'float32']
+  cs_wave_span: ['zeros', [0, 0], 'float32']
+  ss_ifr: ['zeros', [0], 'float32']
+  ss_ifr_mean: ['zeros', [1], 'float32']
+  ss_ifr_hist: ['zeros', [0], 'float32']
+  ss_ifr_bins: ['zeros', [0], 'float32']
+  cs_ifr: ['zeros', [0], 'float32']
+  cs_ifr_mean: ['zeros', [1], 'float32']
+  cs_ifr_hist: ['zeros', [0], 'float32']
+  cs_ifr_bins: ['zeros', [0], 'float32']
+  ss_xprob: ['zeros', [0], 'float32']
+  ss_xprob_span: ['zeros', [0], 'float32']
+  cs_xprob: ['zeros', [0], 'float32']
+  cs_xprob_span: ['zeros', [0], 'float32']
+  ss_pca_variance: ['zeros', [0], 'float32']
+  ss_pca1: ['zeros', [0], 'float32']
+  ss_pca2: ['zeros', [0], 'float32']
+  ss_pca3: ['zeros', [0], 'float32']
+  ss_umap1: ['zeros', [0], 'float32']
+  ss_umap2: ['zeros', [0], 'float32']
+  cs_pca_variance: ['zeros', [0], 'float32']
+  cs_pca1: ['zeros', [0], 'float32']
+  cs_pca2: ['zeros', [0], 'float32']
+  cs_pca3: ['zeros', [0], 'float32']
+  cs_umap1: ['zeros', [0], 'float32']
+  cs_umap2: ['zeros', [0], 'float32']
+  ss_time: ['zeros', [0], 'float32']
+  ss_time_to_prev_ss: ['zeros', [0], 'float32']
+  ss_time_to_next_ss: ['zeros', [0], 'float32']
+  ss_time_to_prev_cs: ['zeros', [0], 'float32']
+  ss_time_to_next_cs: ['zeros', [0], 'float32']
+  cs_time: ['zeros', [0], 'float32']
+  cs_time_to_prev_ss: ['zeros', [0], 'float32']
+  cs_time_to_next_ss: ['zeros', [0], 'float32']
+  cs_time_to_prev_cs: ['zeros', [0], 'float32']
+  cs_time_to_next_cs: ['zeros', [0], 'float32']
+  ss_similarity_to_ss: ['zeros', [0], 'float32']
+  ss_similarity_to_cs: ['zeros', [0], 'float32']
+  cs_similarity_to_cs: ['zeros', [0], 'float32']
+  cs_similarity_to_ss: ['zeros', [0], 'float32']
+  ss_scatter_mat: ['zeros', [0, 0], 'float32']
+  ss_scatter_list: ['array', ['comboBx_list'], 'unicode']
+  ss_scatter1: ['zeros', [0], 'float32']
+  ss_scatter2: ['zeros', [0], 'float32']
+  cs_scatter_mat: ['zeros', [0, 0], 'float32']
+  cs_scatter_list: ['array', ['comboBx_list'], 'unicode']
+  cs_scatter1: ['zeros', [0], 'float32']
+  cs_scatter2: ['zeros', [0], 'float32']
+  umap_enable: ['array', [False], 'bool']
+  popUp_ROI_x: ['zeros', [0], 'float32']
+  popUp_ROI_y: ['zeros', [0], 'float32']
+  popUp_mode: ['array', ['ss_pca_manual'],   'unicode']
+  flag_index_detection: ['array', [True], 'bool']
+  flag_edit_prefrences: ['array', [False],'bool']
+  ss_index_undoRedo: ['zeros', [0,0], 'bool']
+  cs_index_slow_undoRedo: ['zeros', [0,0], 'bool']
+  cs_index_undoRedo: ['zeros', [0,0], 'bool']
+  index_undoRedo: ['zeros', [1], 'int']
+  length_undoRedo: ['zeros', [1], 'int']
+  batch_size_undoRedo: ['full', [1], 20, 'uint32']

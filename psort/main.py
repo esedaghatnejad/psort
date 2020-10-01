@@ -19,8 +19,8 @@ def run_from_cmdline():
 
 def run(*args):
     if sys.flags.interactive != 1 or not hasattr(QtCore, 'PYQT_VERSION'):
-        psort_application = QtWidgets.QApplication(*args)
-        psort_application.setWindowIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', 'marmoset.png')))
+        psort_application = QtWidgets.QApplication(list(args))
+        psort_application.setWindowIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', 'marmoset.png')))
         psort_widget = PsortGuiSignals()
         psort_widget.show()
         psort_application.exec_()

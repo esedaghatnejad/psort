@@ -11,9 +11,20 @@ from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
 from psort import lib
-from psort.utils import PROJECT_FOLDER
+from psort.utils import PROJECT_FOLDER, get_icons
 
 ## #############################################################################
+
+#%% PSortIcon
+class PsortGuiIcon(QtGui.QIcon):
+    icon_data = get_icons()
+
+    def __init__(self, icon_name):
+        super(PsortGuiIcon, self).__init__( # QIcon doesnt accept a Path argument, lol
+            str(PROJECT_FOLDER / 'icons' / PsortGuiIcon.icon_data[icon_name])
+        )
+
+
 #%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow):
     def __init__(self, parent=None):
@@ -462,20 +473,15 @@ class PsortGuiWidget(QMainWindow):
 
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete = QPushButton("Delete")
         lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
-        self.pushBtn_mainwin_SsPanel_buttons_SsDelete.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '067-trash-blue.png')))
+        self.pushBtn_mainwin_SsPanel_buttons_SsDelete.setIcon(PsortGuiIcon('TRASH_BLUE'))
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep = QPushButton("Keep")
         lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsKeep, color="blue")
-        self.pushBtn_mainwin_SsPanel_buttons_SsKeep.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '023-download-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs = QPushButton("Move to CS")
         lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
-        self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '084-shuffle-right-blue.png')))
+        self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.setIcon(PsortGuiIcon('SHUFFLE_RIGHT_BLUE'))
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
         lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
-        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '030-forbidden-blue.png')))
+        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.setIcon(PsortGuiIcon('FORBID_BLUE'))
 
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDelete)
@@ -616,19 +622,19 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete = QPushButton("Delete")
         lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '067-trash-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '067-trash-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep = QPushButton("Keep")
         lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsKeep, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '023-download-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '023-download-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs = QPushButton("Move to SS")
         lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '084-shuffle-left-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '084-shuffle-left-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
         lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '030-forbidden-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '030-forbidden-red.png')))
 
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDelete)
@@ -656,19 +662,19 @@ class PsortGuiWidget(QMainWindow):
         self.toolbar.setIconSize(QtCore.QSize(30, 30))
         self.addToolBar(self.toolbar)
         self.actionBtn_toolbar_next = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '071-right-arrow.png')), "Next Slot", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '071-right-arrow.png')), "Next Slot", self)
         self.actionBtn_toolbar_previous = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '036-left-arrow.png')), "Previous Slot", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '036-left-arrow.png')), "Previous Slot", self)
         self.actionBtn_toolbar_refresh = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '068-recycling.png')), "Refresh Slot", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '068-recycling.png')), "Refresh Slot", self)
         self.actionBtn_toolbar_load = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '029-folder.png')), "Open File...", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '029-folder.png')), "Open File...", self)
         self.actionBtn_toolbar_save = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '073-diskette.png')), "Save Session", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '073-diskette.png')), "Save Session", self)
         self.actionBtn_toolbar_undo = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '068-undo.png')), "Undo", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '068-undo.png')), "Undo", self)
         self.actionBtn_toolbar_redo = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icon', '068-redo.png')), "Redo", self)
+            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '068-redo.png')), "Redo", self)
 
         self.txtlabel_toolbar_fileName = QLabel("File_Name")
         lib.setFont(self.txtlabel_toolbar_fileName)

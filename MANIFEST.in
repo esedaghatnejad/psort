@@ -1,5 +1,6 @@
 include README.md
 include docs
 inlcude psort/icon/*.png
+include psort/config/*.yml
 include LICENSE
 include requirements.txt

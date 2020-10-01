@@ -19,7 +19,7 @@ setup(name='psort',
             ],
       },
       package_data={
-            'psort': ['icon/*.png'],
+            'psort': ['icons/*.png'],
       },
       install_requires=[            # NOTE: This is EXTREMELY strict, and we should
             'deepdish==0.3.5',      # allow more versions for future robustness.

@@ -20,6 +20,7 @@ from psort.edit_prefrences import EditPrefrencesDialog
 from psort.scatterSelect import ScatterSelectWidget
 from psort.waveDissect import WaveDissectWidget
 from psort.slotBoundary import SlotBoundaryWidget
+from psort.utils import get_signal_vars
 import numpy as np
 from copy import deepcopy
 import os
@@ -31,83 +32,7 @@ import decorator
 ## ################################################################################################
 ## ################################################################################################
 #%% GLOBAL VARIABLES
-_workingDataBase = {
-    'total_slot_num':         np.full( (1), 30, dtype=np.uint32),
-    'current_slot_num':       np.zeros((1), dtype=np.uint32),
-    'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint32),
-    'sample_rate':            np.zeros((1), dtype=np.uint32),
-    'ch_time':                np.zeros((0), dtype=np.float64),
-    'ch_data':                np.zeros((0), dtype=np.float64),
-    'ch_data_cs':             np.zeros((0), dtype=np.float64),
-    'ch_data_ss':             np.zeros((0), dtype=np.float64),
-    'ss_index':               np.zeros((0), dtype=np.bool),
-    'cs_index_slow':          np.zeros((0), dtype=np.bool),
-    'cs_index':               np.zeros((0), dtype=np.bool),
-    'ss_peak':                np.zeros((0), dtype=np.float32),
-    'cs_peak':                np.zeros((0), dtype=np.float32),
-    'ss_wave':                np.zeros((0, 0), dtype=np.float32),
-    'ss_wave_span':           np.zeros((0, 0), dtype=np.float32),
-    'cs_wave':                np.zeros((0, 0), dtype=np.float32),
-    'cs_wave_span':           np.zeros((0, 0), dtype=np.float32),
-    'ss_ifr':                 np.zeros((0), dtype=np.float32),
-    'ss_ifr_mean':            np.zeros((1), dtype=np.float32),
-    'ss_ifr_hist':            np.zeros((0), dtype=np.float32),
-    'ss_ifr_bins':            np.zeros((0), dtype=np.float32),
-    'cs_ifr':                 np.zeros((0), dtype=np.float32),
-    'cs_ifr_mean':            np.zeros((1), dtype=np.float32),
-    'cs_ifr_hist':            np.zeros((0), dtype=np.float32),
-    'cs_ifr_bins':            np.zeros((0), dtype=np.float32),
-    'ss_xprob':               np.zeros((0), dtype=np.float32),
-    'ss_xprob_span':          np.zeros((0), dtype=np.float32),
-    'cs_xprob':               np.zeros((0), dtype=np.float32),
-    'cs_xprob_span':          np.zeros((0), dtype=np.float32),
-    'ss_pca_variance':        np.zeros((0), dtype=np.float32),
-    'ss_pca1':                np.zeros((0), dtype=np.float32),
-    'ss_pca2':                np.zeros((0), dtype=np.float32),
-    'ss_pca3':                np.zeros((0), dtype=np.float32),
-    'ss_umap1':               np.zeros((0), dtype=np.float32),
-    'ss_umap2':               np.zeros((0), dtype=np.float32),
-    'cs_pca_variance':        np.zeros((0), dtype=np.float32),
-    'cs_pca1':                np.zeros((0), dtype=np.float32),
-    'cs_pca2':                np.zeros((0), dtype=np.float32),
-    'cs_pca3':                np.zeros((0), dtype=np.float32),
-    'cs_umap1':               np.zeros((0), dtype=np.float32),
-    'cs_umap2':               np.zeros((0), dtype=np.float32),
-    'ss_time':                np.zeros((0), dtype=np.float32),
-    'ss_time_to_prev_ss':     np.zeros((0), dtype=np.float32),
-    'ss_time_to_next_ss':     np.zeros((0), dtype=np.float32),
-    'ss_time_to_prev_cs':     np.zeros((0), dtype=np.float32),
-    'ss_time_to_next_cs':     np.zeros((0), dtype=np.float32),
-    'cs_time':                np.zeros((0), dtype=np.float32),
-    'cs_time_to_prev_ss':     np.zeros((0), dtype=np.float32),
-    'cs_time_to_next_ss':     np.zeros((0), dtype=np.float32),
-    'cs_time_to_prev_cs':     np.zeros((0), dtype=np.float32),
-    'cs_time_to_next_cs':     np.zeros((0), dtype=np.float32),
-    'ss_similarity_to_ss':    np.zeros((0), dtype=np.float32),
-    'ss_similarity_to_cs':    np.zeros((0), dtype=np.float32),
-    'cs_similarity_to_cs':    np.zeros((0), dtype=np.float32),
-    'cs_similarity_to_ss':    np.zeros((0), dtype=np.float32),
-    'ss_scatter_mat':         np.zeros((0, 0), dtype=np.float32),
-    'ss_scatter_list':        np.array(['comboBx_list'],   dtype=np.unicode),
-    'ss_scatter1':            np.zeros((0), dtype=np.float32),
-    'ss_scatter2':            np.zeros((0), dtype=np.float32),
-    'cs_scatter_mat':         np.zeros((0, 0), dtype=np.float32),
-    'cs_scatter_list':        np.array(['comboBx_list'],   dtype=np.unicode),
-    'cs_scatter1':            np.zeros((0), dtype=np.float32),
-    'cs_scatter2':            np.zeros((0), dtype=np.float32),
-    'umap_enable':            np.array([False], dtype=np.bool),
-    'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
-    'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
-    'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
-    'flag_index_detection':   np.array([True], dtype=np.bool),
-    'flag_edit_prefrences':   np.array([False],dtype=np.bool),
-    'ss_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
-    'cs_index_slow_undoRedo': np.zeros((0,0), dtype=np.bool),
-    'cs_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
-    'index_undoRedo':         np.zeros((1), dtype=np.int),
-    'length_undoRedo':        np.zeros((1), dtype=np.int),
-    'batch_size_undoRedo':    np.full( (1), 20, dtype=np.uint32),
-}
+_workingDataBase = get_signal_vars()
 
 for key in database._singleSlotDataBase.keys():
     _workingDataBase[key] = deepcopy(database._singleSlotDataBase[key])
