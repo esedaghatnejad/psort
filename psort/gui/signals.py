@@ -133,23 +133,23 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(_workingDataBase)
-        self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
-        self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
-        self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.widget_mainwin.comboBx_filterPanel_SsFast.setCurrentIndex(0)
+        self.widget_mainwin.comboBx_filterPanel_CsSlow.setCurrentIndex(0)
+        self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
+        self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
+        self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(0)
+        self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+        self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+        self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         self.actionBtn_menubar_edit_umap.setChecked(False)
         self.undoRedo_reset()
         return 0
 
     def setEnableWidgets(self, isEnable):
-        self.widget_mainwin_filterPanel.setEnabled(isEnable)
-        self.widget_mainwin_rawSignalPanel.setEnabled(isEnable)
-        self.widget_mainwin_SsCsPanel.setEnabled(isEnable)
+        self.widget_mainwin.widget_filterPanel.setEnabled(isEnable)
+        self.widget_mainwin.widget_rawSignalPanel.setEnabled(isEnable)
+        self.widget_mainwin.widget_SsCsPanel.setEnabled(isEnable)
         self.txtedit_toolbar_slotNumCurrent.setEnabled(isEnable)
         self.actionBtn_toolbar_previous.setEnabled(isEnable)
         self.actionBtn_toolbar_refresh.setEnabled(isEnable)
@@ -167,30 +167,30 @@ class PsortGuiSignals(PsortGuiWidget):
     def init_plots(self):
         # rawSignal
         self.pltData_rawSignal_Ss =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="SS", \
                 pen=pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine))
         self.pltData_rawSignal_Cs =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="CS", \
                 pen=pg.mkPen(color='r', width=1, style=QtCore.Qt.SolidLine))
             #SsIndex, CsIndex
         self.pltData_rawSignal_SsInedx =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="ssIndex", pen=None,
                 symbol='o', symbolSize=4, symbolBrush=(50,50,255,255), \
                 symbolPen=None)
         self.pltData_rawSignal_CsInedx =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None,
                 symbol='o', symbolSize=6, symbolBrush=(255,50,50,255), symbolPen=None)
         self.pltData_rawSignal_SsInedxSelected =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="ssIndexSelected", pen=None,
                 symbol='o', symbolSize=4, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(0,200,255,255), width=2) )
         self.pltData_rawSignal_CsInedxSelected =\
-            self.plot_mainwin_rawSignalPanel_rawSignal.\
+            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             plot(np.zeros((0)), np.zeros((0)), name="csIndexSelected", pen=None,
                 symbol='o', symbolSize=6, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(255,200,0,255), width=2) )
@@ -199,72 +199,72 @@ class PsortGuiSignals(PsortGuiWidget):
             pg.InfiniteLine(pos=-100., angle=0, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='ssThresh',
                         labelOpts={'position':0.05})
-        self.plot_mainwin_rawSignalPanel_rawSignal.\
+        self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             addItem(self.infLine_rawSignal_SsThresh, ignoreBounds=True)
         self.infLine_rawSignal_CsThresh = \
             pg.InfiniteLine(pos=+100., angle=0, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='csThresh',
                         labelOpts={'position':0.95})
-        self.plot_mainwin_rawSignalPanel_rawSignal.\
+        self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
             addItem(self.infLine_rawSignal_CsThresh, ignoreBounds=True)
-        self.viewBox_rawSignal = self.plot_mainwin_rawSignalPanel_rawSignal.getViewBox()
+        self.viewBox_rawSignal = self.widget_mainwin.plot_rawSignalPanel_rawSignal.getViewBox()
         self.viewBox_rawSignal.autoRange()
         # ssPeak
         self.pltData_SsPeak =\
-            self.plot_mainwin_rawSignalPanel_SsPeak.\
+            self.widget_mainwin.plot_rawSignalPanel_SsPeak.\
             plot(np.arange(2), np.zeros((1)), name="ssPeak",
                 stepMode=True, fillLevel=0, brush=(0,0,255,200))
         self.infLine_SsPeak = \
             pg.InfiniteLine(pos=-100., angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='ssThresh',
                         labelOpts={'position':0.90})
-        self.plot_mainwin_rawSignalPanel_SsPeak.\
+        self.widget_mainwin.plot_rawSignalPanel_SsPeak.\
             addItem(self.infLine_SsPeak, ignoreBounds=False)
-        self.viewBox_SsPeak = self.plot_mainwin_rawSignalPanel_SsPeak.getViewBox()
+        self.viewBox_SsPeak = self.widget_mainwin.plot_rawSignalPanel_SsPeak.getViewBox()
         self.viewBox_SsPeak.autoRange()
         # csPeak
         self.pltData_CsPeak =\
-            self.plot_mainwin_rawSignalPanel_CsPeak.\
+            self.widget_mainwin.plot_rawSignalPanel_CsPeak.\
             plot(np.arange(2), np.zeros((1)), name="csPeak",
                 stepMode=True, fillLevel=0, brush=(255,0,0,200))
         self.infLine_CsPeak = \
             pg.InfiniteLine(pos=+100., angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='csThresh',
                         labelOpts={'position':0.90})
-        self.plot_mainwin_rawSignalPanel_CsPeak.\
+        self.widget_mainwin.plot_rawSignalPanel_CsPeak.\
             addItem(self.infLine_CsPeak, ignoreBounds=False)
-        self.viewBox_CsPeak = self.plot_mainwin_rawSignalPanel_CsPeak.getViewBox()
+        self.viewBox_CsPeak = self.widget_mainwin.plot_rawSignalPanel_CsPeak.getViewBox()
         self.viewBox_CsPeak.autoRange()
         # ssWave
         self.pltData_SsWave =\
-            self.plot_mainwin_SsPanel_plots_SsWave.\
+            self.widget_mainwin.plot_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWave", \
                 pen=pg.mkPen(color=(0, 0, 0, 20), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveSelected =\
-            self.plot_mainwin_SsPanel_plots_SsWave.\
+            self.widget_mainwin.plot_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelected", \
                 pen=pg.mkPen(color=(0, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_SsWaveTemplate =\
-            self.plot_mainwin_SsPanel_plots_SsWave.\
+            self.widget_mainwin.plot_SsPanel_plots_SsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemplate", \
                 pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
         self.infLine_SsWave_minPca = \
             pg.InfiniteLine(pos=-self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]*1000.,
                         angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
-        self.plot_mainwin_SsPanel_plots_SsWave.\
+        self.widget_mainwin.plot_SsPanel_plots_SsWave.\
             addItem(self.infLine_SsWave_minPca, ignoreBounds=False)
         self.infLine_SsWave_maxPca = \
             pg.InfiniteLine(pos=self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]*1000.,
                         angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
-        self.plot_mainwin_SsPanel_plots_SsWave.\
+        self.widget_mainwin.plot_SsPanel_plots_SsWave.\
             addItem(self.infLine_SsWave_maxPca, ignoreBounds=False)
-        self.viewBox_SsWave = self.plot_mainwin_SsPanel_plots_SsWave.getViewBox()
+        self.viewBox_SsWave = self.widget_mainwin.plot_SsPanel_plots_SsWave.getViewBox()
         self.viewBox_SsWave.autoRange()
         # ssIfr
         self.pltData_SsIfr =\
-            self.plot_mainwin_SsPanel_plots_SsIfr.\
+            self.widget_mainwin.plot_SsPanel_plots_SsIfr.\
             plot(np.arange(2), np.zeros((1)), name="ssIfr",
                 stepMode=True, fillLevel=0, brush=(0,0,255,200))
         self.infLine_SsIfr = \
@@ -272,40 +272,40 @@ class PsortGuiSignals(PsortGuiWidget):
                         pen=pg.mkPen(color=(0,0,255,255), width=2, style=QtCore.Qt.SolidLine),
                         movable=False, hoverPen='g', label='ssIfr',
                         labelOpts={'position':0.90})
-        self.plot_mainwin_SsPanel_plots_SsIfr.\
+        self.widget_mainwin.plot_SsPanel_plots_SsIfr.\
             addItem(self.infLine_SsIfr, ignoreBounds=False)
-        self.viewBox_SsIfr = self.plot_mainwin_SsPanel_plots_SsIfr.getViewBox()
+        self.viewBox_SsIfr = self.widget_mainwin.plot_SsPanel_plots_SsIfr.getViewBox()
         self.viewBox_SsIfr.autoRange()
         # ssPca
         self.pltData_SsPca =\
-            self.plot_mainwin_SsPanel_plots_SsPca.\
+            self.widget_mainwin.plot_SsPanel_plots_SsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="ssPca", pen=None,
                 symbol='o', symbolSize=2, symbolBrush=(0,0,0,100), symbolPen=None)
         self.pltData_SsPcaSelected =\
-            self.plot_mainwin_SsPanel_plots_SsPca.\
+            self.widget_mainwin.plot_SsPanel_plots_SsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="ssPcaSelected", pen=None,
                 symbol='o', symbolSize=2, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(0,0,255,255), width=2) )
-        self.viewBox_SsPca = self.plot_mainwin_SsPanel_plots_SsPca.getViewBox()
+        self.viewBox_SsPca = self.widget_mainwin.plot_SsPanel_plots_SsPca.getViewBox()
         self.viewBox_SsPca.autoRange()
         # ssXProb
         self.pltData_SsXProb =\
-            self.plot_mainwin_SsPanel_plots_SsXProb.\
+            self.widget_mainwin.plot_SsPanel_plots_SsXProb.\
             plot(np.zeros((0)), np.zeros((0)), name="ssXProb", \
                 pen=pg.mkPen(color='b', width=3, style=QtCore.Qt.SolidLine))
-        self.viewBox_SsXProb = self.plot_mainwin_SsPanel_plots_SsXProb.getViewBox()
+        self.viewBox_SsXProb = self.widget_mainwin.plot_SsPanel_plots_SsXProb.getViewBox()
         self.viewBox_SsXProb.autoRange()
         # csWave
         self.pltData_CsWave =\
-            self.plot_mainwin_CsPanel_plots_CsWave.\
+            self.widget_mainwin.plot_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWave", \
                 pen=pg.mkPen(color=(0, 0, 0, 200), width=1, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveSelected =\
-            self.plot_mainwin_CsPanel_plots_CsWave.\
+            self.widget_mainwin.plot_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveSelected", \
                 pen=pg.mkPen(color=(255, 0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
         self.pltData_CsWaveTemplate =\
-            self.plot_mainwin_CsPanel_plots_CsWave.\
+            self.widget_mainwin.plot_CsPanel_plots_CsWave.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveTemplate", \
                 pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
         self.infLine_CsWave_minPca = \
@@ -313,20 +313,20 @@ class PsortGuiSignals(PsortGuiWidget):
                         angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='minPca',
                         labelOpts={'position':0.90})
-        self.plot_mainwin_CsPanel_plots_CsWave.\
+        self.widget_mainwin.plot_CsPanel_plots_CsWave.\
             addItem(self.infLine_CsWave_minPca, ignoreBounds=False)
         self.infLine_CsWave_maxPca = \
             pg.InfiniteLine(pos=self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]*1000.,
                         angle=90, pen=(255,100,100,255),
                         movable=True, hoverPen='g', label='maxPca',
                         labelOpts={'position':0.95})
-        self.plot_mainwin_CsPanel_plots_CsWave.\
+        self.widget_mainwin.plot_CsPanel_plots_CsWave.\
             addItem(self.infLine_CsWave_maxPca, ignoreBounds=False)
-        self.viewBox_CsWave = self.plot_mainwin_CsPanel_plots_CsWave.getViewBox()
+        self.viewBox_CsWave = self.widget_mainwin.plot_CsPanel_plots_CsWave.getViewBox()
         self.viewBox_CsWave.autoRange()
         # csIfr
         self.pltData_CsIfr =\
-            self.plot_mainwin_CsPanel_plots_CsIfr.\
+            self.widget_mainwin.plot_CsPanel_plots_CsIfr.\
             plot(np.arange(2), np.zeros((1)), name="csIfr",
                 stepMode=True, fillLevel=0, brush=(255,0,0,200))
         self.infLine_CsIfr = \
@@ -334,28 +334,28 @@ class PsortGuiSignals(PsortGuiWidget):
                         pen=pg.mkPen(color=(255,0,0,255), width=2, style=QtCore.Qt.SolidLine),
                         movable=False, hoverPen='g', label='csIfr',
                         labelOpts={'position':0.90})
-        self.plot_mainwin_CsPanel_plots_CsIfr.\
+        self.widget_mainwin.plot_CsPanel_plots_CsIfr.\
             addItem(self.infLine_CsIfr, ignoreBounds=False)
-        self.viewBox_CsIfr = self.plot_mainwin_CsPanel_plots_CsIfr.getViewBox()
+        self.viewBox_CsIfr = self.widget_mainwin.plot_CsPanel_plots_CsIfr.getViewBox()
         self.viewBox_CsIfr.autoRange()
         # csPca
         self.pltData_CsPca =\
-            self.plot_mainwin_CsPanel_plots_CsPca.\
+            self.widget_mainwin.plot_CsPanel_plots_CsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="csPca", pen=None,
                 symbol='o', symbolSize=3, symbolBrush=(0,0,0,200), symbolPen=None)
         self.pltData_CsPcaSelected =\
-            self.plot_mainwin_CsPanel_plots_CsPca.\
+            self.widget_mainwin.plot_CsPanel_plots_CsPca.\
             plot(np.zeros((0)), np.zeros((0)), name="csPcaSelected", pen=None,
                 symbol='o', symbolSize=3, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(255,0,0,255), width=2) )
-        self.viewBox_CsPca = self.plot_mainwin_CsPanel_plots_CsPca.getViewBox()
+        self.viewBox_CsPca = self.widget_mainwin.plot_CsPanel_plots_CsPca.getViewBox()
         self.viewBox_CsPca.autoRange()
         # csXProb
         self.pltData_CsXProb =\
-            self.plot_mainwin_CsPanel_plots_CsXProb.\
+            self.widget_mainwin.plot_CsPanel_plots_CsXProb.\
             plot(np.zeros((0)), np.zeros((0)), name="csXProb", \
                 pen=pg.mkPen(color='r', width=3, style=QtCore.Qt.SolidLine))
-        self.viewBox_CsXProb = self.plot_mainwin_CsPanel_plots_CsXProb.getViewBox()
+        self.viewBox_CsXProb = self.widget_mainwin.plot_CsPanel_plots_CsXProb.getViewBox()
         self.viewBox_CsXProb.autoRange()
         return 0
 
@@ -433,77 +433,77 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_filterPanel_signals(self):
-        self.comboBx_mainwin_filterPanel_SsFast.currentIndexChanged.\
+        self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndexChanged.\
             connect(self.onfilterPanel_SsFast_IndexChanged)
-        self.comboBx_mainwin_filterPanel_CsSlow.currentIndexChanged.\
+        self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndexChanged.\
             connect(self.onfilterPanel_CsSlow_IndexChanged)
-        self.comboBx_mainwin_filterPanel_CsAlign.currentIndexChanged.\
+        self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndexChanged.\
             connect(self.onfilterPanel_CsAlign_IndexChanged)
-        self.txtedit_mainwin_filterPanel_ssFilter_min.valueChanged.\
+        self.widget_mainwin.txtedit_filterPanel_ssFilter_min.valueChanged.\
             connect(self.onfilterPanel_ssFilterMin_ValueChanged)
-        self.txtedit_mainwin_filterPanel_ssFilter_max.valueChanged.\
+        self.widget_mainwin.txtedit_filterPanel_ssFilter_max.valueChanged.\
             connect(self.onfilterPanel_ssFilterMax_ValueChanged)
-        self.txtedit_mainwin_filterPanel_csFilter_min.valueChanged.\
+        self.widget_mainwin.txtedit_filterPanel_csFilter_min.valueChanged.\
             connect(self.onfilterPanel_csFilterMin_ValueChanged)
-        self.txtedit_mainwin_filterPanel_csFilter_max.valueChanged.\
+        self.widget_mainwin.txtedit_filterPanel_csFilter_max.valueChanged.\
             connect(self.onfilterPanel_csFilterMax_ValueChanged)
         return 0
 
     def connect_rawSignalPanel_signals(self):
-        self.txtedit_mainwin_rawSignalPanel_SsThresh.valueChanged.\
+        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.valueChanged.\
             connect(self.onRawSignal_SsThresh_ValueChanged)
-        self.txtedit_mainwin_rawSignalPanel_CsThresh.valueChanged.\
+        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.valueChanged.\
             connect(self.onRawSignal_CsThresh_ValueChanged)
-        self.pushBtn_mainwin_rawSignalPanel_SsAutoThresh.clicked.\
+        self.widget_mainwin.pushBtn_rawSignalPanel_SsAutoThresh.clicked.\
             connect(self.onRawSignal_SsAutoThresh_Clicked)
-        self.pushBtn_mainwin_rawSignalPanel_CsAutoThresh.clicked.\
+        self.widget_mainwin.pushBtn_rawSignalPanel_CsAutoThresh.clicked.\
             connect(self.onRawSignal_CsAutoThresh_Clicked)
         return 0
 
     def connect_ssPanel_signals(self):
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_plots_SsPcaBtn_selectPcaData.clicked.\
             connect(self.onSsPanel_selectPcaData_Clicked)
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_selectWave.clicked.\
             connect(self.onSsPanel_selectWave_Clicked)
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_waveDissect.clicked.\
             connect(self.onSsPanel_waveDissect_Clicked)
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
             connect(self.onSsPanel_learnWave_Clicked)
-        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_buttons_SsDeselect.clicked.\
             connect(self.onSsPanel_deselect_Clicked)
-        self.pushBtn_mainwin_SsPanel_buttons_SsDelete.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_buttons_SsDelete.clicked.\
             connect(self.onSsPanel_delete_Clicked)
-        self.pushBtn_mainwin_SsPanel_buttons_SsKeep.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_buttons_SsKeep.clicked.\
             connect(self.onSsPanel_keep_Clicked)
-        self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.clicked.\
+        self.widget_mainwin.pushBtn_SsPanel_buttons_SsMoveToCs.clicked.\
             connect(self.onSsPanel_moveToCs_Clicked)
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.activated.\
+        self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.activated.\
             connect(self.onSsPanel_PcaNum1_IndexChanged)
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.activated.\
+        self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.activated.\
             connect(self.onSsPanel_PcaNum2_IndexChanged)
 
         return 0
 
     def connect_csPanel_signals(self):
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_plots_CsPcaBtn_selectPcaData.clicked.\
             connect(self.onCsPanel_selectPcaData_Clicked)
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_selectWave.clicked.\
             connect(self.onCsPanel_selectWave_Clicked)
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_waveDissect.clicked.\
             connect(self.onCsPanel_waveDissect_Clicked)
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
             connect(self.onCsPanel_learnWave_Clicked)
-        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_buttons_CsDeselect.clicked.\
             connect(self.onCsPanel_deselect_Clicked)
-        self.pushBtn_mainwin_CsPanel_buttons_CsDelete.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_buttons_CsDelete.clicked.\
             connect(self.onCsPanel_delete_Clicked)
-        self.pushBtn_mainwin_CsPanel_buttons_CsKeep.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_buttons_CsKeep.clicked.\
             connect(self.onCsPanel_keep_Clicked)
-        self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.clicked.\
+        self.widget_mainwin.pushBtn_CsPanel_buttons_CsMoveToSs.clicked.\
             connect(self.onCsPanel_moveToSs_Clicked)
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.activated.\
+        self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.activated.\
             connect(self.onCsPanel_PcaNum1_IndexChanged)
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.activated.\
+        self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.activated.\
             connect(self.onCsPanel_PcaNum2_IndexChanged)
         return 0
 
@@ -690,10 +690,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineSsThresh_positionChangeFinished(self):
-        self.txtedit_mainwin_rawSignalPanel_SsThresh.\
+        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.\
             setValue(abs(self.infLine_rawSignal_SsThresh.value()))
         self._workingDataBase['ss_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
         return 0
 
     def onInfLineSsThresh_positionChanged(self):
@@ -701,10 +701,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineSsPeak_positionChangeFinished(self):
-        self.txtedit_mainwin_rawSignalPanel_SsThresh.\
+        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.\
             setValue(abs(self.infLine_SsPeak.value()))
         self._workingDataBase['ss_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
         return 0
 
     def onInfLineSsPeak_positionChanged(self):
@@ -712,10 +712,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineCsThresh_positionChangeFinished(self):
-        self.txtedit_mainwin_rawSignalPanel_CsThresh.\
+        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.\
             setValue(abs(self.infLine_rawSignal_CsThresh.value()))
         self._workingDataBase['cs_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
         return 0
 
     def onInfLineCsThresh_positionChanged(self):
@@ -723,10 +723,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineCsPeak_positionChangeFinished(self):
-        self.txtedit_mainwin_rawSignalPanel_CsThresh.\
+        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.\
             setValue(abs(self.infLine_CsPeak.value()))
         self._workingDataBase['cs_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
         return 0
 
     def onInfLineCsPeak_positionChanged(self):
@@ -850,58 +850,58 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onSsPanel_PcaNum1_IndexChanged(self):
-        if (self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.count() >= 2) and \
+        if (self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.count() >= 2) and \
             (self._workingDataBase['ss_scatter_mat'].size > 0):
             self._workingDataBase['ss_pca1_index'][0] = \
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.currentIndex()
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.currentIndex()
             self._workingDataBase['ss_scatter1'] = \
                 self._workingDataBase['ss_scatter_mat'][:,self._workingDataBase['ss_pca1_index'][0]]
             self.plot_ss_pca()
         return 0
 
     def onSsPanel_PcaNum2_IndexChanged(self):
-        if (self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.count() >= 2) and \
+        if (self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.count() >= 2) and \
             (self._workingDataBase['ss_scatter_mat'].size > 0):
             self._workingDataBase['ss_pca2_index'][0] = \
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.currentIndex()
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.currentIndex()
             self._workingDataBase['ss_scatter2'] = \
                 self._workingDataBase['ss_scatter_mat'][:,self._workingDataBase['ss_pca2_index'][0]]
             self.plot_ss_pca()
         return 0
 
     def onCsPanel_PcaNum1_IndexChanged(self):
-        if (self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.count() >= 2) and \
+        if (self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.count() >= 2) and \
             (self._workingDataBase['cs_scatter_mat'].size > 0):
             self._workingDataBase['cs_pca1_index'][0] = \
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.currentIndex()
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.currentIndex()
             self._workingDataBase['cs_scatter1'] = \
                 self._workingDataBase['cs_scatter_mat'][:,self._workingDataBase['cs_pca1_index'][0]]
             self.plot_cs_pca()
         return 0
 
     def onCsPanel_PcaNum2_IndexChanged(self):
-        if (self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.count() >= 2) and \
+        if (self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.count() >= 2) and \
             (self._workingDataBase['cs_scatter_mat'].size > 0):
             self._workingDataBase['cs_pca2_index'][0] = \
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.currentIndex()
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.currentIndex()
             self._workingDataBase['cs_scatter2'] = \
                 self._workingDataBase['cs_scatter_mat'][:,self._workingDataBase['cs_pca2_index'][0]]
             self.plot_cs_pca()
         return 0
 
     def onfilterPanel_SsFast_IndexChanged(self):
-        if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
-        elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
+        elif self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         self.onRawSignal_SsThresh_ValueChanged()
         self.onRawSignal_SsAutoThresh_Clicked()
         return 0
 
     def onfilterPanel_CsSlow_IndexChanged(self):
-        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 0:
             self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
-        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
+        elif self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         self.onRawSignal_CsThresh_ValueChanged()
         self.onRawSignal_CsAutoThresh_Clicked()
@@ -909,42 +909,42 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onfilterPanel_CsAlign_IndexChanged(self):
         if self._workingDataBase['csLearnTemp_mode'][0]:
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
+            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(2)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['cs_temp'], dtype=np.unicode)
         elif self._workingDataBase['ssLearnTemp_mode'][0]:
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
+            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(1)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['ss_temp'], dtype=np.unicode)
         else:
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(0)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['ss_index'], dtype=np.unicode)
         return 0
 
     def onfilterPanel_ssFilterMin_ValueChanged(self):
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_ssFilter_min.value()
+            self.widget_mainwin.txtedit_filterPanel_ssFilter_min.value()
         return 0
 
     def onfilterPanel_ssFilterMax_ValueChanged(self):
         self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_ssFilter_max.value()
+            self.widget_mainwin.txtedit_filterPanel_ssFilter_max.value()
         return 0
 
     def onfilterPanel_csFilterMin_ValueChanged(self):
         self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_csFilter_min.value()
+            self.widget_mainwin.txtedit_filterPanel_csFilter_min.value()
         return 0
 
     def onfilterPanel_csFilterMax_ValueChanged(self):
         self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_csFilter_max.value()
+            self.widget_mainwin.txtedit_filterPanel_csFilter_max.value()
         return 0
 
     def onRawSignal_SsThresh_ValueChanged(self):
         self._workingDataBase['ss_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             _sign = -1
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
@@ -958,7 +958,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onRawSignal_CsThresh_ValueChanged(self):
         self._workingDataBase['cs_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _sign = +1
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
@@ -989,11 +989,11 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             ind_cluster_noise = np.argmax(centers)
             _threshold = np.min(gmm_data[labels==ind_cluster_noise])
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((-_threshold)+1)
+            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue((-_threshold)+1)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
             ind_cluster_noise = np.argmin(centers)
             _threshold = np.max(gmm_data[labels==ind_cluster_noise])
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((+_threshold)+1)
+            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue((+_threshold)+1)
         return 0
 
     def onRawSignal_CsAutoThresh_Clicked(self):
@@ -1015,19 +1015,19 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             ind_cluster_noise = np.argmin(centers)
             _threshold = np.max(gmm_data[labels==ind_cluster_noise])
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((+_threshold)+1)
+            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.setValue((+_threshold)+1)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             ind_cluster_noise = np.argmax(centers)
             _threshold = np.min(gmm_data[labels==ind_cluster_noise])
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
+            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
         return 0
 
     def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
-        if self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 0:
             self._workingDataBase['popUp_mode'] = np.array(['ss_pca_manual'], dtype=np.unicode)
-        elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1):
+        elif (self.widget_mainwin.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1):
             self._workingDataBase['popUp_mode'] = np.array(['ss_pca_gmm'], dtype=np.unicode)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
@@ -1049,9 +1049,9 @@ class PsortGuiSignals(PsortGuiWidget):
     def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
-        if self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 0:
             self._workingDataBase['popUp_mode'] = np.array(['cs_pca_manual'], dtype=np.unicode)
-        elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1):
+        elif (self.widget_mainwin.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1):
             self._workingDataBase['popUp_mode'] = np.array(['cs_pca_gmm'], dtype=np.unicode)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
@@ -1088,11 +1088,11 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onSsPanel_learnWave_Clicked(self):
-        if (self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()) and \
+        if (self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()) and \
             (self._workingDataBase['ss_index'].sum() < 1):
-            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
+            self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
         self._workingDataBase['ssLearnTemp_mode'][0] = \
-            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
+            self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
         self.extract_ss_template()
         self.extract_ss_similarity()
         self.extract_cs_similarity()
@@ -1104,11 +1104,11 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onCsPanel_learnWave_Clicked(self):
-        if (self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()) and \
+        if (self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()) and \
             (self._workingDataBase['cs_index'].sum() < 1):
-            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
+            self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
         self._workingDataBase['csLearnTemp_mode'][0] = \
-            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
+            self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         self.extract_cs_template()
         self.extract_ss_similarity()
         self.extract_cs_similarity()
@@ -1547,7 +1547,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_ss_ifr_histogram(self):
-        self.txtlabel_mainwin_SsPanel_plots_SsFiring.\
+        self.widget_mainwin.txtlabel_SsPanel_plots_SsFiring.\
             setText("SS Firing: {:.1f}Hz".format(self._workingDataBase['ss_ifr_mean'][0]))
         self.infLine_SsIfr.setValue(self._workingDataBase['ss_ifr_mean'][0])
         self.pltData_SsIfr.\
@@ -1559,7 +1559,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_cs_ifr_histogram(self):
-        self.txtlabel_mainwin_CsPanel_plots_CsFiring.\
+        self.widget_mainwin.txtlabel_CsPanel_plots_CsFiring.\
             setText("CS Firing: {:.2f}Hz".format(self._workingDataBase['cs_ifr_mean'][0]))
         self.infLine_CsIfr.setValue(self._workingDataBase['cs_ifr_mean'][0])
         self.pltData_CsIfr.\
@@ -2985,37 +2985,37 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = len(comboBx_Items)
             self._workingDataBase['ss_scatter_mat'] = ss_scatter_mat_
             self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
             if not(self._workingDataBase['umap_enable'][0]):
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
                 if (3 <= self._workingDataBase['ss_pca1_index'][0] <= 4):
                     self._workingDataBase['ss_pca1_index'][0] -= 3
                 if (3 <= self._workingDataBase['ss_pca2_index'][0] <= 4):
                     self._workingDataBase['ss_pca2_index'][0] -= 3
             # ss_pca1_index
             if (self._workingDataBase['ss_pca1_index'][0] < num_D):
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
                     self._workingDataBase['ss_pca1_index'][0])
                 self._workingDataBase['ss_scatter1'] = self._workingDataBase\
                     ['ss_scatter_mat'][:,self._workingDataBase['ss_pca1_index'][0]]
             else:
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
                 self._workingDataBase['ss_scatter1'] = self._workingDataBase['ss_scatter_mat'][:,0]
                 self._workingDataBase['ss_pca1_index'][0] = 0
             # ss_pca2_index
             if (self._workingDataBase['ss_pca2_index'][0] < num_D):
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
                     self._workingDataBase['ss_pca2_index'][0])
                 self._workingDataBase['ss_scatter2'] = self._workingDataBase\
                     ['ss_scatter_mat'][:,self._workingDataBase['ss_pca2_index'][0]]
             else:
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+                self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
                 self._workingDataBase['ss_scatter2'] = self._workingDataBase['ss_scatter_mat'][:,1]
                 self._workingDataBase['ss_pca2_index'][0] = 1
         else:
@@ -3027,15 +3027,15 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
             self._workingDataBase['ss_scatter1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_scatter2'] = np.zeros((0), dtype=np.float32)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
             # ss_pca1_index
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
             self._workingDataBase['ss_pca1_index'][0] = 0
             # ss_pca2_index
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+            self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
             self._workingDataBase['ss_pca2_index'][0] = 1
         return 0
 
@@ -3075,37 +3075,36 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = len(comboBx_Items)
             self._workingDataBase['cs_scatter_mat'] = cs_scatter_mat_
             self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
             if not(self._workingDataBase['umap_enable'][0]):
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
                 if (3 <= self._workingDataBase['cs_pca1_index'][0] <= 4):
                     self._workingDataBase['cs_pca1_index'][0] -= 3
                 if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
                     self._workingDataBase['cs_pca2_index'][0] -= 3
             # cs_pca1_index
             if (self._workingDataBase['cs_pca1_index'][0] < num_D):
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
                     self._workingDataBase['cs_pca1_index'][0])
                 self._workingDataBase['cs_scatter1'] = self._workingDataBase\
                     ['cs_scatter_mat'][:,self._workingDataBase['cs_pca1_index'][0]]
             else:
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
                 self._workingDataBase['cs_scatter1'] = self._workingDataBase['cs_scatter_mat'][:,0]
                 self._workingDataBase['cs_pca1_index'][0] = 0
             # cs_pca2_index
             if (self._workingDataBase['cs_pca2_index'][0] < num_D):
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
                     self._workingDataBase['cs_pca2_index'][0])
                 self._workingDataBase['cs_scatter2'] = self._workingDataBase\
                     ['cs_scatter_mat'][:,self._workingDataBase['cs_pca2_index'][0]]
             else:
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+                self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
                 self._workingDataBase['cs_scatter2'] = self._workingDataBase['cs_scatter_mat'][:,1]
                 self._workingDataBase['cs_pca2_index'][0] = 1
         else:
@@ -3117,15 +3116,15 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
             self._workingDataBase['cs_scatter1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_scatter2'] = np.zeros((0), dtype=np.float32)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
             # cs_pca1_index
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
             self._workingDataBase['cs_pca1_index'][0] = 0
             # cs_pca2_index
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+            self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
             self._workingDataBase['cs_pca2_index'][0] = 1
         return 0
 
@@ -3169,41 +3168,41 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def update_guiWidgets_from_guiDataBase(self):
         # Filter values
-        self.txtedit_mainwin_filterPanel_ssFilter_min.setValue(
+        self.widget_mainwin.txtedit_filterPanel_ssFilter_min.setValue(
             self._workingDataBase['ss_min_cutoff_freq'][0])
-        self.txtedit_mainwin_filterPanel_ssFilter_max.setValue(
+        self.widget_mainwin.txtedit_filterPanel_ssFilter_max.setValue(
             self._workingDataBase['ss_max_cutoff_freq'][0])
-        self.txtedit_mainwin_filterPanel_csFilter_min.setValue(
+        self.widget_mainwin.txtedit_filterPanel_csFilter_min.setValue(
             self._workingDataBase['cs_min_cutoff_freq'][0])
-        self.txtedit_mainwin_filterPanel_csFilter_max.setValue(
+        self.widget_mainwin.txtedit_filterPanel_csFilter_max.setValue(
             self._workingDataBase['cs_max_cutoff_freq'][0])
         # Threshold
-        self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue(
+        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue(
             self._workingDataBase['ss_threshold'][0])
-        self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue(
+        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.setValue(
             self._workingDataBase['cs_threshold'][0])
         # csAlign_mode
         if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(0)
         elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
+            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(1)
         elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
+            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(2)
         # ssPeak_mode
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
+            self.widget_mainwin.comboBx_filterPanel_SsFast.setCurrentIndex(0)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(1)
+            self.widget_mainwin.comboBx_filterPanel_SsFast.setCurrentIndex(1)
         # csPeak_mode
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
+            self.widget_mainwin.comboBx_filterPanel_CsSlow.setCurrentIndex(0)
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(1)
+            self.widget_mainwin.comboBx_filterPanel_CsSlow.setCurrentIndex(1)
         # ssLearnTemp_mode
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(
+        self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(
             self._workingDataBase['ssLearnTemp_mode'][0])
         # csLearnTemp_mode
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(
+        self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(
             self._workingDataBase['csLearnTemp_mode'][0])
         # ss_pca_bound
         self.infLine_SsWave_minPca.setValue(
@@ -3216,55 +3215,55 @@ class PsortGuiSignals(PsortGuiWidget):
         self.infLine_CsWave_maxPca.setValue(
             self._workingDataBase['cs_pca_bound_max'][0] * 1000.)
         # ss_pca_index
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
+        self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
             self._workingDataBase['ss_pca1_index'][0])
-        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
+        self.widget_mainwin.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
             self._workingDataBase['ss_pca2_index'][0])
         # cs_pca_index
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
+        self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
             self._workingDataBase['cs_pca1_index'][0])
-        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
+        self.widget_mainwin.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
             self._workingDataBase['cs_pca2_index'][0])
         return 0
 
     def update_guiDataBase_from_guiWidgets(self):
         # Filter values
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_ssFilter_min.value()
+            self.widget_mainwin.txtedit_filterPanel_ssFilter_min.value()
         self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_ssFilter_max.value()
+            self.widget_mainwin.txtedit_filterPanel_ssFilter_max.value()
         self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_csFilter_min.value()
+            self.widget_mainwin.txtedit_filterPanel_csFilter_min.value()
         self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.txtedit_mainwin_filterPanel_csFilter_max.value()
+            self.widget_mainwin.txtedit_filterPanel_csFilter_max.value()
         # Threshold
         self._workingDataBase['ss_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
         self._workingDataBase['cs_threshold'][0] = \
-            self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
+            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
         # csAlign_mode
-        if self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndex() == 0:
             self._workingDataBase['csAlign_mode'] = np.array(['ss_index'], dtype=np.unicode)
-        elif self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 1:
+        elif self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndex() == 1:
             self._workingDataBase['csAlign_mode'] = np.array(['ss_temp'], dtype=np.unicode)
-        elif self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 2:
+        elif self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndex() == 2:
             self._workingDataBase['csAlign_mode'] = np.array(['cs_temp'], dtype=np.unicode)
         # ssPeak_mode
-        if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
-        elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
+        elif self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         # csPeak_mode
-        if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
+        if self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 0:
             self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
-        elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
+        elif self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         # ssLearnTemp_mode
         self._workingDataBase['ssLearnTemp_mode'][0] = \
-            self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
+            self.widget_mainwin.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
         # csLearnTemp_mode
         self._workingDataBase['csLearnTemp_mode'][0] = \
-            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
+            self.widget_mainwin.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         # ss_pca_bound
         self._workingDataBase['ss_pca_bound_min'][0] = \
             self.infLine_SsWave_minPca.value()/1000.
