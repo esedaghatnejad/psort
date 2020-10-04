@@ -1,0 +1,47 @@
+{% set name = "deepdish" %}
+{% set version = "0.3.5" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: e3744c4c51c054ece1ce1a1cff25843f296f47957ce4a9b78f0e927989c49283
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - numpy
+    - pip
+    - python
+    - scipy
+    - pytables
+  run:
+    - numpy
+    - python
+    - scipy
+    - pytables
+
+test:
+  imports:
+    - deepdish
+    - deepdish.io
+    - deepdish.parallel
+    - deepdish.util
+
+about:
+  home: "https://github.com/uchicago-cs/deepdish"
+  license: BSD
+  license_family: BSD
+  license_file: 
+  summary: "Deep Learning experiments from University of Chicago."
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

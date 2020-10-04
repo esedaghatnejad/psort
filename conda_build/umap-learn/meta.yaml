@@ -1,0 +1,48 @@
+{% set name = "umap-learn" %}
+{% set version = "0.4.6" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 4276da9a039c79fa5b4f8d3515a8ccaaccf11a2f59ce8d15baf9d2015a5e82b3
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - numpy >=1.17
+    - pip
+    - python
+    - scikit-learn >=0.20
+    - scipy >=1.3.1
+    - numba >=0.46.0
+  run:
+    - numpy >=1.17
+    - python
+    - scikit-learn >=0.20
+    - scipy >=1.3.1
+    - numba >=0.46.0
+
+test:
+  imports:
+    - umap
+  requires:
+    - nose
+
+about:
+  home: "http://github.com/lmcinnes/umap"
+  license: BSD
+  license_family: BSD
+  license_file:
+  summary: "Uniform Manifold Approximation and Projection"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

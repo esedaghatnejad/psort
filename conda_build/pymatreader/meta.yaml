@@ -1,0 +1,48 @@
+{% set name = "pymatreader" %}
+{% set version = "0.0.23" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: dff4fa7bcb204d3efd066d64da123daad6ffa7a8fe23918722f4a050a2516e64
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - future
+    - h5py
+    - numpy
+    - pip
+    - python
+    - scipy
+    - xmltodict
+  run:
+    - future
+    - h5py
+    - numpy
+    - python
+    - scipy
+    - xmltodict
+
+test:
+  imports:
+    - pymatreader
+
+about:
+  home: "https://gitlab.com/obob/pymatreader"
+  license: BSD
+  license_family: BSD
+  license_file: 
+  summary: "Convenient reader for Matlab mat files"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

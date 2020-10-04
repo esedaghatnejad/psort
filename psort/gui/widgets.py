@@ -51,7 +51,8 @@ class PsortSpinBox(QDoubleSpinBox):
             min_=DEFAULT_MIN,
             max_=DEFAULT_MAX,
             decimals=DEFAULT_DECIMALS,
-            value=DEFAULT_VALUE
+            value=DEFAULT_VALUE,
+            color=None
     ):
         super(PsortSpinBox, self).__init__()
         self.setKeyboardTracking(True)
@@ -59,6 +60,8 @@ class PsortSpinBox(QDoubleSpinBox):
         self.setMaximum(max_)
         self.setDecimals(decimals)
         self.setValue(value)
+        if color is not None:
+            lib.setFont(self, color=color)
 
 class PsortFilter():
     """List of widgets to define a filter"""
@@ -75,7 +78,6 @@ class PsortFilter():
 
         for item in self.items:
             lib.setFont(item, color=color)
-
 
 #%% PsortGrandWin
 class PsortGrandWin(QWidget):
@@ -124,7 +126,7 @@ class PsortMainWin(QWidget):
         self.setLayout(self.layout)
 
 
-    def filter_line(self):
+    def add_vline(self):
         line = QFrame()
         line.setFrameShape(QFrame.VLine)
         line.setFrameShadow(QFrame.Sunken)
@@ -177,16 +179,16 @@ class PsortMainWin(QWidget):
             self.comboBx_filterPanel_SsFast,
             self.comboBx_filterPanel_CsSlow,
             self.comboBx_filterPanel_CsAlign,
-            self.filter_line()
+            self.add_vline()
         ]:
             self.layout_filterPanel.addWidget(widget)
 
         self.layout_filterPanel.addStretch()
 
         for widget in [
-            self.filter_line(),
+            self.add_vline(),
             *self.ssFilter.items,
-            self.filter_line(),
+            self.add_vline(),
             *self.csFilter.items,
         ]:
             self.layout_filterPanel.addWidget(widget)
@@ -225,19 +227,9 @@ class PsortMainWin(QWidget):
 
         self.txtlabel_rawSignalPanel_SsThresh = QLabel("SS Threshold")
         lib.setFont(self.txtlabel_rawSignalPanel_SsThresh, color="blue")
-        self.txtedit_rawSignalPanel_SsThresh = QDoubleSpinBox()
-        self.txtedit_rawSignalPanel_SsThresh.setKeyboardTracking(True)
-        self.txtedit_rawSignalPanel_SsThresh.setMinimum(1.0)
-        self.txtedit_rawSignalPanel_SsThresh.setMaximum(15000.0)
-        self.txtedit_rawSignalPanel_SsThresh.setDecimals(0)
-        lib.setFont(self.txtedit_rawSignalPanel_SsThresh, color="blue")
-        self.txtedit_rawSignalPanel_SsThresh.setValue(300.0)
-        self.line_rawSignalPanel_SsL1 = QtGui.QFrame()
-        self.line_rawSignalPanel_SsL1.setFrameShape(QFrame.VLine)
-        self.line_rawSignalPanel_SsL1.setFrameShadow(QFrame.Sunken)
-        self.line_rawSignalPanel_SsL2 = QtGui.QFrame()
-        self.line_rawSignalPanel_SsL2.setFrameShape(QFrame.VLine)
-        self.line_rawSignalPanel_SsL2.setFrameShadow(QFrame.Sunken)
+
+        self.txtedit_rawSignalPanel_SsThresh = PsortSpinBox(value=300, color="blue")
+
         self.pushBtn_rawSignalPanel_SsAutoThresh = QPushButton("Auto")
         lib.setFont(self.pushBtn_rawSignalPanel_SsAutoThresh, color="blue")
 
@@ -246,11 +238,11 @@ class PsortMainWin(QWidget):
         self.layout_rawSignalPanel_SsPeak_Thresh. \
             addWidget(self.txtedit_rawSignalPanel_SsThresh)
         self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.line_rawSignalPanel_SsL1)
+            addWidget(self.add_vline())
         self.layout_rawSignalPanel_SsPeak_Thresh. \
             addStretch()
         self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.line_rawSignalPanel_SsL2)
+            addWidget(self.add_vline())
         self.layout_rawSignalPanel_SsPeak_Thresh. \
             addWidget(self.pushBtn_rawSignalPanel_SsAutoThresh)
         self.layout_rawSignalPanel_SsPeak_Thresh.setSpacing(1)
@@ -279,19 +271,9 @@ class PsortMainWin(QWidget):
 
         self.txtlabel_rawSignalPanel_CsThresh = QLabel("CS Threshold")
         lib.setFont(self.txtlabel_rawSignalPanel_CsThresh, color="red")
-        self.txtedit_rawSignalPanel_CsThresh = QDoubleSpinBox()
-        self.txtedit_rawSignalPanel_CsThresh.setKeyboardTracking(True)
-        self.txtedit_rawSignalPanel_CsThresh.setMinimum(1.0)
-        self.txtedit_rawSignalPanel_CsThresh.setMaximum(15000.0)
-        self.txtedit_rawSignalPanel_CsThresh.setDecimals(0)
-        lib.setFont(self.txtedit_rawSignalPanel_CsThresh, color="red")
-        self.txtedit_rawSignalPanel_CsThresh.setValue(300.0)
-        self.line_rawSignalPanel_CsL1 = QtGui.QFrame()
-        self.line_rawSignalPanel_CsL1.setFrameShape(QFrame.VLine)
-        self.line_rawSignalPanel_CsL1.setFrameShadow(QFrame.Sunken)
-        self.line_rawSignalPanel_CsL2 = QtGui.QFrame()
-        self.line_rawSignalPanel_CsL2.setFrameShape(QFrame.VLine)
-        self.line_rawSignalPanel_CsL2.setFrameShadow(QFrame.Sunken)
+
+        self.txtedit_rawSignalPanel_CsThresh = PsortSpinBox(value=300, color='red')
+
         self.pushBtn_rawSignalPanel_CsAutoThresh = QPushButton("Auto")
         lib.setFont(self.pushBtn_rawSignalPanel_CsAutoThresh, color="red")
 
@@ -300,11 +282,11 @@ class PsortMainWin(QWidget):
         self.layout_rawSignalPanel_CsPeak_Thresh. \
             addWidget(self.txtedit_rawSignalPanel_CsThresh)
         self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.line_rawSignalPanel_CsL1)
+            addWidget(self.add_vline())
         self.layout_rawSignalPanel_CsPeak_Thresh. \
             addStretch()
         self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.line_rawSignalPanel_CsL2)
+            addWidget(self.add_vline())
         self.layout_rawSignalPanel_CsPeak_Thresh. \
             addWidget(self.pushBtn_rawSignalPanel_CsAutoThresh)
         self.layout_rawSignalPanel_CsPeak_Thresh.setSpacing(1)
@@ -663,9 +645,6 @@ class PsortMainWin(QWidget):
         self.layout_CsPanel.setSpacing(1)
         self.layout_CsPanel.setContentsMargins(1, 1, 1, 1)
         return 0
-
-
-
 
 #%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow, ):

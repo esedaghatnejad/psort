@@ -1,0 +1,49 @@
+{% set name = "neo" %}
+{% set version = "0.8.0" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 3382a37b24a384006238b72981f1e9259de9bfa71886f8ed564d35d254ace458
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - numpy >=1.7.1
+    - pip
+    - python
+    - quantities >=0.9.0
+  run:
+    - numpy >=1.7.1
+    - python
+    - quantities >=0.9.0
+
+test:
+  imports:
+    - neo
+    - neo.core
+    - neo.io
+    - neo.rawio
+    - neo.test
+    - neo.test.coretest
+    - neo.test.iotest
+    - neo.test.rawiotest
+
+about:
+  home: "https://neuralensemble.org/neo"
+  license: BSD
+  license_family: BSD
+  license_file: 
+  summary: "Neo is a package for representing electrophysiology data in Python, together with support for reading a wide range of neurophysiology file formats"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

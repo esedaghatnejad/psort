@@ -1,0 +1,102 @@
+{% set name = "psort" %}
+{% set version = "0.4.26" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 4b421b4503d983528e8caa90e2aaee66ffa9d6f45d3e93f33c8eafc63c49e5ee
+
+build:
+  number: 0
+  entry_points:
+    - psort = psort.main:run_from_cmdline
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+#    - deepdish >=0.3.5
+#    - h5py >=2.10.0
+#    - matplotlib >=3.3.1
+#    - neo >=0.8.0
+#    - numba >=0.50.1
+#    - numpy >=1.19.1
+#    - pip
+#    - pymatreader >=0.0.23
+#    - pyqt
+#    - pyqtgraph >=0.11.0
+#    - python
+#    - pyyaml
+#    - scikit-learn >=0.23.2
+#    - scipy >=1.5.2
+#    - umap-learn >=0.4.6
+    - deepdish
+    - decorator
+    - h5py
+    - matplotlib
+    - neo
+    - numba
+    - numpy x.x
+    - pip
+    - pymatreader
+    - pyqt
+    - pyqtgraph
+    - python
+    - pyyaml
+    - scikit-learn
+    - scipy
+    - umap-learn
+  run:
+#    - deepdish >=0.3.5
+#    - h5py >=2.10.0
+#    - matplotlib >=3.3.1
+#    - neo >=0.8.0
+#    - numba >=0.50.1
+#    - numpy >=1.19.1
+#    - pymatreader >=0.0.23
+#    - pyqt5 >=5.11.2
+#    - pyqtgraph >=0.11.0
+#    - python
+#    - pyyaml
+#    - scikit-learn >=0.23.2
+#    - scipy >=1.5.2
+#    - umap-learn >=0.4.6
+    - deepdish
+    - decorator
+    - h5py
+    - matplotlib
+    - neo
+    - numba
+    - numpy x.x
+    - pymatreader
+    - pyqt
+    - pyqtgraph
+    - python
+    - pyyaml
+    - scikit-learn
+    - scipy
+    - umap-learn
+
+test:
+  imports:
+    - psort
+    - psort.gui
+    - psort.tests
+    - psort.tools
+  commands:
+    - psort --help
+
+about:
+  home: "https://github.com/esedaghatnejad/psort"
+  license: GPL
+  license_family: GPL
+  license_file: LICENSE
+  summary: "Graphical application for identifying simple and complex purkinje spikes"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here
