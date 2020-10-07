@@ -6,6 +6,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
+import typing
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import *
 import os
@@ -14,6 +15,26 @@ from psort import lib
 from psort.utils import PROJECT_FOLDER, get_icons
 
 ## #############################################################################
+
+# Colors
+BLUE = QtGui.QColor(0, 0, 255, 30)
+RED = QtGui.QColor(255, 0, 0, 30)
+WHITE = QtGui.QColor(255, 255, 255, 30)
+
+DEFAULT_CONFIG = {
+    'SS': {
+        'Filter Range': [50, 5000],
+        'Threshold': 300,
+        'Color': BLUE,
+        'Colortext': 'blue'
+    },
+    'CS': {
+        'Filter Range': [10, 200],
+        'Threshold': 300,
+        'Color': RED,
+        'Colortext': 'red'
+    }
+}
 
 #%% PSortIcon
 class PsortGuiIcon(QtGui.QIcon):
@@ -24,20 +45,92 @@ class PsortGuiIcon(QtGui.QIcon):
             str(PROJECT_FOLDER / 'icons' / PsortGuiIcon.icon_data[icon_name])
         )
 
+class PsortLinearControlLayout(QHBoxLayout):
+
+    def __init__(self, *itemgroups):
+        super(PsortLinearControlLayout, self).__init__()
+
+        for n, group in enumerate(itemgroups):
+            self.add_widgets(*group)
+            if n < len(itemgroups):
+                self.addStretch()
+
+        self.setSpacing(1)
+        self.setContentsMargins(1, 1, 1, 1)
+
+    def insert_vline(self):
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
+        self.addWidget(line)
+
+    def add_widgets(self, *args):
+        for widget in args:
+            self.addWidget(widget)
+
+    def addWidget(self, a0, **kwargs) -> None:
+        if a0 == '|':
+            self.insert_vline()
+        else:
+            super(PsortLinearControlLayout, self).addWidget(a0, **kwargs)
+
+
 #%% PsortPanel
 class PsortPanel(QWidget):
     
-    def __init__(self, color=QtGui.QColor(255, 255, 255, 30)):
+    def __init__(self, color=WHITE, orientation='H', spacing=3, margins=1):
         super(PsortPanel, self).__init__()
         self.setAutoFillBackground(True)
         palette = self.palette()
         palette.setColor(QtGui.QPalette.Window, color)
         self.setPalette(palette)
-        self.setLayout(QHBoxLayout())
-        self.spinboxes = {}
+        if orientation == 'H':
+            self.setLayout(QHBoxLayout())
+        elif orientation == 'V':
+            self.setLayout(QVBoxLayout())
 
-    def add_spinbox(self, id):
-        self.spinboxes[id] = QDoubleSpinBox()
+        self.layout().setSpacing(spacing)
+        self.layout().setContentsMargins(margins, margins, margins, margins)
+
+
+class PsortSortingPanel(PsortPanel):
+
+    button_info = {
+        'SS': {
+            'Delete': 'TRASH_BLUE',
+            'Keep': 'DL_BLUE',
+            'Move': 'SHUFFLE_RIGHT_BLUE',
+            'Deselect': 'FORBID_BLUE'
+        },
+        'CS': {
+            'Delete': 'TRASH_RED',
+            'Keep': 'DL_RED',
+            'Move': 'SHUFFLE_LEFT_RED',
+            'Deselect': 'FORBID_RED'
+        }
+    }
+
+    def __init__(self, type):
+        super(PsortSortingPanel, self).__init__(color=DEFAULT_CONFIG[type]['Color'], spacing=1)
+
+        """Icons made by
+        <a href="https://www.flaticon.com/authors/itim2101" title="itim2101">itim2101</a>
+        from
+        <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>"""
+
+        self.buttons = {}
+
+        for name, icon in self.button_info[type].items():
+            if name != 'Move':
+                self.buttons[name] = QPushButton(name)
+            else:
+                destination = ('CS', 'SS')[type == 'CS']
+                self.buttons[name] = QPushButton(f'Move to {destination}')
+
+            lib.setFont(self.buttons[name], color=DEFAULT_CONFIG[type]['Colortext'])
+            self.buttons[name].setIcon(PsortGuiIcon(icon))
+            self.layout().addWidget(self.buttons[name])
+
 
 class PsortSpinBox(QDoubleSpinBox):
 
@@ -63,6 +156,7 @@ class PsortSpinBox(QDoubleSpinBox):
         if color is not None:
             lib.setFont(self, color=color)
 
+
 class PsortFilter():
     """List of widgets to define a filter"""
 
@@ -79,17 +173,158 @@ class PsortFilter():
         for item in self.items:
             lib.setFont(item, color=color)
 
+
+class PsortPlotWidget(pg.PlotWidget):
+
+    def __init__(self, title=None):
+        super(PsortPlotWidget, self).__init__()
+        lib.set_plotWidget(self)
+        self.setTitle(title)
+
+
+class PsortPlotPanel(PsortPanel):
+
+    def __init__(self, type, plot_title=None):
+        super(PsortPlotPanel, self).__init__(color=DEFAULT_CONFIG[type]['Color'], orientation='V')
+        self.control_layout = QGridLayout()
+        self.plot = PsortPlotWidget(plot_title)
+
+        self.layout().addLayout(self.control_layout)
+        self.layout().addWidget(self.plot)
+
+
+class PsortTemplateAnalysisPanel(PsortPlotPanel):
+
+    def __init__(self, type):
+
+        super(PsortTemplateAnalysisPanel, self).__init__(
+            type=type,
+            plot_title=f'Y: {type} Waveform (uV) | X: Time (ms)'
+        )
+
+        self.buttons = {}
+        for j, button in enumerate(['Select', 'Dissect', 'Learn Template']):
+            self.buttons[button] = QPushButton(button)
+            lib.setFont(self.buttons[button], color=DEFAULT_CONFIG[type]['Colortext'])
+            self.control_layout.addWidget(self.buttons[button], 0, j)
+
+        self.buttons['Learn Template'].setCheckable(True)
+
+
+class PsortFiringPanel(PsortPlotPanel):
+
+    def __init__(self, type):
+        super(PsortFiringPanel, self).__init__(
+            type=type,
+            plot_title=f"Y: {type}_IFR(#) | X: Freq(Hz)"
+        )
+        self.title = QLabel(f"{type} Firing: 00.0Hz")
+        self.title.setAlignment(QtCore.Qt.AlignCenter)
+        lib.setFont(self.title, color=DEFAULT_CONFIG[type]['Colortext'])
+        self.control_layout.addWidget(self.title, 0, 0)
+
+
+class PsortDataSelectionPanel(PsortPlotPanel):
+
+    COMPONENT_DIMENSION = 2
+
+    def __init__(self, type):
+        super(PsortDataSelectionPanel, self).__init__(type=type)
+        txtcolor = DEFAULT_CONFIG[type]['Colortext']
+
+        # Top row
+        self.select_button = QPushButton("Select Data")
+        lib.setFont(self.select_button, color=txtcolor)
+        self.selectPcaCombo = QComboBox()
+        self.selectPcaCombo.addItems(["Manual", "GMM-2D"])
+        self.selectPcaCombo.setCurrentIndex(1)
+
+        for j, widget in enumerate([self.select_button, self.selectPcaCombo]):
+            self.control_layout.addWidget(widget, 0, 2*j, 1, 2)
+            lib.setFont(widget, color=txtcolor)
+
+        # Second row
+        self.components = []
+        for component in range(self.COMPONENT_DIMENSION):
+            self.components.append({
+                'Label': QLabel(f"{('X', 'Y', 'Z')[component]}: {type}_"),
+                'Options': QComboBox()
+            })
+            self.components[component]['Options'].addItems(['pca1', 'pca2'])
+            self.components[component]['Options'].setCurrentIndex(component)
+            for j, (label, widget) in enumerate(self.components[component].items()):
+                lib.setFont(widget, color=txtcolor)
+                self.control_layout.addWidget(widget, 1, 2*component + j)
+
+            self.control_layout.setColumnStretch(2*component + 1, 1) # 1 corresponds to index of options
+
+        self.control_layout.setSpacing(1)
+
+
+class PsortCorrelogramPanel(PsortPlotPanel):
+
+    def __init__(self, type):
+        super(PsortCorrelogramPanel, self).__init__(
+            type=type,
+            plot_title=f"Y: {type}xSS_XProb(1) | X: Time(ms)"
+        )
+
+
 #%% PsortGrandWin
 class PsortGrandWin(QWidget):
     """ Main_window and multiple popup windows for complementary actions stacked over each other """
 
     def __init__(self):
         super(PsortGrandWin, self).__init__()
-        layout = QStackedLayout()
+        self.setLayout(QStackedLayout())
         self.mainwin = PsortMainWin()
-        layout.addWidget(self.mainwin)
-        layout.setCurrentIndex(0)
-        self.setLayout(layout)
+        self.layout().addWidget(self.mainwin)
+        self.layout().setCurrentIndex(0)
+
+
+class PsortThresholdBar(PsortLinearControlLayout):
+
+    def __init__(self, spike_type, color, threshold=300):
+        label = QLabel(f"{spike_type} Threshold")
+        lib.setFont(label, color=color)
+        self.threshold = PsortSpinBox(value=threshold, color=color)
+        self.auto_button = QPushButton("Auto")
+        lib.setFont(self.auto_button, color=color)
+
+        super(PsortThresholdBar, self).__init__(
+            [label, self.threshold, '|'],
+            ['|', self.auto_button]
+        )
+
+
+class PsortPlotGrid(QGridLayout):
+
+    PLOT_PANEL_CONFIG = {
+        'Template Analysis': {
+            'Class': PsortTemplateAnalysisPanel,
+            'Position': (0, 0)
+        },
+        'Data Selection': {
+            'Class': PsortDataSelectionPanel,
+            'Position': (1, 0)
+        },
+        'Firing Statistics': {
+            'Class': PsortFiringPanel,
+            'Position': (0, 1)
+        },
+        'Correlogram': {
+            'Class': PsortCorrelogramPanel,
+            'Position': (1, 1)
+        },
+    }
+
+    def __init__(self, type):
+        super(PsortPlotGrid, self).__init__()
+        self.plot_panels = {}
+        for panel, info in self.PLOT_PANEL_CONFIG.items():
+            self.plot_panels[panel] = info['Class'](type)
+            self.addWidget(self.plot_panels[panel], *info['Position'])
+
 
 #%% PsortMainWin
 class PsortMainWin(QWidget):
@@ -193,120 +428,60 @@ class PsortMainWin(QWidget):
         ]:
             self.layout_filterPanel.addWidget(widget)
 
-        self.layout_filterPanel.setSpacing(5)
-        self.layout_filterPanel.setContentsMargins(1, 1, 1, 1)
-
-        # TODO: Get rid of these
-        self.txtedit_filterPanel_ssFilter_max = self.ssFilter.max
-        self.txtedit_filterPanel_ssFilter_min = self.ssFilter.min
-        self.txtedit_filterPanel_csFilter_max = self.csFilter.max
-        self.txtedit_filterPanel_csFilter_min = self.csFilter.min
         return 0
 
     def build_rawSignalPanel(self):
-        self.layout_rawSignalPanel_SsPeak = QVBoxLayout()
-        self.layout_rawSignalPanel_SsPeak_Thresh = QHBoxLayout()
-        self.layout_rawSignalPanel_CsPeak = QVBoxLayout()
+        # self.layout_rawSignalPanel_SsPeak_Thresh = QHBoxLayout()
         self.layout_rawSignalPanel_CsPeak_Thresh = QHBoxLayout()
+
         # rawSignal plot
-        self.plot_rawSignalPanel_rawSignal = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_rawSignalPanel_rawSignal)
-        self.plot_rawSignalPanel_rawSignal.setTitle("Y: Raw_Signal(uV) | X: Time(s)")
+        self.plot_rawSignalPanel_rawSignal = PsortPlotWidget("Y: Raw_Signal(uV) | X: Time(s)")
+
         # SsPeak Panel, containing SsHistogram and SsThresh
-        self.widget_rawSignalPanel_SsPeakPanel = QWidget()
-        self.widget_rawSignalPanel_SsPeakPanel.setAutoFillBackground(True)
-        palette = self.widget_rawSignalPanel_SsPeakPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 255, 30))
-        self.widget_rawSignalPanel_SsPeakPanel.setPalette(palette)
-        self.widget_rawSignalPanel_SsPeakPanel. \
-            setLayout(self.layout_rawSignalPanel_SsPeak)
+        self.widget_rawSignalPanel_SsPeakPanel = PsortPanel(BLUE, 'V')
+        self.layout_rawSignalPanel_SsPeak = self.widget_rawSignalPanel_SsPeakPanel.layout()
 
-        self.plot_rawSignalPanel_SsPeak = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_rawSignalPanel_SsPeak)
-        self.plot_rawSignalPanel_SsPeak.setTitle("X: SS_Peak_Dist(uV) | Y: Count(#)")
+        self.plot_rawSignalPanel_SsPeak = PsortPlotWidget("X: SS_Peak_Dist(uV) | Y: Count(#)")
 
-        self.txtlabel_rawSignalPanel_SsThresh = QLabel("SS Threshold")
-        lib.setFont(self.txtlabel_rawSignalPanel_SsThresh, color="blue")
+        self.layout_rawSignalPanel_SsPeak_Thresh = PsortThresholdBar('SS', 'blue')
+        self.txtedit_rawSignalPanel_SsThresh = self.layout_rawSignalPanel_SsPeak_Thresh.threshold
+        self.pushBtn_rawSignalPanel_SsAutoThresh = self.layout_rawSignalPanel_SsPeak_Thresh.auto_button
 
-        self.txtedit_rawSignalPanel_SsThresh = PsortSpinBox(value=300, color="blue")
-
-        self.pushBtn_rawSignalPanel_SsAutoThresh = QPushButton("Auto")
-        lib.setFont(self.pushBtn_rawSignalPanel_SsAutoThresh, color="blue")
-
-        self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.txtlabel_rawSignalPanel_SsThresh)
-        self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.txtedit_rawSignalPanel_SsThresh)
-        self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.add_vline())
-        self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addStretch()
-        self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.add_vline())
-        self.layout_rawSignalPanel_SsPeak_Thresh. \
-            addWidget(self.pushBtn_rawSignalPanel_SsAutoThresh)
         self.layout_rawSignalPanel_SsPeak_Thresh.setSpacing(1)
         self.layout_rawSignalPanel_SsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
 
-        self.layout_rawSignalPanel_SsPeak. \
-            addLayout(self.layout_rawSignalPanel_SsPeak_Thresh)
-        self.layout_rawSignalPanel_SsPeak. \
-            addWidget(self.plot_rawSignalPanel_SsPeak)
+        self.layout_rawSignalPanel_SsPeak.addLayout(self.layout_rawSignalPanel_SsPeak_Thresh)
+        self.layout_rawSignalPanel_SsPeak.addWidget(self.plot_rawSignalPanel_SsPeak)
         self.layout_rawSignalPanel_SsPeak.setStretch(0, 0)
         self.layout_rawSignalPanel_SsPeak.setStretch(1, 1)
         self.layout_rawSignalPanel_SsPeak.setSpacing(1)
         self.layout_rawSignalPanel_SsPeak.setContentsMargins(1, 1, 1, 1)
+
         # CsPeak Panel, containing CsHistogram and CsThresh
-        self.widget_rawSignalPanel_CsPeakPanel = QWidget()
-        self.widget_rawSignalPanel_CsPeakPanel.setAutoFillBackground(True)
-        palette = self.widget_rawSignalPanel_CsPeakPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 0, 0, 30))
-        self.widget_rawSignalPanel_CsPeakPanel.setPalette(palette)
-        self.widget_rawSignalPanel_CsPeakPanel. \
-            setLayout(self.layout_rawSignalPanel_CsPeak)
+        self.widget_rawSignalPanel_CsPeakPanel = PsortPanel(RED, 'V')
+        self.layout_rawSignalPanel_CsPeak = self.widget_rawSignalPanel_CsPeakPanel.layout()
 
-        self.plot_rawSignalPanel_CsPeak = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_rawSignalPanel_CsPeak)
-        self.plot_rawSignalPanel_CsPeak.setTitle("X: CS_Peak_Dist(uV) | Y: Count(#)")
+        self.plot_rawSignalPanel_CsPeak = PsortPlotWidget("X: CS_Peak_Dist(uV) | Y: Count(#)")
 
-        self.txtlabel_rawSignalPanel_CsThresh = QLabel("CS Threshold")
-        lib.setFont(self.txtlabel_rawSignalPanel_CsThresh, color="red")
 
-        self.txtedit_rawSignalPanel_CsThresh = PsortSpinBox(value=300, color='red')
+        self.layout_rawSignalPanel_CsPeak_Thresh = PsortThresholdBar('CS', 'red')
+        self.txtedit_rawSignalPanel_CsThresh = self.layout_rawSignalPanel_CsPeak_Thresh.threshold
+        self.pushBtn_rawSignalPanel_CsAutoThresh = self.layout_rawSignalPanel_CsPeak_Thresh.auto_button
 
-        self.pushBtn_rawSignalPanel_CsAutoThresh = QPushButton("Auto")
-        lib.setFont(self.pushBtn_rawSignalPanel_CsAutoThresh, color="red")
-
-        self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.txtlabel_rawSignalPanel_CsThresh)
-        self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.txtedit_rawSignalPanel_CsThresh)
-        self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.add_vline())
-        self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addStretch()
-        self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.add_vline())
-        self.layout_rawSignalPanel_CsPeak_Thresh. \
-            addWidget(self.pushBtn_rawSignalPanel_CsAutoThresh)
         self.layout_rawSignalPanel_CsPeak_Thresh.setSpacing(1)
         self.layout_rawSignalPanel_CsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
 
-        self.layout_rawSignalPanel_CsPeak. \
-            addLayout(self.layout_rawSignalPanel_CsPeak_Thresh)
-        self.layout_rawSignalPanel_CsPeak. \
-            addWidget(self.plot_rawSignalPanel_CsPeak)
+        self.layout_rawSignalPanel_CsPeak.addLayout(self.layout_rawSignalPanel_CsPeak_Thresh)
+        self.layout_rawSignalPanel_CsPeak.addWidget(self.plot_rawSignalPanel_CsPeak)
         self.layout_rawSignalPanel_CsPeak.setStretch(0, 0)
         self.layout_rawSignalPanel_CsPeak.setStretch(1, 1)
         self.layout_rawSignalPanel_CsPeak.setSpacing(1)
         self.layout_rawSignalPanel_CsPeak.setContentsMargins(1, 1, 1, 1)
+
         # rawSignal plot is x3 while the SsPeak and CsPeak are x1
-        self.layout_rawSignalPanel. \
-            addWidget(self.plot_rawSignalPanel_rawSignal)
-        self.layout_rawSignalPanel. \
-            addWidget(self.widget_rawSignalPanel_SsPeakPanel)
-        self.layout_rawSignalPanel. \
-            addWidget(self.widget_rawSignalPanel_CsPeakPanel)
+        self.layout_rawSignalPanel.addWidget(self.plot_rawSignalPanel_rawSignal)
+        self.layout_rawSignalPanel.addWidget(self.widget_rawSignalPanel_SsPeakPanel)
+        self.layout_rawSignalPanel.addWidget(self.widget_rawSignalPanel_CsPeakPanel)
         self.layout_rawSignalPanel.setStretch(0, 3)
         self.layout_rawSignalPanel.setStretch(1, 1)
         self.layout_rawSignalPanel.setStretch(2, 1)
@@ -315,336 +490,24 @@ class PsortMainWin(QWidget):
         return 0
 
     def build_SsCsPanel(self):
-        self.layout_SsPanel = QVBoxLayout()
-        self.widget_SsPanel = QWidget()
-        self.widget_SsPanel.setAutoFillBackground(True)
-        palette = self.widget_SsPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(0, 0, 255, 30))
-        self.widget_SsPanel.setPalette(palette)
-        self.widget_SsPanel.setLayout(self.layout_SsPanel)
+        self.plot_layouts = {}
+        self.sorting_panels = {}
+        for type in ['SS', 'CS']:
+            panel = PsortPanel(color=DEFAULT_CONFIG[type]['Color'], orientation='V', spacing=1)
 
-        self.layout_CsPanel = QVBoxLayout()
-        self.widget_CsPanel = QWidget()
-        self.widget_CsPanel.setAutoFillBackground(True)
-        palette = self.widget_CsPanel.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 0, 0, 30))
-        self.widget_CsPanel.setPalette(palette)
-        self.widget_CsPanel.setLayout(self.layout_CsPanel)
+            self.plot_layouts[type] = PsortPlotGrid(type)
+            self.sorting_panels[type] = PsortSortingPanel(type)
 
-        self.build_SsPanel()
-        self.build_CsPanel()
-        self.layout_SsCsPanel.addWidget(self.widget_SsPanel)
-        self.layout_SsCsPanel.addWidget(self.widget_CsPanel)
+            panel.layout().addLayout(self.plot_layouts[type])
+            panel.layout().addWidget(self.sorting_panels[type])
+            panel.layout().setStretch(0, 1)
+            panel.layout().setStretch(1, 0)
+            self.layout_SsCsPanel.addWidget(panel)
+
         self.layout_SsCsPanel.setSpacing(1)
         self.layout_SsCsPanel.setContentsMargins(1, 1, 1, 1)
         return 0
 
-    def build_SsPanel(self):
-        self.layout_SsPanel_plots = QGridLayout()
-        self.layout_SsPanel_buttons = QHBoxLayout()
-        self.layout_SsPanel_plots_SsWaveBtn = QHBoxLayout()
-        self.layout_SsPanel_plots_SsPcaBtn = QHBoxLayout()
-
-        self.pushBtn_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select")
-        lib.setFont(self.pushBtn_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
-        self.pushBtn_SsPanel_plots_SsWaveBtn_waveDissect = QPushButton("Dissect")
-        lib.setFont(self.pushBtn_SsPanel_plots_SsWaveBtn_waveDissect, color="blue")
-        self.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform = QPushButton("Learn Template")
-        lib.setFont(self.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform, color="blue")
-        self.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform.setCheckable(True)
-        self.layout_SsPanel_plots_SsWaveBtn. \
-            addWidget(self.pushBtn_SsPanel_plots_SsWaveBtn_selectWave)
-        self.layout_SsPanel_plots_SsWaveBtn. \
-            addWidget(self.pushBtn_SsPanel_plots_SsWaveBtn_waveDissect)
-        self.layout_SsPanel_plots_SsWaveBtn. \
-            addWidget(self.pushBtn_SsPanel_plots_SsWaveBtn_learnWaveform)
-        self.layout_SsPanel_plots_SsWaveBtn.setSpacing(1)
-        self.layout_SsPanel_plots_SsWaveBtn.setContentsMargins(1, 1, 1, 1)
-
-        self.pushBtn_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select Data")
-        lib.setFont(self.pushBtn_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
-        self.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
-        self.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo.setCurrentIndex(1)
-        lib.setFont(self.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
-        self.layout_SsPanel_plots_SsPcaBtn. \
-            addWidget(self.pushBtn_SsPanel_plots_SsPcaBtn_selectPcaData)
-        self.layout_SsPanel_plots_SsPcaBtn. \
-            addWidget(self.comboBx_SsPanel_plots_SsPcaBtn_selectPcaCombo)
-        self.layout_SsPanel_plots_SsPcaBtn.setSpacing(1)
-        self.layout_SsPanel_plots_SsPcaBtn.setContentsMargins(1, 1, 1, 1)
-
-        self.txtlabel_SsPanel_plots_SsFiring = QLabel("SS Firing: 00.0Hz")
-        lib.setFont(self.txtlabel_SsPanel_plots_SsFiring, color="blue")
-        self.txtlabel_SsPanel_plots_SsFiring. \
-            setAlignment(QtCore.Qt.AlignCenter)
-
-        self.plot_SsPanel_plots_SsWave = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_SsPanel_plots_SsWave)
-        self.plot_SsPanel_plots_SsWave.setTitle("Y: SS_Waveform(uV) | X: Time(ms)")
-        self.plot_SsPanel_plots_SsIfr = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_SsPanel_plots_SsIfr)
-        self.plot_SsPanel_plots_SsIfr.setTitle("Y: SS_IFR(#) | X: Freq(Hz)")
-        self.plot_SsPanel_plots_SsPca = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_SsPanel_plots_SsPca)
-        self.plot_SsPanel_plots_SsPca.setTitle(None)
-        self.plot_SsPanel_plots_SsXProb = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_SsPanel_plots_SsXProb)
-        self.plot_SsPanel_plots_SsXProb.setTitle("Y: SSxSS_XProb(1) | X: Time(ms)")
-
-        self.layout_SsPanel_plots_SsPcaPlot = QVBoxLayout()
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum = QHBoxLayout()
-        self.widget_SsPanel_plots_SsPcaPlot_PcaNum = QWidget()
-        self.widget_SsPanel_plots_SsPcaPlot_PcaNum.setAutoFillBackground(True)
-        palette = self.widget_SsPanel_plots_SsPcaPlot_PcaNum.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 255, 255, 255))
-        self.widget_SsPanel_plots_SsPcaPlot_PcaNum.setPalette(palette)
-        self.widget_SsPanel_plots_SsPcaPlot_PcaNum. \
-            setLayout(self.layout_SsPanel_plots_SsPcaPlot_PcaNum)
-        self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1 = QComboBox()
-        self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
-        lib.setFont(self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
-        self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
-        self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2 = QComboBox()
-        self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
-        lib.setFont(self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
-        self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
-        self.txtlabel_SsPanel_plots_SsPcaPlot_PcaNum1 = QLabel("| X: SS_ ")
-        lib.setFont(self.txtlabel_SsPanel_plots_SsPcaPlot_PcaNum1, color="blue")
-        self.txtlabel_SsPanel_plots_SsPcaPlot_PcaNum2 = QLabel(" Y: SS_ ")
-        lib.setFont(self.txtlabel_SsPanel_plots_SsPcaPlot_PcaNum2, color="blue")
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum. \
-            addWidget(self.txtlabel_SsPanel_plots_SsPcaPlot_PcaNum2)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum. \
-            addWidget(self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum2)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum. \
-            addWidget(self.txtlabel_SsPanel_plots_SsPcaPlot_PcaNum1)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum. \
-            addWidget(self.comboBx_SsPanel_plots_SsPcaPlot_PcaNum1)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(0, 0)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(1, 1)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(2, 0)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum.setStretch(3, 1)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum.setSpacing(1)
-        self.layout_SsPanel_plots_SsPcaPlot_PcaNum.setContentsMargins(1, 1, 1, 1)
-        self.layout_SsPanel_plots_SsPcaPlot. \
-            addWidget(self.widget_SsPanel_plots_SsPcaPlot_PcaNum)
-        self.layout_SsPanel_plots_SsPcaPlot. \
-            addWidget(self.plot_SsPanel_plots_SsPca)
-        self.layout_SsPanel_plots_SsPcaPlot.setSpacing(1)
-        self.layout_SsPanel_plots_SsPcaPlot.setContentsMargins(1, 1, 1, 1)
-
-        self.layout_SsPanel_plots. \
-            addLayout(self.layout_SsPanel_plots_SsWaveBtn, 0, 0)
-        self.layout_SsPanel_plots. \
-            addWidget(self.txtlabel_SsPanel_plots_SsFiring, 0, 1)
-        self.layout_SsPanel_plots. \
-            addWidget(self.plot_SsPanel_plots_SsWave, 1, 0)
-        self.layout_SsPanel_plots. \
-            addWidget(self.plot_SsPanel_plots_SsIfr, 1, 1)
-        self.layout_SsPanel_plots. \
-            addLayout(self.layout_SsPanel_plots_SsPcaBtn, 2, 0)
-        self.layout_SsPanel_plots. \
-            addLayout(self.layout_SsPanel_plots_SsPcaPlot, 3, 0)
-        self.layout_SsPanel_plots. \
-            addWidget(self.plot_SsPanel_plots_SsXProb, 3, 1)
-        self.layout_SsPanel_plots.setRowStretch(0, 0)
-        self.layout_SsPanel_plots.setRowStretch(1, 1)
-        self.layout_SsPanel_plots.setRowStretch(2, 0)
-        self.layout_SsPanel_plots.setRowStretch(3, 1)
-        self.layout_SsPanel_plots.setSpacing(1)
-        self.layout_SsPanel_plots.setContentsMargins(1, 1, 1, 1)
-
-        """Icons made by
-        <a href="https://www.flaticon.com/authors/itim2101" title="itim2101">itim2101</a>
-        from
-        <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>"""
-
-        self.pushBtn_SsPanel_buttons_SsDelete = QPushButton("Delete")
-        lib.setFont(self.pushBtn_SsPanel_buttons_SsDelete, color="blue")
-        self.pushBtn_SsPanel_buttons_SsDelete.setIcon(PsortGuiIcon('TRASH_BLUE'))
-        self.pushBtn_SsPanel_buttons_SsKeep = QPushButton("Keep")
-        lib.setFont(self.pushBtn_SsPanel_buttons_SsKeep, color="blue")
-        self.pushBtn_SsPanel_buttons_SsMoveToCs = QPushButton("Move to CS")
-        lib.setFont(self.pushBtn_SsPanel_buttons_SsMoveToCs, color="blue")
-        self.pushBtn_SsPanel_buttons_SsMoveToCs.setIcon(PsortGuiIcon('SHUFFLE_RIGHT_BLUE'))
-        self.pushBtn_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
-        lib.setFont(self.pushBtn_SsPanel_buttons_SsDeselect, color="blue")
-        self.pushBtn_SsPanel_buttons_SsDeselect.setIcon(PsortGuiIcon('FORBID_BLUE'))
-
-        self.layout_SsPanel_buttons. \
-            addWidget(self.pushBtn_SsPanel_buttons_SsDelete)
-        self.layout_SsPanel_buttons. \
-            addWidget(self.pushBtn_SsPanel_buttons_SsKeep)
-        self.layout_SsPanel_buttons. \
-            addWidget(self.pushBtn_SsPanel_buttons_SsMoveToCs)
-        self.layout_SsPanel_buttons. \
-            addWidget(self.pushBtn_SsPanel_buttons_SsDeselect)
-        self.layout_SsPanel_buttons.setSpacing(1)
-        self.layout_SsPanel_buttons.setContentsMargins(1, 1, 1, 1)
-
-        self.layout_SsPanel.addLayout(self.layout_SsPanel_plots)
-        self.layout_SsPanel.addLayout(self.layout_SsPanel_buttons)
-        self.layout_SsPanel.setStretch(0, 1)
-        self.layout_SsPanel.setStretch(1, 0)
-        self.layout_SsPanel.setSpacing(1)
-        self.layout_SsPanel.setContentsMargins(1, 1, 1, 1)
-        return 0
-
-    def build_CsPanel(self):
-        self.layout_CsPanel_plots = QGridLayout()
-        self.layout_CsPanel_buttons = QHBoxLayout()
-        self.layout_CsPanel_plots_CsWaveBtn = QHBoxLayout()
-        self.layout_CsPanel_plots_CsPcaBtn = QHBoxLayout()
-
-        self.pushBtn_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select")
-        lib.setFont(self.pushBtn_CsPanel_plots_CsWaveBtn_selectWave, color="red")
-        self.pushBtn_CsPanel_plots_CsWaveBtn_waveDissect = QPushButton("Dissect")
-        lib.setFont(self.pushBtn_CsPanel_plots_CsWaveBtn_waveDissect, color="red")
-        self.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform = QPushButton("Learn Template")
-        lib.setFont(self.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform, color="red")
-        self.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform.setCheckable(True)
-        self.layout_CsPanel_plots_CsWaveBtn. \
-            addWidget(self.pushBtn_CsPanel_plots_CsWaveBtn_selectWave)
-        self.layout_CsPanel_plots_CsWaveBtn. \
-            addWidget(self.pushBtn_CsPanel_plots_CsWaveBtn_waveDissect)
-        self.layout_CsPanel_plots_CsWaveBtn. \
-            addWidget(self.pushBtn_CsPanel_plots_CsWaveBtn_learnWaveform)
-        self.layout_CsPanel_plots_CsWaveBtn.setSpacing(1)
-        self.layout_CsPanel_plots_CsWaveBtn.setContentsMargins(1, 1, 1, 1)
-
-        self.pushBtn_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select Data")
-        lib.setFont(self.pushBtn_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
-        self.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
-        self.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
-        self.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo.setCurrentIndex(1)
-        lib.setFont(self.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
-        self.layout_CsPanel_plots_CsPcaBtn. \
-            addWidget(self.pushBtn_CsPanel_plots_CsPcaBtn_selectPcaData)
-        self.layout_CsPanel_plots_CsPcaBtn. \
-            addWidget(self.comboBx_CsPanel_plots_CsPcaBtn_selectPcaCombo)
-        self.layout_CsPanel_plots_CsPcaBtn.setSpacing(1)
-        self.layout_CsPanel_plots_CsPcaBtn.setContentsMargins(1, 1, 1, 1)
-
-        self.txtlabel_CsPanel_plots_CsFiring = QLabel("CS Firing: 0.00Hz")
-        lib.setFont(self.txtlabel_CsPanel_plots_CsFiring, color="red")
-        self.txtlabel_CsPanel_plots_CsFiring. \
-            setAlignment(QtCore.Qt.AlignCenter)
-
-        self.plot_CsPanel_plots_CsWave = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_CsPanel_plots_CsWave)
-        self.plot_CsPanel_plots_CsWave.setTitle("Y: CS_Waveform(uV) | X: Time(ms)")
-        self.plot_CsPanel_plots_CsIfr = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_CsPanel_plots_CsIfr)
-        self.plot_CsPanel_plots_CsIfr.setTitle("Y: CS_IFR(#) | X: Freq(Hz)")
-        self.plot_CsPanel_plots_CsPca = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_CsPanel_plots_CsPca)
-        self.plot_CsPanel_plots_CsPca.setTitle(None)
-        self.plot_CsPanel_plots_CsXProb = pg.PlotWidget()
-        lib.set_plotWidget(self.plot_CsPanel_plots_CsXProb)
-        self.plot_CsPanel_plots_CsXProb.setTitle("Y: CSxSS_XProb(1) | X: Time(ms)")
-
-        self.layout_CsPanel_plots_CsPcaPlot = QVBoxLayout()
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum = QHBoxLayout()
-        self.widget_CsPanel_plots_CsPcaPlot_PcaNum = QWidget()
-        self.widget_CsPanel_plots_CsPcaPlot_PcaNum.setAutoFillBackground(True)
-        palette = self.widget_CsPanel_plots_CsPcaPlot_PcaNum.palette()
-        palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 255, 255, 255))
-        self.widget_CsPanel_plots_CsPcaPlot_PcaNum.setPalette(palette)
-        self.widget_CsPanel_plots_CsPcaPlot_PcaNum. \
-            setLayout(self.layout_CsPanel_plots_CsPcaPlot_PcaNum)
-        self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1 = QComboBox()
-        self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(['pca1', 'pca2'])
-        lib.setFont(self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
-        self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
-        self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2 = QComboBox()
-        self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(['pca1', 'pca2'])
-        lib.setFont(self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
-        self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
-        self.txtlabel_CsPanel_plots_CsPcaPlot_PcaNum1 = QLabel("| X: CS_ ")
-        lib.setFont(self.txtlabel_CsPanel_plots_CsPcaPlot_PcaNum1, color="red")
-        self.txtlabel_CsPanel_plots_CsPcaPlot_PcaNum2 = QLabel(" Y: CS_ ")
-        lib.setFont(self.txtlabel_CsPanel_plots_CsPcaPlot_PcaNum2, color="red")
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum. \
-            addWidget(self.txtlabel_CsPanel_plots_CsPcaPlot_PcaNum2)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum. \
-            addWidget(self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum2)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum. \
-            addWidget(self.txtlabel_CsPanel_plots_CsPcaPlot_PcaNum1)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum. \
-            addWidget(self.comboBx_CsPanel_plots_CsPcaPlot_PcaNum1)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(0, 0)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(1, 1)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(2, 0)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum.setStretch(3, 1)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum.setSpacing(1)
-        self.layout_CsPanel_plots_CsPcaPlot_PcaNum.setContentsMargins(1, 1, 1, 1)
-        self.layout_CsPanel_plots_CsPcaPlot. \
-            addWidget(self.widget_CsPanel_plots_CsPcaPlot_PcaNum)
-        self.layout_CsPanel_plots_CsPcaPlot. \
-            addWidget(self.plot_CsPanel_plots_CsPca)
-        self.layout_CsPanel_plots_CsPcaPlot.setSpacing(1)
-        self.layout_CsPanel_plots_CsPcaPlot.setContentsMargins(1, 1, 1, 1)
-
-
-        self.layout_CsPanel_plots. \
-            addLayout(self.layout_CsPanel_plots_CsWaveBtn, 0, 0)
-        self.layout_CsPanel_plots. \
-            addWidget(self.txtlabel_CsPanel_plots_CsFiring, 0, 1)
-        self.layout_CsPanel_plots. \
-            addWidget(self.plot_CsPanel_plots_CsWave, 1, 0)
-        self.layout_CsPanel_plots. \
-            addWidget(self.plot_CsPanel_plots_CsIfr, 1, 1)
-        self.layout_CsPanel_plots. \
-            addLayout(self.layout_CsPanel_plots_CsPcaBtn, 2, 0)
-        self.layout_CsPanel_plots. \
-            addLayout(self.layout_CsPanel_plots_CsPcaPlot, 3, 0)
-        self.layout_CsPanel_plots. \
-            addWidget(self.plot_CsPanel_plots_CsXProb, 3, 1)
-        self.layout_CsPanel_plots.setRowStretch(0, 0)
-        self.layout_CsPanel_plots.setRowStretch(1, 1)
-        self.layout_CsPanel_plots.setRowStretch(2, 0)
-        self.layout_CsPanel_plots.setRowStretch(3, 1)
-        self.layout_CsPanel_plots.setSpacing(1)
-        self.layout_CsPanel_plots.setContentsMargins(1, 1, 1, 1)
-
-        self.pushBtn_CsPanel_buttons_CsDelete = QPushButton("Delete")
-        lib.setFont(self.pushBtn_CsPanel_buttons_CsDelete, color="red")
-        self.pushBtn_CsPanel_buttons_CsDelete. \
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '067-trash-red.png')))
-        self.pushBtn_CsPanel_buttons_CsKeep = QPushButton("Keep")
-        lib.setFont(self.pushBtn_CsPanel_buttons_CsKeep, color="red")
-        self.pushBtn_CsPanel_buttons_CsKeep. \
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '023-download-red.png')))
-        self.pushBtn_CsPanel_buttons_CsMoveToSs = QPushButton("Move to SS")
-        lib.setFont(self.pushBtn_CsPanel_buttons_CsMoveToSs, color="red")
-        self.pushBtn_CsPanel_buttons_CsMoveToSs. \
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '084-shuffle-left-red.png')))
-        self.pushBtn_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
-        lib.setFont(self.pushBtn_CsPanel_buttons_CsDeselect, color="red")
-        self.pushBtn_CsPanel_buttons_CsDeselect. \
-            setIcon(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '030-forbidden-red.png')))
-
-        self.layout_CsPanel_buttons. \
-            addWidget(self.pushBtn_CsPanel_buttons_CsDelete)
-        self.layout_CsPanel_buttons. \
-            addWidget(self.pushBtn_CsPanel_buttons_CsKeep)
-        self.layout_CsPanel_buttons. \
-            addWidget(self.pushBtn_CsPanel_buttons_CsMoveToSs)
-        self.layout_CsPanel_buttons. \
-            addWidget(self.pushBtn_CsPanel_buttons_CsDeselect)
-        self.layout_CsPanel_buttons.setSpacing(1)
-        self.layout_CsPanel_buttons.setContentsMargins(1, 1, 1, 1)
-
-        self.layout_CsPanel. \
-            addLayout(self.layout_CsPanel_plots)
-        self.layout_CsPanel. \
-            addLayout(self.layout_CsPanel_buttons)
-        self.layout_CsPanel.setStretch(0, 1)
-        self.layout_CsPanel.setStretch(1, 0)
-        self.layout_CsPanel.setSpacing(1)
-        self.layout_CsPanel.setContentsMargins(1, 1, 1, 1)
-        return 0
 
 #%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow, ):

@@ -27,5 +27,4 @@ def run(*args):
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
-    run(*args)
+    run_from_cmdline()
