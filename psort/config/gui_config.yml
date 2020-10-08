@@ -105,3 +105,64 @@ database_vars:  # TODO: Consolidate these variables into fewer
   index_undoRedo: ['zeros', [1], 'int']
   length_undoRedo: ['zeros', [1], 'int']
   batch_size_undoRedo: ['full', [1], 20, 'uint32']
+
+
+    # TOOLBAR_CONFIG = [ # not implemented
+    #     {
+    #         'load': {
+    #             "type": 'Action',
+    #             "args": ['FOLDER', 'Open File...']
+    #         },
+    #         'save': {
+    #             "type": 'Action',
+    #             "args": ['DISKETTE', 'Save Session']
+    #         },
+    #     },
+    #     {
+    #         'filepath': {
+    #             "type": 'Label',
+    #             "args": ["/File_Path/"]
+    #         },
+    #         'filename': {
+    #             "type": 'Label',
+    #             "args": ['File_Name']
+    #         },
+    #         'empty': {},
+    #         'undo': {
+    #             'type': 'Action',
+    #             'args': ['UNDO', 'Undo']
+    #         },
+    #         'redo': {
+    #             'type': 'Action',
+    #             'args': ['REDO', 'Redo']
+    #         }
+    #     },
+    #     {
+    #         'slot num label': {
+    #             "type": 'Label',
+    #             "args": ["Slot#"]
+    #         },
+    #         'slot num current': {
+    #             'type': 'SpinBox',
+    #             'args': [1, 30, False]
+    #         },
+    #         'slot num total': {
+    #             'type': 'Label',
+    #             'args': ["/ 30(0)"]
+    #         }
+    #     },
+    #     {
+    #         'previous': {
+    #             'type': 'Action',
+    #             'args': ['LARROW', 'Previous Slot']
+    #         },
+    #         'refresh': {
+    #             'type': 'Action',
+    #             'args': ['RECYCLING', 'Refresh Slot']
+    #         },
+    #         'next': {
+    #             'type': 'Action',
+    #             'args': ['RARROW', 'Next Slot']
+    #         }
+    #     }
+  # ]

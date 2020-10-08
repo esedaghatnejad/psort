@@ -20,6 +20,7 @@ from psort.utils import PROJECT_FOLDER, get_icons
 BLUE = QtGui.QColor(0, 0, 255, 30)
 RED = QtGui.QColor(255, 0, 0, 30)
 WHITE = QtGui.QColor(255, 255, 255, 30)
+CLEAR = QtGui.QColor(255, 255, 255, 0)
 
 DEFAULT_CONFIG = {
     'SS': {
@@ -55,15 +56,6 @@ class PsortLinearControlLayout(QHBoxLayout):
             if n < (len(itemgroups)-1):
                 self.addStretch()
 
-        self.setSpacing(1)
-        self.setContentsMargins(1, 1, 1, 1)
-
-    def insert_vline(self):
-        line = QFrame()
-        line.setFrameShape(QFrame.VLine)
-        line.setFrameShadow(QFrame.Sunken)
-        self.addWidget(line)
-
     def add_widgets(self, *args):
         for widget in args:
             self.addWidget(widget)
@@ -74,11 +66,17 @@ class PsortLinearControlLayout(QHBoxLayout):
         else:
             super(PsortLinearControlLayout, self).addWidget(a0, **kwargs)
 
+    def insert_vline(self):
+        line = QFrame()
+        line.setFrameShape(QFrame.VLine)
+        line.setFrameShadow(QFrame.Sunken)
+        self.addWidget(line)
+
 
 #%% PsortPanel
 class PsortPanel(QWidget):
     
-    def __init__(self, color=WHITE, orientation='H', layout=None, spacing=3, margins=1):
+    def __init__(self, color=WHITE, orientation='H', layout=None, spacing=4, margins=4):
         super(PsortPanel, self).__init__()
         self.setAutoFillBackground(True)
         palette = self.palette()
@@ -206,13 +204,18 @@ class PsortSortingPanel(PsortPanel):
 
 class PsortPlotPanel(PsortPanel):
 
-    def __init__(self, type, plot_title=None):
+    def __init__(self, type, plot_title=None, control_layout=None):
         super(PsortPlotPanel, self).__init__(color=DEFAULT_CONFIG[type]['Color'], layout=QVBoxLayout())
-        self.control_layout = QGridLayout()
+        if control_layout is None:
+            control_layout = QGridLayout()
+
+        self.control_layout = control_layout
         self.plot = PsortPlotWidget(plot_title)
 
         self.layout().addLayout(self.control_layout)
         self.layout().addWidget(self.plot)
+        self.layout().setStretch(0, 0)
+        self.layout().setStretch(1, 1)
 
 
 class PsortSpinBox(QDoubleSpinBox):
@@ -226,12 +229,13 @@ class PsortSpinBox(QDoubleSpinBox):
             self,
             min_=DEFAULT_MIN,
             max_=DEFAULT_MAX,
+            keyboardtracking=True,
             decimals=DEFAULT_DECIMALS,
             value=DEFAULT_VALUE,
-            color=None
+            color=None,
     ):
         super(PsortSpinBox, self).__init__()
-        self.setKeyboardTracking(True)
+        self.setKeyboardTracking(keyboardtracking)
         self.setMinimum(min_)
         self.setMaximum(max_)
         self.setDecimals(decimals)
@@ -259,9 +263,9 @@ class PsortFilter():
 
 class PsortPlotWidget(pg.PlotWidget):
 
-    def __init__(self, title=None):
-        super(PsortPlotWidget, self).__init__()
-        lib.set_plotWidget(self)
+    def __init__(self, title=None, bkg=True, **kwargs):
+        super(PsortPlotWidget, self).__init__(**kwargs)
+        lib.set_plotWidget(self, bkg=bkg)
         self.setTitle(title)
 
 
@@ -357,7 +361,8 @@ class PsortGrandWin(QWidget):
 
 class PsortThresholdBar(PsortLinearControlLayout):
 
-    def __init__(self, spike_type, color, threshold=300):
+    def __init__(self, spike_type, threshold=300):
+        color = DEFAULT_CONFIG[spike_type]['Colortext']
         label = QLabel(f"{spike_type} Threshold")
         lib.setFont(label, color=color)
         self.threshold = PsortSpinBox(value=threshold, color=color)
@@ -368,6 +373,9 @@ class PsortThresholdBar(PsortLinearControlLayout):
             [label, self.threshold, '|'],
             ['|', self.auto_button]
         )
+
+        self.setSpacing(1)
+        self.setContentsMargins(1, 1, 1, 1)
 
 
 class PsortPlotGrid(QGridLayout):
@@ -399,118 +407,61 @@ class PsortPlotGrid(QGridLayout):
             self.addWidget(self.plot_panels[panel], *info['Position'])
 
 
+class PsortPeakPanel(PsortPlotPanel):
 
-#%% PsortMainWin
-class PsortMainWin(QWidget):
+    def __init__(self, spike_type):
+        super(PsortPeakPanel, self).__init__(
+            type=spike_type,
+            plot_title=f"X: {spike_type}_Peak_Dist(uV) | Y: Count(#)",
+            control_layout=PsortThresholdBar(spike_type=spike_type)
+        )
+
+class PsortRawSignalPanel(PsortPanel):
 
     def __init__(self):
-        super(PsortMainWin, self).__init__()
-
-        self.layout = QVBoxLayout()
-
-        self.filterPanel = PsortFilterPanel()
-        self.widget_rawSignalPanel = PsortPanel()
-        self.widget_SsCsPanel = PsortPanel()
-
-        # TODO: Get rid of these
-        self.layout_rawSignalPanel = self.widget_rawSignalPanel.layout()
-        self.layout_SsCsPanel = self.widget_SsCsPanel.layout()
-
-        self.build_rawSignalPanel()
-        self.build_SsCsPanel()
-        # add layouts to the layout_mainwin
-        self.layout.addWidget(self.filterPanel)
-        self.layout.addWidget(self.widget_rawSignalPanel)
-        self.layout.addWidget(self.widget_SsCsPanel)
-        # the size of filterPanel is fixed
-        self.layout.setStretch(0, 0)
-        # the size of rawSignalPanel is variable
-        self.layout.setStretch(1, 2)
-        # the size of SsCsPanel is variable
-        self.layout.setStretch(2, 5)
-        self.layout.setSpacing(1)
-        self.layout.setContentsMargins(1, 1, 1, 1)
-        self.setLayout(self.layout)
-
-
-    def add_vline(self):
-        line = QFrame()
-        line.setFrameShape(QFrame.VLine)
-        line.setFrameShadow(QFrame.Sunken)
-        return line
-
-    def filter_combobox(self, items, color=None):
-        box = QComboBox()
-        box.addItems(items)
-        if color is not None:
-            lib.setFont(box, color=color)
-
-        return box
-
-    def build_rawSignalPanel(self):
-        # self.layout_rawSignalPanel_SsPeak_Thresh = QHBoxLayout()
-        self.layout_rawSignalPanel_CsPeak_Thresh = QHBoxLayout()
+        super(PsortRawSignalPanel, self).__init__()
 
         # rawSignal plot
-        self.plot_rawSignalPanel_rawSignal = PsortPlotWidget("Y: Raw_Signal(uV) | X: Time(s)")
-
-        # SsPeak Panel, containing SsHistogram and SsThresh
-        self.widget_rawSignalPanel_SsPeakPanel = PsortPanel(BLUE, 'V')
-        self.layout_rawSignalPanel_SsPeak = self.widget_rawSignalPanel_SsPeakPanel.layout()
-
-        self.plot_rawSignalPanel_SsPeak = PsortPlotWidget("X: SS_Peak_Dist(uV) | Y: Count(#)")
-
-        self.layout_rawSignalPanel_SsPeak_Thresh = PsortThresholdBar('SS', 'blue')
-        self.txtedit_rawSignalPanel_SsThresh = self.layout_rawSignalPanel_SsPeak_Thresh.threshold
-        self.pushBtn_rawSignalPanel_SsAutoThresh = self.layout_rawSignalPanel_SsPeak_Thresh.auto_button
-
-        self.layout_rawSignalPanel_SsPeak_Thresh.setSpacing(1)
-        self.layout_rawSignalPanel_SsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
-
-        self.layout_rawSignalPanel_SsPeak.addLayout(self.layout_rawSignalPanel_SsPeak_Thresh)
-        self.layout_rawSignalPanel_SsPeak.addWidget(self.plot_rawSignalPanel_SsPeak)
-        self.layout_rawSignalPanel_SsPeak.setStretch(0, 0)
-        self.layout_rawSignalPanel_SsPeak.setStretch(1, 1)
-        self.layout_rawSignalPanel_SsPeak.setSpacing(1)
-        self.layout_rawSignalPanel_SsPeak.setContentsMargins(1, 1, 1, 1)
-
-        # CsPeak Panel, containing CsHistogram and CsThresh
-        self.widget_rawSignalPanel_CsPeakPanel = PsortPanel(RED, 'V')
-        self.layout_rawSignalPanel_CsPeak = self.widget_rawSignalPanel_CsPeakPanel.layout()
-
-        self.plot_rawSignalPanel_CsPeak = PsortPlotWidget("X: CS_Peak_Dist(uV) | Y: Count(#)")
-
-
-        self.layout_rawSignalPanel_CsPeak_Thresh = PsortThresholdBar('CS', 'red')
-        self.txtedit_rawSignalPanel_CsThresh = self.layout_rawSignalPanel_CsPeak_Thresh.threshold
-        self.pushBtn_rawSignalPanel_CsAutoThresh = self.layout_rawSignalPanel_CsPeak_Thresh.auto_button
-
-        self.layout_rawSignalPanel_CsPeak_Thresh.setSpacing(1)
-        self.layout_rawSignalPanel_CsPeak_Thresh.setContentsMargins(1, 1, 1, 1)
-
-        self.layout_rawSignalPanel_CsPeak.addLayout(self.layout_rawSignalPanel_CsPeak_Thresh)
-        self.layout_rawSignalPanel_CsPeak.addWidget(self.plot_rawSignalPanel_CsPeak)
-        self.layout_rawSignalPanel_CsPeak.setStretch(0, 0)
-        self.layout_rawSignalPanel_CsPeak.setStretch(1, 1)
-        self.layout_rawSignalPanel_CsPeak.setSpacing(1)
-        self.layout_rawSignalPanel_CsPeak.setContentsMargins(1, 1, 1, 1)
+        self.plot_rawSignal = PsortPlotWidget("Y: Raw_Signal(uV) | X: Time(s)", background=None, bkg=False)
+        self.SsPeakPanel = PsortPeakPanel('SS')
+        self.CsPeakPanel = PsortPeakPanel('CS')
 
         # rawSignal plot is x3 while the SsPeak and CsPeak are x1
-        self.layout_rawSignalPanel.addWidget(self.plot_rawSignalPanel_rawSignal)
-        self.layout_rawSignalPanel.addWidget(self.widget_rawSignalPanel_SsPeakPanel)
-        self.layout_rawSignalPanel.addWidget(self.widget_rawSignalPanel_CsPeakPanel)
-        self.layout_rawSignalPanel.setStretch(0, 3)
-        self.layout_rawSignalPanel.setStretch(1, 1)
-        self.layout_rawSignalPanel.setStretch(2, 1)
-        self.layout_rawSignalPanel.setSpacing(1)
-        self.layout_rawSignalPanel.setContentsMargins(1, 1, 1, 1)
-        return 0
+        for j, (widget, stretch) in enumerate([
+            (self.plot_rawSignal, 3),
+            (self.SsPeakPanel, 1),
+            (self.CsPeakPanel, 1)
+        ]):
+            self.layout().addWidget(widget)
+            self.layout().setStretch(j, stretch)
 
-    def build_SsCsPanel(self):
+#%% PsortMainWin
+class PsortMainWin(PsortPanel):
+
+    def __init__(self):
+        super(PsortMainWin, self).__init__(orientation='V')
+
+        self.panels = {
+            'filters': PsortFilterPanel(),
+            'raw signals': PsortRawSignalPanel(),
+            'spikes': PsortPanel(spacing=5)
+        }
+
         self.plot_layouts = {}
         self.sorting_panels = {}
+        self.build_SsCsPanel()
+
+        for i, (widget, stretch) in enumerate([
+            (self.panels['filters'], 0),
+            (self.panels['raw signals'], 2),
+            (self.panels['spikes'], 5)
+        ]):
+            self.layout().addWidget(widget)
+            self.layout().setStretch(i, stretch)
+
+    def build_SsCsPanel(self):
         for type in ['SS', 'CS']:
-            panel = PsortPanel(color=DEFAULT_CONFIG[type]['Color'], orientation='V', spacing=1)
+            panel = PsortPanel(color=DEFAULT_CONFIG[type]['Color'], orientation='V')
 
             self.plot_layouts[type] = PsortPlotGrid(type)
             self.sorting_panels[type] = PsortSortingPanel(type)
@@ -519,15 +470,12 @@ class PsortMainWin(QWidget):
             panel.layout().addWidget(self.sorting_panels[type])
             panel.layout().setStretch(0, 1)
             panel.layout().setStretch(1, 0)
-            self.layout_SsCsPanel.addWidget(panel)
-
-        self.layout_SsCsPanel.setSpacing(1)
-        self.layout_SsCsPanel.setContentsMargins(1, 1, 1, 1)
-        return 0
+            self.panels['spikes'].layout().addWidget(panel)
 
 
 #%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow, ):
+
     def __init__(self, parent=None):
         super(PsortGuiWidget, self).__init__(parent)
         pg.setConfigOptions(antialias=False)
@@ -544,7 +492,7 @@ class PsortGuiWidget(QMainWindow, ):
 
         self.widget_grand = PsortGrandWin()
         self.layout_grand = self.widget_grand.layout()
-        self.widget_mainwin = self.widget_grand.mainwin
+        self.mainwin = self.widget_grand.mainwin
         self.setCentralWidget(self.widget_grand)
 
     def build_statusbar(self):
@@ -556,82 +504,71 @@ class PsortGuiWidget(QMainWindow, ):
         self.statusBar().addWidget(self.progress_statusBar,1)
         return 0
 
-    def build_toolbar(self):
+    def build_toolbar(self): # TODO: Add font size options for UI
         self.toolbar = QToolBar("Load_Save")
         self.toolbar.setIconSize(QtCore.QSize(30, 30))
         self.addToolBar(self.toolbar)
-        self.actionBtn_toolbar_next = QAction(PsortGuiIcon('RARROW'), "Next Slot", self)
-        self.actionBtn_toolbar_previous = QAction(PsortGuiIcon('LARROW'), "Previous Slot", self)
-        self.actionBtn_toolbar_refresh = QAction(PsortGuiIcon('RECYCLING'), "Refresh Slot", self)
-        self.actionBtn_toolbar_load = QAction(PsortGuiIcon('FOLDER'), "Open File...", self)
-        self.actionBtn_toolbar_save = QAction(PsortGuiIcon('DISKETTE'), "Save Session", self)
-        self.actionBtn_toolbar_undo = QAction(PsortGuiIcon('UNDO'), "Undo", self)
-        self.actionBtn_toolbar_redo = QAction(PsortGuiIcon('REDO'), "Redo", self)
 
-        self.txtlabel_toolbar_fileName = QLabel("File_Name")
-        lib.setFont(self.txtlabel_toolbar_fileName)
-        self.txtlabel_toolbar_filePath = QLabel("/File_Path/")
-        lib.setFont(self.txtlabel_toolbar_filePath)
+        self.tools = {
+            'load': QAction(PsortGuiIcon('FOLDER'), "Open File...", self),
+            'save': QAction(PsortGuiIcon('DISKETTE'), "Save Session", self),
+            'filepath': QLabel("/File_Path/"),
+            'filename': QLabel("File_Name"),
+            'undo': QAction(PsortGuiIcon('UNDO'), "Undo", self),
+            'redo': QAction(PsortGuiIcon('REDO'), "Redo", self),
+            'slot number label': QLabel("Slot#"),
+            'current slot': PsortSpinBox(
+                min_=1,
+                max_=30,
+                keyboardtracking=False
+            ),
+            'total slots': QLabel("/ 30(0)"),
+            'previous': QAction(PsortGuiIcon('LARROW'), "Previous Slot", self),
+            'refresh': QAction(PsortGuiIcon('RECYCLING'), "Refresh Slot", self),
+            'next': QAction(PsortGuiIcon('RARROW'), "Next Slot", self)
+        }
 
-        self.widget_toolbar_empty = QWidget()
-        self.widget_toolbar_empty.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        for i, (toolname, tool) in enumerate(self.tools.items()):
+            if isinstance(tool, QLabel) or isinstance(tool, PsortSpinBox):
+                self.toolbar.addWidget(tool)
+            else:
+                self.toolbar.addAction(tool)
 
-        self.txtlabel_toolbar_slotNumLabel = QLabel("Slot#")
-        lib.setFont(self.txtlabel_toolbar_slotNumLabel)
-        self.txtedit_toolbar_slotNumCurrent = QSpinBox()
-        self.txtedit_toolbar_slotNumCurrent.setKeyboardTracking(False)
-        self.txtedit_toolbar_slotNumCurrent.setMinimum(1)
-        self.txtedit_toolbar_slotNumCurrent.setMaximum(30)
-        lib.setFont(self.txtedit_toolbar_slotNumCurrent)
-        self.txtlabel_toolbar_slotNumTotal = QLabel("/ 30(0)")
-        lib.setFont(self.txtlabel_toolbar_slotNumTotal)
+            if i in [2, 7, 10, 11, 12]:
+                self.toolbar.addSeparator()
 
-        self.toolbar.addAction(self.actionBtn_toolbar_load)
-        self.toolbar.addAction(self.actionBtn_toolbar_save)
-        self.toolbar.addSeparator()
-        self.toolbar.addWidget(self.txtlabel_toolbar_filePath)
-        self.toolbar.addWidget(self.txtlabel_toolbar_fileName)
-        self.toolbar.addWidget(self.widget_toolbar_empty)
-        self.toolbar.addAction(self.actionBtn_toolbar_undo)
-        self.toolbar.addAction(self.actionBtn_toolbar_redo)
-        self.toolbar.addSeparator()
-        self.toolbar.addWidget(self.txtlabel_toolbar_slotNumLabel)
-        self.toolbar.addWidget(self.txtedit_toolbar_slotNumCurrent)
-        self.toolbar.addWidget(self.txtlabel_toolbar_slotNumTotal)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.actionBtn_toolbar_previous)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.actionBtn_toolbar_refresh)
-        self.toolbar.addSeparator()
-        self.toolbar.addAction(self.actionBtn_toolbar_next)
-        return 0
+            if toolname == 'filename':
+                empty = QWidget()
+                empty.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+                self.toolbar.addWidget(empty)
+
+    def add_psort_icon_action(self, icon, str_):
+        return QAction(PsortGuiIcon(icon), str_, self)
 
     def build_menubar(self):
         self.menubar = self.menuBar()
 
-        self.menu_menubar_file = self.menubar.addMenu("File")
-        self.actionBtn_menubar_file_open = QAction("Open File...", self)
-        self.actionBtn_menubar_file_restart = QAction("Restart Session", self)
-        self.actionBtn_menubar_file_save = QAction("Save Session", self)
-        self.actionBtn_menubar_file_exit = QAction("Exit", self)
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_open)
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_restart)
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_save)
-        self.menu_menubar_file.addAction(self.actionBtn_menubar_file_exit)
+        self.menu = {
+            'file': {
+                'open': QAction("Open File...", self),
+                'restart': QAction("Restart Session", self),
+                'save': QAction("Save Session", self),
+                'exit': QAction("Exit", self),
+            },
+            'edit': {
+                'preferences': QAction("Prefrences...", self),
+                'umap': QAction("UMAP for dim reduction", self, checkable=True)
+            },
+            'tools': {
+                'cs tuning': QAction("CS Tuning", self),
+                'common average': QAction("Common Average", self),
+                'cell summary': QAction("Cell Summary", self)
+            }
+        }
 
-        self.menu_menubar_edit = self.menubar.addMenu("Edit")
-        self.actionBtn_menubar_edit_prefrences = QAction("Prefrences...", self)
-        self.actionBtn_menubar_edit_umap = QAction("UMAP for dim reduction", self, checkable=True)
-        self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_prefrences)
-        self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_umap)
-
-        self.menu_menubar_tools = self.menubar.addMenu("Tools")
-        self.actionBtn_menubar_tools_csTune = QAction("CS Tuning", self)
-        self.actionBtn_menubar_tools_commonAvg = QAction("Common Average", self)
-        self.actionBtn_menubar_tools_cellSummary = QAction("Cell Summary", self)
-        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_csTune)
-        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_commonAvg)
-        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_cellSummary)
+        for menu, items in self.menu.items():
+            thismenu = self.menubar.addMenu(menu.capitalize())
+            for widget in items.values():
+                thismenu.addAction(widget)
 
         self.menubar.setNativeMenuBar(False)
-        return 0

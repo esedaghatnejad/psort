@@ -27,6 +27,7 @@ import os
 import datetime
 import sys
 import decorator
+from itertools import product as iterprod
 
 
 ## ################################################################################################
@@ -50,6 +51,7 @@ def showWaitCursor(func, *args, **kwargs):
         return func(*args, **kwargs)
     finally:
         QtWidgets.QApplication.restoreOverrideCursor()
+
 
 ## ################################################################################################
 ## ################################################################################################
@@ -125,7 +127,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['isAnalyzed'][0] = True
         currentDT = datetime.datetime.now()
         self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
-                + ' Analyzed Slot# ' + str(self.txtedit_toolbar_slotNumCurrent.value()))
+                + ' Analyzed Slot# ' + str(self.tools['current slot'].value()))
         return 0
 
 ## ################################################################################################
@@ -133,369 +135,207 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(_workingDataBase)
-        self.widget_mainwin.filterPanel.option_menu['SS Fast'].setCurrentIndex(0)
-        self.widget_mainwin.filterPanel.option_menu['CS Slow'].setCurrentIndex(0)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
-        self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(0)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
-        self.actionBtn_menubar_edit_umap.setChecked(False)
+        for menu in self.mainwin.panels['filters'].option_menu.values(): menu.setCurrentIndex(0)
+        for layout in self.mainwin.plot_layouts.values():
+            layout.plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
+            for i, component in enumerate(layout.plot_panels['Data Selection'].components):
+                component['Options'].setCurrentIndex(i)
+
+        self.menu['edit']['umap'].setChecked(False)
         self.undoRedo_reset()
         return 0
 
     def setEnableWidgets(self, isEnable):
-        self.widget_mainwin.filterPanel.setEnabled(isEnable)
-        self.widget_mainwin.widget_rawSignalPanel.setEnabled(isEnable)
-        self.widget_mainwin.widget_SsCsPanel.setEnabled(isEnable)
-        self.txtedit_toolbar_slotNumCurrent.setEnabled(isEnable)
-        self.actionBtn_toolbar_previous.setEnabled(isEnable)
-        self.actionBtn_toolbar_refresh.setEnabled(isEnable)
-        self.actionBtn_toolbar_next.setEnabled(isEnable)
-        self.actionBtn_toolbar_save.setEnabled(isEnable)
-        self.actionBtn_menubar_file_save.setEnabled(isEnable)
-        # self.actionBtn_menubar_file_restart.setEnabled(isEnable)
+        self.mainwin.panels['filters'].setEnabled(isEnable)
+        self.mainwin.panels['raw signals'].setEnabled(isEnable)
+        self.mainwin.panels['spikes'].setEnabled(isEnable)
+        self.tools['current slot'].setEnabled(isEnable)
+        self.tools['previous'].setEnabled(isEnable)
+        self.tools['refresh'].setEnabled(isEnable)
+        self.tools['next'].setEnabled(isEnable)
+        self.tools['save'].setEnabled(isEnable)
+        self.menu['file']['save'].setEnabled(isEnable)
+        # self.menu['file']['restart'].setEnabled(isEnable)
         if isEnable:
             self.undoRedo_enable()
         else:
-            self.actionBtn_toolbar_undo.setEnabled(isEnable)
-            self.actionBtn_toolbar_redo.setEnabled(isEnable)
+            self.tools['undo'].setEnabled(isEnable)
+            self.tools['redo'].setEnabled(isEnable)
         return 0
 
-    def init_plots(self):
+    # def plot_initialize(self, plot, name, ):
+
+    def init_plots(self): #TODO: Talk to Ehsan, figure out the color schema
+
         # rawSignal
-        self.pltData_rawSignal_Ss =\
-            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="SS", \
-                pen=pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine))
-        self.pltData_rawSignal_Cs =\
-            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="CS", \
-                pen=pg.mkPen(color='r', width=1, style=QtCore.Qt.SolidLine))
+        self.pltData_rawSignal_Ss = self.mainwin.panels['raw signals'].plot_rawSignal.plot(np.zeros((0)), np.zeros((0)), name="SS", pen=pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine))
+        self.pltData_rawSignal_Cs = self.mainwin.panels['raw signals'].plot_rawSignal.plot(np.zeros((0)), np.zeros((0)), name="CS", pen=pg.mkPen(color='r', width=1, style=QtCore.Qt.SolidLine))
             #SsIndex, CsIndex
-        self.pltData_rawSignal_SsInedx =\
-            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssIndex", pen=None,
-                symbol='o', symbolSize=4, symbolBrush=(50,50,255,255), \
-                symbolPen=None)
-        self.pltData_rawSignal_CsInedx =\
-            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None,
-                symbol='o', symbolSize=6, symbolBrush=(255,50,50,255), symbolPen=None)
-        self.pltData_rawSignal_SsInedxSelected =\
-            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssIndexSelected", pen=None,
-                symbol='o', symbolSize=4, symbolBrush=None, \
-                symbolPen=pg.mkPen(color=(0,200,255,255), width=2) )
-        self.pltData_rawSignal_CsInedxSelected =\
-            self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            plot(np.zeros((0)), np.zeros((0)), name="csIndexSelected", pen=None,
-                symbol='o', symbolSize=6, symbolBrush=None, \
-                symbolPen=pg.mkPen(color=(255,200,0,255), width=2) )
+        self.pltData_rawSignal_SsInedx = self.mainwin.panels['raw signals'].plot_rawSignal.plot(np.zeros((0)), np.zeros((0)), name="ssIndex", pen=None, symbol='o', symbolSize=4, symbolBrush=(50,50,255,255), symbolPen=None)
+        self.pltData_rawSignal_CsInedx = self.mainwin.panels['raw signals'].plot_rawSignal.plot(np.zeros((0)), np.zeros((0)), name="csIndex", pen=None, symbol='o', symbolSize=6, symbolBrush=(255,50,50,255), symbolPen=None)
+        self.pltData_rawSignal_SsInedxSelected = self.mainwin.panels['raw signals'].plot_rawSignal.plot(np.zeros((0)), np.zeros((0)), name="ssIndexSelected", pen=None, symbol='o', symbolSize=4, symbolBrush=None, symbolPen=pg.mkPen(color=(0,200,255,255), width=2) )
+        self.pltData_rawSignal_CsInedxSelected = self.mainwin.panels['raw signals'].plot_rawSignal.plot(np.zeros((0)), np.zeros((0)), name="csIndexSelected", pen=None, symbol='o', symbolSize=6, symbolBrush=None, symbolPen=pg.mkPen(color=(255,200,0,255), width=2) )
             #infLine
-        self.infLine_rawSignal_SsThresh = \
-            pg.InfiniteLine(pos=-100., angle=0, pen=(100,100,255,255),
-                        movable=True, hoverPen='g', label='ssThresh',
-                        labelOpts={'position':0.05})
-        self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            addItem(self.infLine_rawSignal_SsThresh, ignoreBounds=True)
-        self.infLine_rawSignal_CsThresh = \
-            pg.InfiniteLine(pos=+100., angle=0, pen=(255,100,100,255),
-                        movable=True, hoverPen='g', label='csThresh',
-                        labelOpts={'position':0.95})
-        self.widget_mainwin.plot_rawSignalPanel_rawSignal.\
-            addItem(self.infLine_rawSignal_CsThresh, ignoreBounds=True)
-        self.viewBox_rawSignal = self.widget_mainwin.plot_rawSignalPanel_rawSignal.getViewBox()
+        self.infLine_rawSignal_SsThresh = pg.InfiniteLine(pos=-100., angle=0, pen=(100,100,255,255), movable=True, hoverPen='g', label='ssThresh', labelOpts={'position':0.05})
+        self.infLine_rawSignal_CsThresh = pg.InfiniteLine(pos=+100., angle=0, pen=(255,100,100,255), movable=True, hoverPen='g', label='csThresh', labelOpts={'position':0.95})
+        self.mainwin.panels['raw signals'].plot_rawSignal. addItem(self.infLine_rawSignal_SsThresh, ignoreBounds=True)
+        self.mainwin.panels['raw signals'].plot_rawSignal. addItem(self.infLine_rawSignal_CsThresh, ignoreBounds=True)
+        self.viewBox_rawSignal = self.mainwin.panels['raw signals'].plot_rawSignal.getViewBox()
         self.viewBox_rawSignal.autoRange()
         # ssPeak
-        self.pltData_SsPeak =\
-            self.widget_mainwin.plot_rawSignalPanel_SsPeak.\
-            plot(np.arange(2), np.zeros((1)), name="ssPeak",
-                stepMode=True, fillLevel=0, brush=(0,0,255,200))
-        self.infLine_SsPeak = \
-            pg.InfiniteLine(pos=-100., angle=90, pen=(100,100,255,255),
-                        movable=True, hoverPen='g', label='ssThresh',
-                        labelOpts={'position':0.90})
-        self.widget_mainwin.plot_rawSignalPanel_SsPeak.\
-            addItem(self.infLine_SsPeak, ignoreBounds=False)
-        self.viewBox_SsPeak = self.widget_mainwin.plot_rawSignalPanel_SsPeak.getViewBox()
+        self.pltData_SsPeak = self.mainwin.panels['raw signals'].SsPeakPanel.plot.plot(np.arange(2), np.zeros((1)), name="ssPeak", stepMode=True, fillLevel=0, brush=(0,0,255,200))
+        self.infLine_SsPeak = pg.InfiniteLine(pos=-100., angle=90, pen=(100,100,255,255), movable=True, hoverPen='g', label='ssThresh', labelOpts={'position':0.90})
+        self.mainwin.panels['raw signals'].SsPeakPanel.plot. addItem(self.infLine_SsPeak, ignoreBounds=False)
+        self.viewBox_SsPeak = self.mainwin.panels['raw signals'].SsPeakPanel.plot.getViewBox()
         self.viewBox_SsPeak.autoRange()
         # csPeak
-        self.pltData_CsPeak =\
-            self.widget_mainwin.plot_rawSignalPanel_CsPeak.\
-            plot(np.arange(2), np.zeros((1)), name="csPeak",
-                stepMode=True, fillLevel=0, brush=(255,0,0,200))
-        self.infLine_CsPeak = \
-            pg.InfiniteLine(pos=+100., angle=90, pen=(255,100,100,255),
-                        movable=True, hoverPen='g', label='csThresh',
-                        labelOpts={'position':0.90})
-        self.widget_mainwin.plot_rawSignalPanel_CsPeak.\
-            addItem(self.infLine_CsPeak, ignoreBounds=False)
-        self.viewBox_CsPeak = self.widget_mainwin.plot_rawSignalPanel_CsPeak.getViewBox()
+        self.pltData_CsPeak = self.mainwin.panels['raw signals'].CsPeakPanel.plot.plot(np.arange(2), np.zeros((1)), name="csPeak", stepMode=True, fillLevel=0, brush=(255,0,0,200))
+        self.infLine_CsPeak = pg.InfiniteLine(pos=+100., angle=90, pen=(255,100,100,255), movable=True, hoverPen='g', label='csThresh', labelOpts={'position':0.90})
+        self.mainwin.panels['raw signals'].CsPeakPanel.plot.addItem(self.infLine_CsPeak, ignoreBounds=False)
+        self.viewBox_CsPeak = self.mainwin.panels['raw signals'].CsPeakPanel.plot.getViewBox()
         self.viewBox_CsPeak.autoRange()
         # ssWave
-        self.pltData_SsWave =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssWave", \
-                pen=pg.mkPen(color=(0, 0, 0, 20), width=1, style=QtCore.Qt.SolidLine))
-        self.pltData_SsWaveSelected =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelected", \
-                pen=pg.mkPen(color=(0, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
-        self.pltData_SsWaveTemplate =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemplate", \
-                pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
-        self.infLine_SsWave_minPca = \
-            pg.InfiniteLine(pos=-self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]*1000.,
-                        angle=90, pen=(100,100,255,255),
-                        movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.\
-            addItem(self.infLine_SsWave_minPca, ignoreBounds=False)
-        self.infLine_SsWave_maxPca = \
-            pg.InfiniteLine(pos=self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]*1000.,
-                        angle=90, pen=(100,100,255,255),
-                        movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.\
-            addItem(self.infLine_SsWave_maxPca, ignoreBounds=False)
-        self.viewBox_SsWave = self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.getViewBox()
+        self.pltData_SsWave = self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.plot(np.zeros((0)), np.zeros((0)), name="ssWave", pen=pg.mkPen(color=(0, 0, 0, 20), width=1, style=QtCore.Qt.SolidLine))
+        self.pltData_SsWaveSelected = self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelected", pen=pg.mkPen(color=(0, 0, 255, 255), width=1, style=QtCore.Qt.SolidLine))
+        self.pltData_SsWaveTemplate = self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemplate", pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
+        self.infLine_SsWave_minPca = pg.InfiniteLine(pos=-self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]*1000., angle=90, pen=(100,100,255,255), movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
+        self.infLine_SsWave_maxPca = pg.InfiniteLine(pos=self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]*1000., angle=90, pen=(100,100,255,255), movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
+        self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot. addItem(self.infLine_SsWave_minPca, ignoreBounds=False)
+        self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.addItem(self.infLine_SsWave_maxPca, ignoreBounds=False)
+        self.viewBox_SsWave = self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].plot.getViewBox()
         self.viewBox_SsWave.autoRange()
         # ssIfr
-        self.pltData_SsIfr =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].plot.\
-            plot(np.arange(2), np.zeros((1)), name="ssIfr",
-                stepMode=True, fillLevel=0, brush=(0,0,255,200))
-        self.infLine_SsIfr = \
-            pg.InfiniteLine(pos=+60., angle=90, \
-                        pen=pg.mkPen(color=(0,0,255,255), width=2, style=QtCore.Qt.SolidLine),
-                        movable=False, hoverPen='g', label='ssIfr',
-                        labelOpts={'position':0.90})
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].plot.\
-            addItem(self.infLine_SsIfr, ignoreBounds=False)
-        self.viewBox_SsIfr = self.widget_mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].plot.getViewBox()
+        self.pltData_SsIfr = self.mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].plot.plot(np.arange(2), np.zeros((1)), name="ssIfr", stepMode=True, fillLevel=0, brush=(0,0,255,200))
+        self.infLine_SsIfr = pg.InfiniteLine(pos=+60., angle=90, pen=pg.mkPen(color=(0,0,255,255), width=2, style=QtCore.Qt.SolidLine), movable=False, hoverPen='g', label='ssIfr', labelOpts={'position':0.90})
+        self.mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].plot.addItem(self.infLine_SsIfr, ignoreBounds=False)
+        self.viewBox_SsIfr = self.mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].plot.getViewBox()
         self.viewBox_SsIfr.autoRange()
         # ssPca
-        self.pltData_SsPca =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssPca", pen=None,
-                symbol='o', symbolSize=2, symbolBrush=(0,0,0,100), symbolPen=None)
-        self.pltData_SsPcaSelected =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssPcaSelected", pen=None,
-                symbol='o', symbolSize=2, symbolBrush=None, \
-                symbolPen=pg.mkPen(color=(0,0,255,255), width=2) )
-        self.viewBox_SsPca = self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].plot.getViewBox()
+        self.pltData_SsPca = self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].plot.plot(np.zeros((0)), np.zeros((0)), name="ssPca", pen=None, symbol='o', symbolSize=2, symbolBrush=(0,0,0,100), symbolPen=None)
+        self.pltData_SsPcaSelected = self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].plot.plot(np.zeros((0)), np.zeros((0)), name="ssPcaSelected", pen=None, symbol='o', symbolSize=2, symbolBrush=None, symbolPen=pg.mkPen(color=(0,0,255,255), width=2) )
+        self.viewBox_SsPca = self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].plot.getViewBox()
         self.viewBox_SsPca.autoRange()
         # ssXProb
-        self.pltData_SsXProb =\
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Correlogram'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="ssXProb", \
-                pen=pg.mkPen(color='b', width=3, style=QtCore.Qt.SolidLine))
-        self.viewBox_SsXProb = self.widget_mainwin.plot_layouts['SS'].plot_panels['Correlogram'].plot.getViewBox()
+        self.pltData_SsXProb = self.mainwin.plot_layouts['SS'].plot_panels['Correlogram'].plot.plot(np.zeros((0)), np.zeros((0)), name="ssXProb", pen=pg.mkPen(color='b', width=3, style=QtCore.Qt.SolidLine))
+        self.viewBox_SsXProb = self.mainwin.plot_layouts['SS'].plot_panels['Correlogram'].plot.getViewBox()
         self.viewBox_SsXProb.autoRange()
         # csWave
-        self.pltData_CsWave =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="csWave", \
-                pen=pg.mkPen(color=(0, 0, 0, 200), width=1, style=QtCore.Qt.SolidLine))
-        self.pltData_CsWaveSelected =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="csWaveSelected", \
-                pen=pg.mkPen(color=(255, 0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
-        self.pltData_CsWaveTemplate =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="csWaveTemplate", \
-                pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
-        self.infLine_CsWave_minPca = \
-            pg.InfiniteLine(pos=-self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]*1000.,
-                        angle=90, pen=(255,100,100,255),
-                        movable=True, hoverPen='g', label='minPca',
-                        labelOpts={'position':0.90})
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.\
-            addItem(self.infLine_CsWave_minPca, ignoreBounds=False)
-        self.infLine_CsWave_maxPca = \
-            pg.InfiniteLine(pos=self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]*1000.,
-                        angle=90, pen=(255,100,100,255),
-                        movable=True, hoverPen='g', label='maxPca',
-                        labelOpts={'position':0.95})
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.\
-            addItem(self.infLine_CsWave_maxPca, ignoreBounds=False)
-        self.viewBox_CsWave = self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.getViewBox()
+        self.pltData_CsWave = self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.plot(np.zeros((0)), np.zeros((0)), name="csWave", pen=pg.mkPen(color=(0, 0, 0, 200), width=1, style=QtCore.Qt.SolidLine))
+        self.pltData_CsWaveSelected = self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.plot(np.zeros((0)), np.zeros((0)), name="csWaveSelected", pen=pg.mkPen(color=(255, 0, 0, 255), width=2, style=QtCore.Qt.SolidLine))
+        self.pltData_CsWaveTemplate = self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.plot(np.zeros((0)), np.zeros((0)), name="csWaveTemplate", pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
+        self.infLine_CsWave_minPca = pg.InfiniteLine(pos=-self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]*1000., angle=90, pen=(255,100,100,255), movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
+        self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.addItem(self.infLine_CsWave_minPca, ignoreBounds=False)
+        self.infLine_CsWave_maxPca = pg.InfiniteLine(pos=self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]*1000., angle=90, pen=(255,100,100,255), movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
+        self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.addItem(self.infLine_CsWave_maxPca, ignoreBounds=False)
+        self.viewBox_CsWave = self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].plot.getViewBox()
         self.viewBox_CsWave.autoRange()
         # csIfr
-        self.pltData_CsIfr =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].plot.\
-            plot(np.arange(2), np.zeros((1)), name="csIfr",
-                stepMode=True, fillLevel=0, brush=(255,0,0,200))
-        self.infLine_CsIfr = \
-            pg.InfiniteLine(pos=+0.80, angle=90, \
-                        pen=pg.mkPen(color=(255,0,0,255), width=2, style=QtCore.Qt.SolidLine),
-                        movable=False, hoverPen='g', label='csIfr',
-                        labelOpts={'position':0.90})
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].plot.\
-            addItem(self.infLine_CsIfr, ignoreBounds=False)
-        self.viewBox_CsIfr = self.widget_mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].plot.getViewBox()
+        self.pltData_CsIfr = self.mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].plot.plot(np.arange(2), np.zeros((1)), name="csIfr", stepMode=True, fillLevel=0, brush=(255,0,0,200))
+        self.infLine_CsIfr = pg.InfiniteLine(pos=+0.80, angle=90, pen=pg.mkPen(color=(255,0,0,255), width=2, style=QtCore.Qt.SolidLine), movable=False, hoverPen='g', label='csIfr', labelOpts={'position':0.90})
+        self.mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].plot.addItem(self.infLine_CsIfr, ignoreBounds=False)
+        self.viewBox_CsIfr = self.mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].plot.getViewBox()
         self.viewBox_CsIfr.autoRange()
         # csPca
-        self.pltData_CsPca =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="csPca", pen=None,
-                symbol='o', symbolSize=3, symbolBrush=(0,0,0,200), symbolPen=None)
-        self.pltData_CsPcaSelected =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="csPcaSelected", pen=None,
-                symbol='o', symbolSize=3, symbolBrush=None, \
-                symbolPen=pg.mkPen(color=(255,0,0,255), width=2) )
-        self.viewBox_CsPca = self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].plot.getViewBox()
+        self.pltData_CsPca = self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].plot.plot(np.zeros((0)), np.zeros((0)), name="csPca", pen=None, symbol='o', symbolSize=3, symbolBrush=(0,0,0,200), symbolPen=None)
+        self.pltData_CsPcaSelected = self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].plot.plot(np.zeros((0)), np.zeros((0)), name="csPcaSelected", pen=None, symbol='o', symbolSize=3, symbolBrush=None, symbolPen=pg.mkPen(color=(255,0,0,255), width=2) )
+        self.viewBox_CsPca = self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].plot.getViewBox()
         self.viewBox_CsPca.autoRange()
         # csXProb
-        self.pltData_CsXProb =\
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Correlogram'].plot.\
-            plot(np.zeros((0)), np.zeros((0)), name="csXProb", \
-                pen=pg.mkPen(color='r', width=3, style=QtCore.Qt.SolidLine))
-        self.viewBox_CsXProb = self.widget_mainwin.plot_layouts['CS'].plot_panels['Correlogram'].plot.getViewBox()
+        self.pltData_CsXProb = self.mainwin.plot_layouts['CS'].plot_panels['Correlogram'].plot.plot(np.zeros((0)), np.zeros((0)), name="csXProb", pen=pg.mkPen(color='r', width=3, style=QtCore.Qt.SolidLine))
+        self.viewBox_CsXProb = self.mainwin.plot_layouts['CS'].plot_panels['Correlogram'].plot.getViewBox()
         self.viewBox_CsXProb.autoRange()
         return 0
 
 ## ################################################################################################
 ## ################################################################################################
 #%% CONNECT SIGNALS
-    def connect_menubar_signals(self):
-        self.actionBtn_menubar_file_open.triggered.\
-            connect(self.onToolbar_load_ButtonClick)
-        self.actionBtn_menubar_file_restart.triggered.\
-            connect(self.onToolbar_restart_ButtonClick)
-        self.actionBtn_menubar_file_save.triggered.\
-            connect(self.onToolbar_save_ButtonClick)
-        self.actionBtn_menubar_file_exit.triggered.\
-            connect(sys.exit)
-        self.actionBtn_menubar_edit_prefrences.triggered.\
-            connect(self.onMenubar_prefrences_ButtonClick)
-        self.actionBtn_menubar_edit_umap.triggered.\
-            connect(self.onMenubar_umap_ButtonClick)
-        self.actionBtn_menubar_tools_commonAvg.triggered.\
-            connect(self.onMenubar_commonAvg_ButtonClick)
-        self.actionBtn_menubar_tools_cellSummary.triggered.\
-            connect(self.onMenubar_cellSummary_ButtonClick)
+    def connect_menubar_signals(self): # TODO: Create seperate python module dealing with action/signal config
+        self.menu['file']['open'].triggered.connect(self.onToolbar_load_ButtonClick)
+        self.menu['file']['restart'].triggered.connect(self.onToolbar_restart_ButtonClick)
+        self.menu['file']['save'].triggered.connect(self.onToolbar_save_ButtonClick)
+        self.menu['file']['exit'].triggered.connect(sys.exit)
+        self.menu['edit']['preferences'].triggered.connect(self.onMenubar_prefrences_ButtonClick)
+        self.menu['edit']['umap'].triggered.connect(self.onMenubar_umap_ButtonClick)
+        self.menu['tools']['common average'].triggered.connect(self.onMenubar_commonAvg_ButtonClick)
+        self.menu['tools']['cell summary'].triggered.connect(self.onMenubar_cellSummary_ButtonClick)
         return 0
 
     def connect_toolbar_signals(self):
         self.txtlabel_statusBar.setText('Please load data to beging sorting or use tools menubar.')
-        self.loadData.return_signal.\
-            connect(self.load_process_finished)
-        self.saveData.return_signal.\
-            connect(self.save_process_finished)
-        self.actionBtn_toolbar_next.triggered.\
-            connect(self.onToolbar_next_ButtonClick)
-        self.actionBtn_toolbar_previous.triggered.\
-            connect(self.onToolbar_previous_ButtonClick)
-        self.actionBtn_toolbar_refresh.triggered.\
-            connect(self.onToolbar_refresh_ButtonClick)
-        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
-            connect(self.onToolbar_slotNumCurrent_ValueChanged)
-        self.actionBtn_toolbar_load.triggered.\
-            connect(self.onToolbar_load_ButtonClick)
-        self.actionBtn_toolbar_save.triggered.\
-            connect(self.onToolbar_save_ButtonClick)
-        self.actionBtn_toolbar_undo.triggered.\
-            connect(self.undoRedo_undo)
-        self.actionBtn_toolbar_redo.triggered.\
-            connect(self.undoRedo_redo)
+        self.loadData.return_signal.connect(self.load_process_finished)
+        self.saveData.return_signal.connect(self.save_process_finished)
+        self.tools['current slot'].valueChanged.connect(self.onToolbar_slotNumCurrent_ValueChanged)
+        self.tools['next'].triggered.connect(self.onToolbar_next_ButtonClick)
+        self.tools['previous'].triggered.connect(self.onToolbar_previous_ButtonClick)
+        self.tools['refresh'].triggered.connect(self.onToolbar_refresh_ButtonClick)
+        self.tools['load'].triggered.connect(self.onToolbar_load_ButtonClick)
+        self.tools['save'].triggered.connect(self.onToolbar_save_ButtonClick)
+        self.tools['undo'].triggered.connect(self.undoRedo_undo)
+        self.tools['redo'].triggered.connect(self.undoRedo_redo)
         return 0
 
     def connect_plot_signals(self):
-        self.infLine_rawSignal_SsThresh.sigPositionChangeFinished.\
-            connect(self.onInfLineSsThresh_positionChangeFinished)
-        self.infLine_rawSignal_SsThresh.sigPositionChanged.\
-            connect(self.onInfLineSsThresh_positionChanged)
-        self.infLine_SsPeak.sigPositionChanged.\
-            connect(self.onInfLineSsPeak_positionChanged)
-        self.infLine_SsPeak.sigPositionChangeFinished.\
-            connect(self.onInfLineSsPeak_positionChangeFinished)
-        self.infLine_rawSignal_CsThresh.sigPositionChangeFinished.\
-            connect(self.onInfLineCsThresh_positionChangeFinished)
-        self.infLine_rawSignal_CsThresh.sigPositionChanged.\
-            connect(self.onInfLineCsThresh_positionChanged)
-        self.infLine_CsPeak.sigPositionChanged.\
-            connect(self.onInfLineCsPeak_positionChanged)
-        self.infLine_CsPeak.sigPositionChangeFinished.\
-            connect(self.onInfLineCsPeak_positionChangeFinished)
-        self.infLine_SsWave_minPca.sigPositionChangeFinished.\
-            connect(self.onInfLineSsWaveMinPca_positionChangeFinished)
-        self.infLine_SsWave_maxPca.sigPositionChangeFinished.\
-            connect(self.onInfLineSsWaveMaxPca_positionChangeFinished)
-        self.infLine_CsWave_minPca.sigPositionChangeFinished.\
-            connect(self.onInfLineCsWaveMinPca_positionChangeFinished)
-        self.infLine_CsWave_maxPca.sigPositionChangeFinished.\
-            connect(self.onInfLineCsWaveMaxPca_positionChangeFinished)
+        self.infLine_rawSignal_SsThresh.sigPositionChangeFinished.connect(self.onInfLineSsThresh_positionChangeFinished)
+        self.infLine_rawSignal_SsThresh.sigPositionChanged.connect(self.onInfLineSsThresh_positionChanged)
+        self.infLine_SsPeak.sigPositionChanged.connect(self.onInfLineSsPeak_positionChanged)
+        self.infLine_SsPeak.sigPositionChangeFinished.connect(self.onInfLineSsPeak_positionChangeFinished)
+        self.infLine_rawSignal_CsThresh.sigPositionChangeFinished.connect(self.onInfLineCsThresh_positionChangeFinished)
+        self.infLine_rawSignal_CsThresh.sigPositionChanged.connect(self.onInfLineCsThresh_positionChanged)
+        self.infLine_CsPeak.sigPositionChanged.connect(self.onInfLineCsPeak_positionChanged)
+        self.infLine_CsPeak.sigPositionChangeFinished.connect(self.onInfLineCsPeak_positionChangeFinished)
+        self.infLine_SsWave_minPca.sigPositionChangeFinished.connect(self.onInfLineSsWaveMinPca_positionChangeFinished)
+        self.infLine_SsWave_maxPca.sigPositionChangeFinished.connect(self.onInfLineSsWaveMaxPca_positionChangeFinished)
+        self.infLine_CsWave_minPca.sigPositionChangeFinished.connect(self.onInfLineCsWaveMinPca_positionChangeFinished)
+        self.infLine_CsWave_maxPca.sigPositionChangeFinished.connect(self.onInfLineCsWaveMaxPca_positionChangeFinished)
         return 0
 
     def connect_filterPanel_signals(self):
-        self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndexChanged.\
-            connect(self.onfilterPanel_SsFast_IndexChanged)
-        self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndexChanged.\
-            connect(self.onfilterPanel_CsSlow_IndexChanged)
-        self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndexChanged.\
-            connect(self.onfilterPanel_CsAlign_IndexChanged)
-        self.widget_mainwin.filterPanel.filters['SS'].min.valueChanged.\
-            connect(self.onfilterPanel_ssFilterMin_ValueChanged)
-        self.widget_mainwin.filterPanel.filters['SS'].max.valueChanged.\
-            connect(self.onfilterPanel_ssFilterMax_ValueChanged)
-        self.widget_mainwin.filterPanel.filters['CS'].min.valueChanged.\
-            connect(self.onfilterPanel_csFilterMin_ValueChanged)
-        self.widget_mainwin.filterPanel.filters['CS'].max.valueChanged.\
-            connect(self.onfilterPanel_csFilterMax_ValueChanged)
+        self.mainwin.panels['filters'].option_menu['SS Fast'].currentIndexChanged.connect(self.onfilterPanel_SsFast_IndexChanged)
+        self.mainwin.panels['filters'].option_menu['CS Slow'].currentIndexChanged.connect(self.onfilterPanel_CsSlow_IndexChanged)
+        self.mainwin.panels['filters'].option_menu['CS Align'].currentIndexChanged.connect(self.onfilterPanel_CsAlign_IndexChanged)
+        self.mainwin.panels['filters'].filters['SS'].min.valueChanged.connect(self.onfilterPanel_ssFilterMin_ValueChanged)
+        self.mainwin.panels['filters'].filters['SS'].max.valueChanged.connect(self.onfilterPanel_ssFilterMax_ValueChanged)
+        self.mainwin.panels['filters'].filters['CS'].min.valueChanged.connect(self.onfilterPanel_csFilterMin_ValueChanged)
+        self.mainwin.panels['filters'].filters['CS'].max.valueChanged.connect(self.onfilterPanel_csFilterMax_ValueChanged)
         return 0
 
     def connect_rawSignalPanel_signals(self):
-        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.valueChanged.\
-            connect(self.onRawSignal_SsThresh_ValueChanged)
-        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.valueChanged.\
-            connect(self.onRawSignal_CsThresh_ValueChanged)
-        self.widget_mainwin.pushBtn_rawSignalPanel_SsAutoThresh.clicked.\
-            connect(self.onRawSignal_SsAutoThresh_Clicked)
-        self.widget_mainwin.pushBtn_rawSignalPanel_CsAutoThresh.clicked.\
-            connect(self.onRawSignal_CsAutoThresh_Clicked)
+        self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.valueChanged.connect(self.onRawSignal_SsThresh_ValueChanged)
+        self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.valueChanged.connect(self.onRawSignal_CsThresh_ValueChanged)
+        self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.auto_button.clicked.connect(self.onRawSignal_SsAutoThresh_Clicked)
+        self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.auto_button.clicked.connect(self.onRawSignal_CsAutoThresh_Clicked)
         return 0
 
     def connect_ssPanel_signals(self):
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].select_button.clicked.\
-            connect(self.onSsPanel_selectPcaData_Clicked)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Select'].clicked.\
-            connect(self.onSsPanel_selectWave_Clicked)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Dissect'].clicked.\
-            connect(self.onSsPanel_waveDissect_Clicked)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].clicked.\
-            connect(self.onSsPanel_learnWave_Clicked)
-        self.widget_mainwin.sorting_panels['SS'].buttons['Deselect'].clicked.connect(self.onSsPanel_deselect_Clicked)
-        self.widget_mainwin.sorting_panels['SS'].buttons['Delete'].clicked.connect(self.onSsPanel_delete_Clicked)
-        self.widget_mainwin.sorting_panels['SS'].buttons['Keep'].clicked.connect(self.onSsPanel_keep_Clicked)
-        self.widget_mainwin.sorting_panels['SS'].buttons['Move'].clicked.connect(self.onSsPanel_moveToCs_Clicked)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].activated.\
-            connect(self.onSsPanel_PcaNum1_IndexChanged)
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].activated.\
-            connect(self.onSsPanel_PcaNum2_IndexChanged)
+        self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].select_button.clicked.connect(self.onSsPanel_selectPcaData_Clicked)
+        self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Select'].clicked.connect(self.onSsPanel_selectWave_Clicked)
+        self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Dissect'].clicked.connect(self.onSsPanel_waveDissect_Clicked)
+        self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].clicked.connect(self.onSsPanel_learnWave_Clicked)
+        self.mainwin.sorting_panels['SS'].buttons['Deselect'].clicked.connect(self.onSsPanel_deselect_Clicked)
+        self.mainwin.sorting_panels['SS'].buttons['Delete'].clicked.connect(self.onSsPanel_delete_Clicked)
+        self.mainwin.sorting_panels['SS'].buttons['Keep'].clicked.connect(self.onSsPanel_keep_Clicked)
+        self.mainwin.sorting_panels['SS'].buttons['Move'].clicked.connect(self.onSsPanel_moveToCs_Clicked)
+        self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].activated.connect(self.onSsPanel_PcaNum1_IndexChanged)
+        self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].activated.connect(self.onSsPanel_PcaNum2_IndexChanged)
 
         return 0
 
     def connect_csPanel_signals(self):
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].select_button.clicked.\
+        self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].select_button.clicked.\
             connect(self.onCsPanel_selectPcaData_Clicked)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Select'].clicked.\
+        self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Select'].clicked.\
             connect(self.onCsPanel_selectWave_Clicked)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Dissect'].clicked.\
+        self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Dissect'].clicked.\
             connect(self.onCsPanel_waveDissect_Clicked)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].clicked.\
+        self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].clicked.\
             connect(self.onCsPanel_learnWave_Clicked)
-        self.widget_mainwin.sorting_panels['CS'].buttons['Deselect'].clicked.connect(self.onCsPanel_deselect_Clicked)
-        self.widget_mainwin.sorting_panels['CS'].buttons['Delete'].clicked.connect(self.onCsPanel_delete_Clicked)
-        self.widget_mainwin.sorting_panels['CS'].buttons['Keep'].clicked.connect(self.onCsPanel_keep_Clicked)
-        self.widget_mainwin.sorting_panels['CS'].buttons['Move'].clicked.connect(self.onCsPanel_moveToSs_Clicked)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].activated.\
+        self.mainwin.sorting_panels['CS'].buttons['Deselect'].clicked.connect(self.onCsPanel_deselect_Clicked)
+        self.mainwin.sorting_panels['CS'].buttons['Delete'].clicked.connect(self.onCsPanel_delete_Clicked)
+        self.mainwin.sorting_panels['CS'].buttons['Keep'].clicked.connect(self.onCsPanel_keep_Clicked)
+        self.mainwin.sorting_panels['CS'].buttons['Move'].clicked.connect(self.onCsPanel_moveToSs_Clicked)
+        self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].activated.\
             connect(self.onCsPanel_PcaNum1_IndexChanged)
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].activated.\
+        self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].activated.\
             connect(self.onCsPanel_PcaNum2_IndexChanged)
         return 0
 
@@ -504,16 +344,16 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% SIGNALS
     @showWaitCursor
     def onToolbar_next_ButtonClick(self):
-        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        slot_num = self.tools['current slot'].value()
         slot_num += 1
-        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
+        self.tools['current slot'].setValue(slot_num)
         return 0
 
     @showWaitCursor
     def onToolbar_previous_ButtonClick(self):
-        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        slot_num = self.tools['current slot'].value()
         slot_num -= 1
-        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
+        self.tools['current slot'].setValue(slot_num)
         return 0
 
     @showWaitCursor
@@ -523,11 +363,11 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onToolbar_slotNumCurrent_ValueChanged(self):
-        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        slot_num = self.tools['current slot'].value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self._workingDataBase['current_slot_num'][0] = slot_num - 1
-        self.txtlabel_toolbar_slotNumTotal.\
+        self.tools['total slots'].\
             setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
             '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
         self.transfer_data_from_psortDataBase_to_guiSignals()
@@ -560,10 +400,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onToolbar_save_ButtonClick(self):
-        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        slot_num = self.tools['current slot'].value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
-        self.txtlabel_toolbar_slotNumTotal.\
+        self.tools['total slots'].\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
             "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
         if not(self.psortDataBase.is_all_slots_analyzed()):
@@ -629,7 +469,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onMenubar_umap_ButtonClick(self):
         self._workingDataBase['umap_enable'][0] = \
-            self.actionBtn_menubar_edit_umap.isChecked()
+            self.menu['edit']['umap'].isChecked()
         if self._workingDataBase['umap_enable'][0]:
             if (0 <= self._workingDataBase['ss_pca1_index'][0] <= 1):
                 self._workingDataBase['ss_pca1_index'][0] += 3
@@ -657,10 +497,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onMenubar_cellSummary_ButtonClick(self):
-        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        slot_num = self.tools['current slot'].value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
-        self.txtlabel_toolbar_slotNumTotal.\
+        self.tools['total slots'].\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
             "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
         _reply = QMessageBox.question(
@@ -682,10 +522,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineSsThresh_positionChangeFinished(self):
-        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.\
+        self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.\
             setValue(abs(self.infLine_rawSignal_SsThresh.value()))
         self._workingDataBase['ss_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
+            self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.value()
         return 0
 
     def onInfLineSsThresh_positionChanged(self):
@@ -693,10 +533,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineSsPeak_positionChangeFinished(self):
-        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.\
+        self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.\
             setValue(abs(self.infLine_SsPeak.value()))
         self._workingDataBase['ss_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
+            self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.value()
         return 0
 
     def onInfLineSsPeak_positionChanged(self):
@@ -704,10 +544,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineCsThresh_positionChangeFinished(self):
-        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.\
+        self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.\
             setValue(abs(self.infLine_rawSignal_CsThresh.value()))
         self._workingDataBase['cs_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
+            self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.value()
         return 0
 
     def onInfLineCsThresh_positionChanged(self):
@@ -715,10 +555,10 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onInfLineCsPeak_positionChangeFinished(self):
-        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.\
+        self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.\
             setValue(abs(self.infLine_CsPeak.value()))
         self._workingDataBase['cs_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
+            self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.value()
         return 0
 
     def onInfLineCsPeak_positionChanged(self):
@@ -842,58 +682,58 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onSsPanel_PcaNum1_IndexChanged(self):
-        if (self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].count() >= 2) and \
+        if (self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].count() >= 2) and \
             (self._workingDataBase['ss_scatter_mat'].size > 0):
             self._workingDataBase['ss_pca1_index'][0] = \
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].currentIndex()
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].currentIndex()
             self._workingDataBase['ss_scatter1'] = \
                 self._workingDataBase['ss_scatter_mat'][:,self._workingDataBase['ss_pca1_index'][0]]
             self.plot_ss_pca()
         return 0
 
     def onSsPanel_PcaNum2_IndexChanged(self):
-        if (self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].count() >= 2) and \
+        if (self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].count() >= 2) and \
             (self._workingDataBase['ss_scatter_mat'].size > 0):
             self._workingDataBase['ss_pca2_index'][0] = \
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].currentIndex()
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].currentIndex()
             self._workingDataBase['ss_scatter2'] = \
                 self._workingDataBase['ss_scatter_mat'][:,self._workingDataBase['ss_pca2_index'][0]]
             self.plot_ss_pca()
         return 0
 
     def onCsPanel_PcaNum1_IndexChanged(self):
-        if (self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].count() >= 2) and \
+        if (self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].count() >= 2) and \
             (self._workingDataBase['cs_scatter_mat'].size > 0):
             self._workingDataBase['cs_pca1_index'][0] = \
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].currentIndex()
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].currentIndex()
             self._workingDataBase['cs_scatter1'] = \
                 self._workingDataBase['cs_scatter_mat'][:,self._workingDataBase['cs_pca1_index'][0]]
             self.plot_cs_pca()
         return 0
 
     def onCsPanel_PcaNum2_IndexChanged(self):
-        if (self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].count() >= 2) and \
+        if (self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].count() >= 2) and \
             (self._workingDataBase['cs_scatter_mat'].size > 0):
             self._workingDataBase['cs_pca2_index'][0] = \
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].currentIndex()
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].currentIndex()
             self._workingDataBase['cs_scatter2'] = \
                 self._workingDataBase['cs_scatter_mat'][:,self._workingDataBase['cs_pca2_index'][0]]
             self.plot_cs_pca()
         return 0
 
     def onfilterPanel_SsFast_IndexChanged(self):
-        if self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 0:
+        if self.mainwin.panels['filters'].option_menu['SS Fast'].currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
-        elif self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 1:
+        elif self.mainwin.panels['filters'].option_menu['SS Fast'].currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         self.onRawSignal_SsThresh_ValueChanged()
         self.onRawSignal_SsAutoThresh_Clicked()
         return 0
 
     def onfilterPanel_CsSlow_IndexChanged(self):
-        if self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 0:
+        if self.mainwin.panels['filters'].option_menu['CS Slow'].currentIndex() == 0:
             self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
-        elif self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 1:
+        elif self.mainwin.panels['filters'].option_menu['CS Slow'].currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         self.onRawSignal_CsThresh_ValueChanged()
         self.onRawSignal_CsAutoThresh_Clicked()
@@ -901,42 +741,42 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onfilterPanel_CsAlign_IndexChanged(self):
         if self._workingDataBase['csLearnTemp_mode'][0]:
-            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(2)
+            self.mainwin.panels['filters'].option_menu['CS Align'].setCurrentIndex(2)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['cs_temp'], dtype=np.unicode)
         elif self._workingDataBase['ssLearnTemp_mode'][0]:
-            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(1)
+            self.mainwin.panels['filters'].option_menu['CS Align'].setCurrentIndex(1)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['ss_temp'], dtype=np.unicode)
         else:
-            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(0)
+            self.mainwin.panels['filters'].option_menu['CS Align'].setCurrentIndex(0)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['ss_index'], dtype=np.unicode)
         return 0
 
     def onfilterPanel_ssFilterMin_ValueChanged(self):
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['SS'].min.value()
+            self.mainwin.panels['filters'].filters['SS'].min.value()
         return 0
 
     def onfilterPanel_ssFilterMax_ValueChanged(self):
         self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['SS'].max.value()
+            self.mainwin.panels['filters'].filters['SS'].max.value()
         return 0
 
     def onfilterPanel_csFilterMin_ValueChanged(self):
         self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['CS'].min.value()
+            self.mainwin.panels['filters'].filters['CS'].min.value()
         return 0
 
     def onfilterPanel_csFilterMax_ValueChanged(self):
         self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['CS'].max.value()
+            self.mainwin.panels['filters'].filters['CS'].max.value()
         return 0
 
     def onRawSignal_SsThresh_ValueChanged(self):
         self._workingDataBase['ss_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
+            self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.value()
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             _sign = -1
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
@@ -950,7 +790,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onRawSignal_CsThresh_ValueChanged(self):
         self._workingDataBase['cs_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
+            self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.value()
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             _sign = +1
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
@@ -981,11 +821,11 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             ind_cluster_noise = np.argmax(centers)
             _threshold = np.min(gmm_data[labels==ind_cluster_noise])
-            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue((-_threshold)+1)
+            self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.setValue((-_threshold) + 1)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
             ind_cluster_noise = np.argmin(centers)
             _threshold = np.max(gmm_data[labels==ind_cluster_noise])
-            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue((+_threshold)+1)
+            self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.setValue((+_threshold) + 1)
         return 0
 
     def onRawSignal_CsAutoThresh_Clicked(self):
@@ -1007,19 +847,19 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
             ind_cluster_noise = np.argmin(centers)
             _threshold = np.max(gmm_data[labels==ind_cluster_noise])
-            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.setValue((+_threshold)+1)
+            self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.setValue((+_threshold) + 1)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
             ind_cluster_noise = np.argmax(centers)
             _threshold = np.min(gmm_data[labels==ind_cluster_noise])
-            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
+            self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.setValue((-_threshold) + 1)
         return 0
 
     def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
-        if self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 0:
+        if self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 0:
             self._workingDataBase['popUp_mode'] = np.array(['ss_pca_manual'], dtype=np.unicode)
-        elif (self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 1):
+        elif (self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 1):
             self._workingDataBase['popUp_mode'] = np.array(['ss_pca_gmm'], dtype=np.unicode)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
@@ -1041,9 +881,9 @@ class PsortGuiSignals(PsortGuiWidget):
     def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
-        if self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 0:
+        if self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 0:
             self._workingDataBase['popUp_mode'] = np.array(['cs_pca_manual'], dtype=np.unicode)
-        elif (self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 1):
+        elif (self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].selectPcaCombo.currentIndex() == 1):
             self._workingDataBase['popUp_mode'] = np.array(['cs_pca_gmm'], dtype=np.unicode)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
@@ -1080,11 +920,11 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onSsPanel_learnWave_Clicked(self):
-        if (self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()) and \
+        if (self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()) and \
             (self._workingDataBase['ss_index'].sum() < 1):
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
+            self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
         self._workingDataBase['ssLearnTemp_mode'][0] = \
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
+            self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
         self.extract_ss_template()
         self.extract_ss_similarity()
         self.extract_cs_similarity()
@@ -1096,11 +936,11 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onCsPanel_learnWave_Clicked(self):
-        if (self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()) and \
+        if (self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()) and \
             (self._workingDataBase['cs_index'].sum() < 1):
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
+            self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
         self._workingDataBase['csLearnTemp_mode'][0] = \
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
+            self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
         self.extract_cs_template()
         self.extract_ss_similarity()
         self.extract_cs_similarity()
@@ -1125,6 +965,18 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_waveform()
         self.plot_cs_pca()
         return 0
+
+    # def plot_refresh(self):
+    #     self.reset_ss_ROI(forced_reset = True)
+    #     self.extract_ss_peak()
+    #     self.extract_ss_waveform()
+    #     self.extract_ss_similarity()
+    #     self.extract_ss_ifr()
+    #     self.extract_ss_time()
+    #     self.extract_ss_xprob()
+    #     self.extract_cs_xprob()
+    #     self.extract_ss_pca()
+
 
     @showWaitCursor
     def onSsPanel_delete_Clicked(self):
@@ -1288,7 +1140,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.loadData.start()
         self.txtlabel_statusBar.setText('Loading data ...')
         self.progress_statusBar.setRange(0,0)
-        self.widget_mainwin.setEnabled(False)
+        self.mainwin.setEnabled(False)
         self.toolbar.setEnabled(False)
         self.menubar.setEnabled(False)
         return 0
@@ -1297,7 +1149,7 @@ class PsortGuiSignals(PsortGuiWidget):
         currentDT = datetime.datetime.now()
         self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S") + ' Loaded data.')
         self.progress_statusBar.setRange(0,1)
-        self.widget_mainwin.setEnabled(True)
+        self.mainwin.setEnabled(True)
         self.toolbar.setEnabled(True)
         self.menubar.setEnabled(True)
 
@@ -1412,12 +1264,12 @@ class PsortGuiSignals(PsortGuiWidget):
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
         # Setting the value of slotNumCurrent to 1
         # the disconnet and connect commands are to solve an issue when a new file is loaded
-        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+        self.tools['current slot'].valueChanged.\
             disconnect(self.onToolbar_slotNumCurrent_ValueChanged)
         slot_num = 1;
         self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self._workingDataBase['current_slot_num'][0] = slot_num - 1
-        self.txtlabel_toolbar_slotNumTotal.\
+        self.tools['total slots'].\
             setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
             '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
         self.transfer_data_from_psortDataBase_to_guiSignals()
@@ -1432,12 +1284,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self.undoRedo_reset()
             self.refresh_workingDataBase()
             self.undoRedo_add()
-        self.txtlabel_toolbar_fileName.setText(file_name)
-        self.txtlabel_toolbar_filePath.setText("..." + file_path[-30:] + os.sep)
-        self.txtedit_toolbar_slotNumCurrent.\
+        self.tools['filename'].setText(file_name)
+        self.tools['filepath'].setText("..." + file_path[-30:] + os.sep)
+        self.tools['current slot'].\
             setMaximum(self.psortDataBase.get_total_slot_num())
-        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
-        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+        self.tools['current slot'].setValue(slot_num)
+        self.tools['current slot'].valueChanged.\
             connect(self.onToolbar_slotNumCurrent_ValueChanged)
         return 0
 
@@ -1447,7 +1299,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.saveData.start()
         self.txtlabel_statusBar.setText('Saving data ...')
         self.progress_statusBar.setRange(0,0)
-        self.widget_mainwin.setEnabled(False)
+        self.mainwin.setEnabled(False)
         self.toolbar.setEnabled(False)
         self.menubar.setEnabled(False)
         return 0
@@ -1456,7 +1308,7 @@ class PsortGuiSignals(PsortGuiWidget):
         currentDT = datetime.datetime.now()
         self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S") + ' Saved data.')
         self.progress_statusBar.setRange(0,1)
-        self.widget_mainwin.setEnabled(True)
+        self.mainwin.setEnabled(True)
         self.toolbar.setEnabled(True)
         self.menubar.setEnabled(True)
         return 0
@@ -1539,7 +1391,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_ss_ifr_histogram(self):
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].title.\
+        self.mainwin.plot_layouts['SS'].plot_panels['Firing Statistics'].title.\
             setText("SS Firing: {:.1f}Hz".format(self._workingDataBase['ss_ifr_mean'][0]))
         self.infLine_SsIfr.setValue(self._workingDataBase['ss_ifr_mean'][0])
         self.pltData_SsIfr.\
@@ -1551,7 +1403,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_cs_ifr_histogram(self):
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].title.\
+        self.mainwin.plot_layouts['CS'].plot_panels['Firing Statistics'].title.\
             setText("CS Firing: {:.2f}Hz".format(self._workingDataBase['cs_ifr_mean'][0]))
         self.infLine_CsIfr.setValue(self._workingDataBase['cs_ifr_mean'][0])
         self.pltData_CsIfr.\
@@ -1698,8 +1550,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['cs_index_undoRedo']= np.zeros((batch_size,len_data), dtype=np.bool)
         self._workingDataBase['index_undoRedo'][0] = -1
         self._workingDataBase['length_undoRedo'][0] = 0
-        self.actionBtn_toolbar_undo.setEnabled(False)
-        self.actionBtn_toolbar_redo.setEnabled(False)
+        self.tools['undo'].setEnabled(False)
+        self.tools['redo'].setEnabled(False)
         return 0
 
     def undoRedo_append(self):
@@ -1719,20 +1571,20 @@ class PsortGuiSignals(PsortGuiWidget):
     def undoRedo_enable(self):
         # UNDO Enable conditions
         if (self._workingDataBase['index_undoRedo'][0] <= 0):
-            self.actionBtn_toolbar_undo.setEnabled(False)
+            self.tools['undo'].setEnabled(False)
         elif (self._workingDataBase['index_undoRedo'][0] <= \
                 self._workingDataBase['length_undoRedo'][0] - 1):
-            self.actionBtn_toolbar_undo.setEnabled(True)
+            self.tools['undo'].setEnabled(True)
         else:
-            self.actionBtn_toolbar_undo.setEnabled(False)
+            self.tools['undo'].setEnabled(False)
         # REDO Enable conditions
         if (self._workingDataBase['index_undoRedo'][0] >= \
                 self._workingDataBase['length_undoRedo'][0] - 1):
-            self.actionBtn_toolbar_redo.setEnabled(False)
+            self.tools['redo'].setEnabled(False)
         elif (self._workingDataBase['index_undoRedo'][0] >= 0):
-            self.actionBtn_toolbar_redo.setEnabled(True)
+            self.tools['redo'].setEnabled(True)
         else:
-            self.actionBtn_toolbar_redo.setEnabled(False)
+            self.tools['redo'].setEnabled(False)
         return 0
 
     def undoRedo_add(self):
@@ -2977,37 +2829,37 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = len(comboBx_Items)
             self._workingDataBase['ss_scatter_mat'] = ss_scatter_mat_
             self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].clear()
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].clear()
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].clear()
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].clear()
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
             if not(self._workingDataBase['umap_enable'][0]):
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].model().item(3).setEnabled(False)
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].model().item(4).setEnabled(False)
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].model().item(3).setEnabled(False)
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].model().item(4).setEnabled(False)
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].model().item(3).setEnabled(False)
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].model().item(4).setEnabled(False)
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].model().item(3).setEnabled(False)
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].model().item(4).setEnabled(False)
                 if (3 <= self._workingDataBase['ss_pca1_index'][0] <= 4):
                     self._workingDataBase['ss_pca1_index'][0] -= 3
                 if (3 <= self._workingDataBase['ss_pca2_index'][0] <= 4):
                     self._workingDataBase['ss_pca2_index'][0] -= 3
             # ss_pca1_index
             if (self._workingDataBase['ss_pca1_index'][0] < num_D):
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
                     self._workingDataBase['ss_pca1_index'][0])
                 self._workingDataBase['ss_scatter1'] = self._workingDataBase\
                     ['ss_scatter_mat'][:,self._workingDataBase['ss_pca1_index'][0]]
             else:
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
                 self._workingDataBase['ss_scatter1'] = self._workingDataBase['ss_scatter_mat'][:,0]
                 self._workingDataBase['ss_pca1_index'][0] = 0
             # ss_pca2_index
             if (self._workingDataBase['ss_pca2_index'][0] < num_D):
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
                     self._workingDataBase['ss_pca2_index'][0])
                 self._workingDataBase['ss_scatter2'] = self._workingDataBase\
                     ['ss_scatter_mat'][:,self._workingDataBase['ss_pca2_index'][0]]
             else:
-                self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
+                self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
                 self._workingDataBase['ss_scatter2'] = self._workingDataBase['ss_scatter_mat'][:,1]
                 self._workingDataBase['ss_pca2_index'][0] = 1
         else:
@@ -3019,15 +2871,15 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
             self._workingDataBase['ss_scatter1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_scatter2'] = np.zeros((0), dtype=np.float32)
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].clear()
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].clear()
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].clear()
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].clear()
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
             # ss_pca1_index
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
             self._workingDataBase['ss_pca1_index'][0] = 0
             # ss_pca2_index
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
+            self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
             self._workingDataBase['ss_pca2_index'][0] = 1
         return 0
 
@@ -3067,36 +2919,36 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = len(comboBx_Items)
             self._workingDataBase['cs_scatter_mat'] = cs_scatter_mat_
             self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].clear()
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].clear()
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
             if not(self._workingDataBase['umap_enable'][0]):
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].model().item(3).setEnabled(False)
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].model().item(4).setEnabled(False)
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].model().item(3).setEnabled(False)
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].model().item(4).setEnabled(False)
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].model().item(3).setEnabled(False)
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].model().item(4).setEnabled(False)
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].model().item(3).setEnabled(False)
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].model().item(4).setEnabled(False)
                 if (3 <= self._workingDataBase['cs_pca1_index'][0] <= 4):
                     self._workingDataBase['cs_pca1_index'][0] -= 3
                 if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
                     self._workingDataBase['cs_pca2_index'][0] -= 3
             # cs_pca1_index
             if (self._workingDataBase['cs_pca1_index'][0] < num_D):
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
                     self._workingDataBase['cs_pca1_index'][0])
                 self._workingDataBase['cs_scatter1'] = self._workingDataBase\
                     ['cs_scatter_mat'][:,self._workingDataBase['cs_pca1_index'][0]]
             else:
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
                 self._workingDataBase['cs_scatter1'] = self._workingDataBase['cs_scatter_mat'][:,0]
                 self._workingDataBase['cs_pca1_index'][0] = 0
             # cs_pca2_index
             if (self._workingDataBase['cs_pca2_index'][0] < num_D):
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
                     self._workingDataBase['cs_pca2_index'][0])
                 self._workingDataBase['cs_scatter2'] = self._workingDataBase\
                     ['cs_scatter_mat'][:,self._workingDataBase['cs_pca2_index'][0]]
             else:
-                self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
+                self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
                 self._workingDataBase['cs_scatter2'] = self._workingDataBase['cs_scatter_mat'][:,1]
                 self._workingDataBase['cs_pca2_index'][0] = 1
         else:
@@ -3108,15 +2960,15 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
             self._workingDataBase['cs_scatter1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_scatter2'] = np.zeros((0), dtype=np.float32)
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].clear()
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].clear()
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].clear()
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].clear()
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].addItems(comboBx_Items)
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].addItems(comboBx_Items)
             # cs_pca1_index
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
             self._workingDataBase['cs_pca1_index'][0] = 0
             # cs_pca2_index
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
+            self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
             self._workingDataBase['cs_pca2_index'][0] = 1
         return 0
 
@@ -3160,41 +3012,41 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def update_guiWidgets_from_guiDataBase(self):
         # Filter values
-        self.widget_mainwin.filterPanel.filters['SS'].min.setValue(
+        self.mainwin.panels['filters'].filters['SS'].min.setValue(
             self._workingDataBase['ss_min_cutoff_freq'][0])
-        self.widget_mainwin.filterPanel.filters['SS'].max.setValue(
+        self.mainwin.panels['filters'].filters['SS'].max.setValue(
             self._workingDataBase['ss_max_cutoff_freq'][0])
-        self.widget_mainwin.filterPanel.filters['CS'].min.setValue(
+        self.mainwin.panels['filters'].filters['CS'].min.setValue(
             self._workingDataBase['cs_min_cutoff_freq'][0])
-        self.widget_mainwin.filterPanel.filters['CS'].max.setValue(
+        self.mainwin.panels['filters'].filters['CS'].max.setValue(
             self._workingDataBase['cs_max_cutoff_freq'][0])
         # Threshold
-        self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue(
+        self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.setValue(
             self._workingDataBase['ss_threshold'][0])
-        self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.setValue(
+        self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.setValue(
             self._workingDataBase['cs_threshold'][0])
         # csAlign_mode
         if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(0)
+            self.mainwin.panels['filters'].option_menu['CS Align'].setCurrentIndex(0)
         elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(1)
+            self.mainwin.panels['filters'].option_menu['CS Align'].setCurrentIndex(1)
         elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(2)
+            self.mainwin.panels['filters'].option_menu['CS Align'].setCurrentIndex(2)
         # ssPeak_mode
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['SS Fast'].setCurrentIndex(0)
+            self.mainwin.panels['filters'].option_menu['SS Fast'].setCurrentIndex(0)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['SS Fast'].setCurrentIndex(1)
+            self.mainwin.panels['filters'].option_menu['SS Fast'].setCurrentIndex(1)
         # csPeak_mode
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['CS Slow'].setCurrentIndex(0)
+            self.mainwin.panels['filters'].option_menu['CS Slow'].setCurrentIndex(0)
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            self.widget_mainwin.filterPanel.option_menu['CS Slow'].setCurrentIndex(1)
+            self.mainwin.panels['filters'].option_menu['CS Slow'].setCurrentIndex(1)
         # ssLearnTemp_mode
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(
+        self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(
             self._workingDataBase['ssLearnTemp_mode'][0])
         # csLearnTemp_mode
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(
+        self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(
             self._workingDataBase['csLearnTemp_mode'][0])
         # ss_pca_bound
         self.infLine_SsWave_minPca.setValue(
@@ -3207,55 +3059,55 @@ class PsortGuiSignals(PsortGuiWidget):
         self.infLine_CsWave_maxPca.setValue(
             self._workingDataBase['cs_pca_bound_max'][0] * 1000.)
         # ss_pca_index
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
+        self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
             self._workingDataBase['ss_pca1_index'][0])
-        self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
+        self.mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
             self._workingDataBase['ss_pca2_index'][0])
         # cs_pca_index
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
+        self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(
             self._workingDataBase['cs_pca1_index'][0])
-        self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
+        self.mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(
             self._workingDataBase['cs_pca2_index'][0])
         return 0
 
     def update_guiDataBase_from_guiWidgets(self):
         # Filter values
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['SS'].min.value()
+            self.mainwin.panels['filters'].filters['SS'].min.value()
         self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['SS'].max.value()
+            self.mainwin.panels['filters'].filters['SS'].max.value()
         self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['CS'].min.value()
+            self.mainwin.panels['filters'].filters['CS'].min.value()
         self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.widget_mainwin.filterPanel.filters['CS'].max.value()
+            self.mainwin.panels['filters'].filters['CS'].max.value()
         # Threshold
         self._workingDataBase['ss_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
+            self.mainwin.panels['raw signals'].SsPeakPanel.control_layout.threshold.value()
         self._workingDataBase['cs_threshold'][0] = \
-            self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
+            self.mainwin.panels['raw signals'].CsPeakPanel.control_layout.threshold.value()
         # csAlign_mode
-        if self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndex() == 0:
+        if self.mainwin.panels['filters'].option_menu['CS Align'].currentIndex() == 0:
             self._workingDataBase['csAlign_mode'] = np.array(['ss_index'], dtype=np.unicode)
-        elif self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndex() == 1:
+        elif self.mainwin.panels['filters'].option_menu['CS Align'].currentIndex() == 1:
             self._workingDataBase['csAlign_mode'] = np.array(['ss_temp'], dtype=np.unicode)
-        elif self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndex() == 2:
+        elif self.mainwin.panels['filters'].option_menu['CS Align'].currentIndex() == 2:
             self._workingDataBase['csAlign_mode'] = np.array(['cs_temp'], dtype=np.unicode)
         # ssPeak_mode
-        if self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 0:
+        if self.mainwin.panels['filters'].option_menu['SS Fast'].currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
-        elif self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 1:
+        elif self.mainwin.panels['filters'].option_menu['SS Fast'].currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         # csPeak_mode
-        if self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 0:
+        if self.mainwin.panels['filters'].option_menu['CS Slow'].currentIndex() == 0:
             self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
-        elif self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 1:
+        elif self.mainwin.panels['filters'].option_menu['CS Slow'].currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         # ssLearnTemp_mode
         self._workingDataBase['ssLearnTemp_mode'][0] = \
-            self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
+            self.mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
         # csLearnTemp_mode
         self._workingDataBase['csLearnTemp_mode'][0] = \
-            self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
+            self.mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].isChecked()
         # ss_pca_bound
         self._workingDataBase['ss_pca_bound_min'][0] = \
             self.infLine_SsWave_minPca.value()/1000.
