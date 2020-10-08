@@ -133,11 +133,11 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(_workingDataBase)
-        self.widget_mainwin.comboBx_filterPanel_SsFast.setCurrentIndex(0)
-        self.widget_mainwin.comboBx_filterPanel_CsSlow.setCurrentIndex(0)
+        self.widget_mainwin.filterPanel.option_menu['SS Fast'].setCurrentIndex(0)
+        self.widget_mainwin.filterPanel.option_menu['CS Slow'].setCurrentIndex(0)
         self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
         self.widget_mainwin.plot_layouts['CS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(False)
-        self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(0)
+        self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(0)
         self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
         self.widget_mainwin.plot_layouts['SS'].plot_panels['Data Selection'].components[1]['Options'].setCurrentIndex(1)
         self.widget_mainwin.plot_layouts['CS'].plot_panels['Data Selection'].components[0]['Options'].setCurrentIndex(0)
@@ -147,7 +147,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def setEnableWidgets(self, isEnable):
-        self.widget_mainwin.widget_filterPanel.setEnabled(isEnable)
+        self.widget_mainwin.filterPanel.setEnabled(isEnable)
         self.widget_mainwin.widget_rawSignalPanel.setEnabled(isEnable)
         self.widget_mainwin.widget_SsCsPanel.setEnabled(isEnable)
         self.txtedit_toolbar_slotNumCurrent.setEnabled(isEnable)
@@ -433,19 +433,19 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_filterPanel_signals(self):
-        self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndexChanged.\
+        self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndexChanged.\
             connect(self.onfilterPanel_SsFast_IndexChanged)
-        self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndexChanged.\
+        self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndexChanged.\
             connect(self.onfilterPanel_CsSlow_IndexChanged)
-        self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndexChanged.\
+        self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndexChanged.\
             connect(self.onfilterPanel_CsAlign_IndexChanged)
-        self.widget_mainwin.ssFilter.min.valueChanged.\
+        self.widget_mainwin.filterPanel.filters['SS'].min.valueChanged.\
             connect(self.onfilterPanel_ssFilterMin_ValueChanged)
-        self.widget_mainwin.ssFilter.max.valueChanged.\
+        self.widget_mainwin.filterPanel.filters['SS'].max.valueChanged.\
             connect(self.onfilterPanel_ssFilterMax_ValueChanged)
-        self.widget_mainwin.csFilter.min.valueChanged.\
+        self.widget_mainwin.filterPanel.filters['CS'].min.valueChanged.\
             connect(self.onfilterPanel_csFilterMin_ValueChanged)
-        self.widget_mainwin.csFilter.max.valueChanged.\
+        self.widget_mainwin.filterPanel.filters['CS'].max.valueChanged.\
             connect(self.onfilterPanel_csFilterMax_ValueChanged)
         return 0
 
@@ -882,18 +882,18 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onfilterPanel_SsFast_IndexChanged(self):
-        if self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 0:
+        if self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
-        elif self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 1:
+        elif self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         self.onRawSignal_SsThresh_ValueChanged()
         self.onRawSignal_SsAutoThresh_Clicked()
         return 0
 
     def onfilterPanel_CsSlow_IndexChanged(self):
-        if self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 0:
+        if self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 0:
             self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
-        elif self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 1:
+        elif self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         self.onRawSignal_CsThresh_ValueChanged()
         self.onRawSignal_CsAutoThresh_Clicked()
@@ -901,37 +901,37 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onfilterPanel_CsAlign_IndexChanged(self):
         if self._workingDataBase['csLearnTemp_mode'][0]:
-            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(2)
+            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(2)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['cs_temp'], dtype=np.unicode)
         elif self._workingDataBase['ssLearnTemp_mode'][0]:
-            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(1)
+            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(1)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['ss_temp'], dtype=np.unicode)
         else:
-            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(0)
+            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(0)
             self._workingDataBase['csAlign_mode'] = \
                 np.array(['ss_index'], dtype=np.unicode)
         return 0
 
     def onfilterPanel_ssFilterMin_ValueChanged(self):
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.widget_mainwin.ssFilter.min.value()
+            self.widget_mainwin.filterPanel.filters['SS'].min.value()
         return 0
 
     def onfilterPanel_ssFilterMax_ValueChanged(self):
         self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.widget_mainwin.ssFilter.max.value()
+            self.widget_mainwin.filterPanel.filters['SS'].max.value()
         return 0
 
     def onfilterPanel_csFilterMin_ValueChanged(self):
         self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.widget_mainwin.csFilter.min.value()
+            self.widget_mainwin.filterPanel.filters['CS'].min.value()
         return 0
 
     def onfilterPanel_csFilterMax_ValueChanged(self):
         self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.widget_mainwin.csFilter.max.value()
+            self.widget_mainwin.filterPanel.filters['CS'].max.value()
         return 0
 
     def onRawSignal_SsThresh_ValueChanged(self):
@@ -3160,13 +3160,13 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def update_guiWidgets_from_guiDataBase(self):
         # Filter values
-        self.widget_mainwin.ssFilter.min.setValue(
+        self.widget_mainwin.filterPanel.filters['SS'].min.setValue(
             self._workingDataBase['ss_min_cutoff_freq'][0])
-        self.widget_mainwin.ssFilter.max.setValue(
+        self.widget_mainwin.filterPanel.filters['SS'].max.setValue(
             self._workingDataBase['ss_max_cutoff_freq'][0])
-        self.widget_mainwin.csFilter.min.setValue(
+        self.widget_mainwin.filterPanel.filters['CS'].min.setValue(
             self._workingDataBase['cs_min_cutoff_freq'][0])
-        self.widget_mainwin.csFilter.max.setValue(
+        self.widget_mainwin.filterPanel.filters['CS'].max.setValue(
             self._workingDataBase['cs_max_cutoff_freq'][0])
         # Threshold
         self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.setValue(
@@ -3175,21 +3175,21 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_threshold'][0])
         # csAlign_mode
         if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(0)
+            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(0)
         elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(1)
+            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(1)
         elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_CsAlign.setCurrentIndex(2)
+            self.widget_mainwin.filterPanel.option_menu['CS Align'].setCurrentIndex(2)
         # ssPeak_mode
         if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_SsFast.setCurrentIndex(0)
+            self.widget_mainwin.filterPanel.option_menu['SS Fast'].setCurrentIndex(0)
         elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_SsFast.setCurrentIndex(1)
+            self.widget_mainwin.filterPanel.option_menu['SS Fast'].setCurrentIndex(1)
         # csPeak_mode
         if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_CsSlow.setCurrentIndex(0)
+            self.widget_mainwin.filterPanel.option_menu['CS Slow'].setCurrentIndex(0)
         elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            self.widget_mainwin.comboBx_filterPanel_CsSlow.setCurrentIndex(1)
+            self.widget_mainwin.filterPanel.option_menu['CS Slow'].setCurrentIndex(1)
         # ssLearnTemp_mode
         self.widget_mainwin.plot_layouts['SS'].plot_panels['Template Analysis'].buttons['Learn Template'].setChecked(
             self._workingDataBase['ssLearnTemp_mode'][0])
@@ -3221,34 +3221,34 @@ class PsortGuiSignals(PsortGuiWidget):
     def update_guiDataBase_from_guiWidgets(self):
         # Filter values
         self._workingDataBase['ss_min_cutoff_freq'][0] = \
-            self.widget_mainwin.ssFilter.min.value()
+            self.widget_mainwin.filterPanel.filters['SS'].min.value()
         self._workingDataBase['ss_max_cutoff_freq'][0] = \
-            self.widget_mainwin.ssFilter.max.value()
+            self.widget_mainwin.filterPanel.filters['SS'].max.value()
         self._workingDataBase['cs_min_cutoff_freq'][0] = \
-            self.widget_mainwin.csFilter.min.value()
+            self.widget_mainwin.filterPanel.filters['CS'].min.value()
         self._workingDataBase['cs_max_cutoff_freq'][0] = \
-            self.widget_mainwin.csFilter.max.value()
+            self.widget_mainwin.filterPanel.filters['CS'].max.value()
         # Threshold
         self._workingDataBase['ss_threshold'][0] = \
             self.widget_mainwin.txtedit_rawSignalPanel_SsThresh.value()
         self._workingDataBase['cs_threshold'][0] = \
             self.widget_mainwin.txtedit_rawSignalPanel_CsThresh.value()
         # csAlign_mode
-        if self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndex() == 0:
+        if self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndex() == 0:
             self._workingDataBase['csAlign_mode'] = np.array(['ss_index'], dtype=np.unicode)
-        elif self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndex() == 1:
+        elif self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndex() == 1:
             self._workingDataBase['csAlign_mode'] = np.array(['ss_temp'], dtype=np.unicode)
-        elif self.widget_mainwin.comboBx_filterPanel_CsAlign.currentIndex() == 2:
+        elif self.widget_mainwin.filterPanel.option_menu['CS Align'].currentIndex() == 2:
             self._workingDataBase['csAlign_mode'] = np.array(['cs_temp'], dtype=np.unicode)
         # ssPeak_mode
-        if self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 0:
+        if self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 0:
             self._workingDataBase['ssPeak_mode'] = np.array(['min'], dtype=np.unicode)
-        elif self.widget_mainwin.comboBx_filterPanel_SsFast.currentIndex() == 1:
+        elif self.widget_mainwin.filterPanel.option_menu['SS Fast'].currentIndex() == 1:
             self._workingDataBase['ssPeak_mode'] = np.array(['max'], dtype=np.unicode)
         # csPeak_mode
-        if self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 0:
+        if self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 0:
             self._workingDataBase['csPeak_mode'] = np.array(['max'], dtype=np.unicode)
-        elif self.widget_mainwin.comboBx_filterPanel_CsSlow.currentIndex() == 1:
+        elif self.widget_mainwin.filterPanel.option_menu['CS Slow'].currentIndex() == 1:
             self._workingDataBase['csPeak_mode'] = np.array(['min'], dtype=np.unicode)
         # ssLearnTemp_mode
         self._workingDataBase['ssLearnTemp_mode'][0] = \

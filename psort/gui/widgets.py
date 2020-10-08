@@ -52,7 +52,7 @@ class PsortLinearControlLayout(QHBoxLayout):
 
         for n, group in enumerate(itemgroups):
             self.add_widgets(*group)
-            if n < len(itemgroups):
+            if n < (len(itemgroups)-1):
                 self.addStretch()
 
         self.setSpacing(1)
@@ -78,20 +78,88 @@ class PsortLinearControlLayout(QHBoxLayout):
 #%% PsortPanel
 class PsortPanel(QWidget):
     
-    def __init__(self, color=WHITE, orientation='H', spacing=3, margins=1):
+    def __init__(self, color=WHITE, orientation='H', layout=None, spacing=3, margins=1):
         super(PsortPanel, self).__init__()
         self.setAutoFillBackground(True)
         palette = self.palette()
         palette.setColor(QtGui.QPalette.Window, color)
         self.setPalette(palette)
-        if orientation == 'H':
-            self.setLayout(QHBoxLayout())
-        elif orientation == 'V':
-            self.setLayout(QVBoxLayout())
+        if layout is not None:
+            self.setLayout(layout)
+        elif orientation is not None:
+            if orientation == 'H':
+                self.setLayout(QHBoxLayout())
+            elif orientation == 'V':
+                self.setLayout(QVBoxLayout())
+            else:
+                raise Exception('Invalid orientation given. Options: V, H')
+        else:
+            raise Exception('No layout specified')
 
         self.layout().setSpacing(spacing)
         self.layout().setContentsMargins(margins, margins, margins, margins)
 
+
+class PsortFilterPanel(PsortPanel):
+
+    COMBOBX_CONFIG = { # Currently using first two letters to extract color information, may change later
+        'SS Fast': [
+            "Neg(-) SS Filter Peak",
+            "Pos(+) SS Filter Peak"
+        ],
+        'CS Slow': [
+            "Pos(+) CS Filter Peak",
+            "Neg(-) CS Filter Peak"
+        ],
+        'CS Align': [
+            "Align CS wrt 'SS Index'",
+            "Align CS wrt 'SS Template'",
+            "Align CS wrt 'CS Template'"
+        ]
+    }
+
+    FILTER_CONFIG = {
+        'SS': {
+            'min': 50.0,
+            'max': 5000.0
+        },
+        'CS': {
+            'min': 10.0,
+            'max': 200.0
+        }
+    }
+
+    def __init__(self):
+        self.option_menu = {
+            name: self.filter_combobox(
+                items,
+                DEFAULT_CONFIG[name[:2]]['Colortext']
+            ) for (name, items) in self.COMBOBX_CONFIG.items()
+        }
+
+        self.filters = {
+            spike_type: PsortFilter(
+                name=f'{spike_type} Filter (Hz)',
+                min_val=params['min'],
+                max_val=params['max'],
+                color=DEFAULT_CONFIG[spike_type]['Colortext']
+            ) for spike_type, params in self.FILTER_CONFIG.items()
+        }
+
+        super(PsortFilterPanel, self).__init__(
+            layout=PsortLinearControlLayout(
+                [*self.option_menu.values(), '|'],
+                [item for sfilter in self.filters.values() for item in ['|', *sfilter.items]]
+            )
+        )
+
+    def filter_combobox(self, items, color=None):
+        box = QComboBox()
+        box.addItems(items)
+        if color is not None:
+            lib.setFont(box, color=color)
+
+        return box
 
 class PsortSortingPanel(PsortPanel):
 
@@ -111,7 +179,11 @@ class PsortSortingPanel(PsortPanel):
     }
 
     def __init__(self, type):
-        super(PsortSortingPanel, self).__init__(color=DEFAULT_CONFIG[type]['Color'], spacing=1)
+        super(PsortSortingPanel, self).__init__(
+            color=DEFAULT_CONFIG[type]['Color'],
+            spacing=1,
+            layout=QHBoxLayout()
+        )
 
         """Icons made by
         <a href="https://www.flaticon.com/authors/itim2101" title="itim2101">itim2101</a>
@@ -130,6 +202,17 @@ class PsortSortingPanel(PsortPanel):
             lib.setFont(self.buttons[name], color=DEFAULT_CONFIG[type]['Colortext'])
             self.buttons[name].setIcon(PsortGuiIcon(icon))
             self.layout().addWidget(self.buttons[name])
+
+
+class PsortPlotPanel(PsortPanel):
+
+    def __init__(self, type, plot_title=None):
+        super(PsortPlotPanel, self).__init__(color=DEFAULT_CONFIG[type]['Color'], layout=QVBoxLayout())
+        self.control_layout = QGridLayout()
+        self.plot = PsortPlotWidget(plot_title)
+
+        self.layout().addLayout(self.control_layout)
+        self.layout().addWidget(self.plot)
 
 
 class PsortSpinBox(QDoubleSpinBox):
@@ -181,16 +264,6 @@ class PsortPlotWidget(pg.PlotWidget):
         lib.set_plotWidget(self)
         self.setTitle(title)
 
-
-class PsortPlotPanel(PsortPanel):
-
-    def __init__(self, type, plot_title=None):
-        super(PsortPlotPanel, self).__init__(color=DEFAULT_CONFIG[type]['Color'], orientation='V')
-        self.control_layout = QGridLayout()
-        self.plot = PsortPlotWidget(plot_title)
-
-        self.layout().addLayout(self.control_layout)
-        self.layout().addWidget(self.plot)
 
 
 class PsortTemplateAnalysisPanel(PsortPlotPanel):
@@ -326,6 +399,7 @@ class PsortPlotGrid(QGridLayout):
             self.addWidget(self.plot_panels[panel], *info['Position'])
 
 
+
 #%% PsortMainWin
 class PsortMainWin(QWidget):
 
@@ -334,20 +408,18 @@ class PsortMainWin(QWidget):
 
         self.layout = QVBoxLayout()
 
-        self.widget_filterPanel = PsortPanel()
+        self.filterPanel = PsortFilterPanel()
         self.widget_rawSignalPanel = PsortPanel()
         self.widget_SsCsPanel = PsortPanel()
 
         # TODO: Get rid of these
-        self.layout_filterPanel = self.widget_filterPanel.layout()
         self.layout_rawSignalPanel = self.widget_rawSignalPanel.layout()
         self.layout_SsCsPanel = self.widget_SsCsPanel.layout()
 
-        self.build_filterPanel()
         self.build_rawSignalPanel()
         self.build_SsCsPanel()
         # add layouts to the layout_mainwin
-        self.layout.addWidget(self.widget_filterPanel)
+        self.layout.addWidget(self.filterPanel)
         self.layout.addWidget(self.widget_rawSignalPanel)
         self.layout.addWidget(self.widget_SsCsPanel)
         # the size of filterPanel is fixed
@@ -374,61 +446,6 @@ class PsortMainWin(QWidget):
             lib.setFont(box, color=color)
 
         return box
-
-    def build_filterPanel(self):
-
-        self.comboBx_filterPanel_CsAlign = self.filter_combobox(
-            [
-                "Align CS wrt 'SS Index'",
-                "Align CS wrt 'SS Template'",
-                "Align CS wrt 'CS Template'"
-            ], color="red"
-        )
-
-        self.comboBx_filterPanel_CsSlow = self.filter_combobox(
-            ["Pos(+) CS Filter Peak", "Neg(-) CS Filter Peak"],
-            color="red"
-        )
-
-        self.comboBx_filterPanel_SsFast = self.filter_combobox(
-            ["Neg(-) SS Filter Peak", "Pos(+) SS Filter Peak"],
-            color="blue"
-        )
-
-        self.csFilter = PsortFilter(
-            name="CS Filter (Hz):",
-            min_val=10.0,
-            max_val=200.0,
-            color='red'
-        )
-
-        self.ssFilter = PsortFilter(
-            name="CS Filter (Hz):",
-            min_val=50.0,
-            max_val=5000.0,
-            color='blue'
-        )
-
-        # Create layout
-        for widget in [
-            self.comboBx_filterPanel_SsFast,
-            self.comboBx_filterPanel_CsSlow,
-            self.comboBx_filterPanel_CsAlign,
-            self.add_vline()
-        ]:
-            self.layout_filterPanel.addWidget(widget)
-
-        self.layout_filterPanel.addStretch()
-
-        for widget in [
-            self.add_vline(),
-            *self.ssFilter.items,
-            self.add_vline(),
-            *self.csFilter.items,
-        ]:
-            self.layout_filterPanel.addWidget(widget)
-
-        return 0
 
     def build_rawSignalPanel(self):
         # self.layout_rawSignalPanel_SsPeak_Thresh = QHBoxLayout()
@@ -527,18 +544,8 @@ class PsortGuiWidget(QMainWindow, ):
 
         self.widget_grand = PsortGrandWin()
         self.layout_grand = self.widget_grand.layout()
-        # self.layout_grand = QStackedLayout()
         self.widget_mainwin = self.widget_grand.mainwin
-        # # build the main_window
-        # self.build_main_window_Widget()
-        #
-        # self.layout_grand.addWidget(self.widget_mainwin)
-        # self.layout_grand.setCurrentIndex(0)
-        # self.widget_grand = QWidget()
-        # self.widget_grand.setLayout(self.layout_grand)
-
         self.setCentralWidget(self.widget_grand)
-        return None
 
     def build_statusbar(self):
         self.setStatusBar(QStatusBar(self))
@@ -553,20 +560,13 @@ class PsortGuiWidget(QMainWindow, ):
         self.toolbar = QToolBar("Load_Save")
         self.toolbar.setIconSize(QtCore.QSize(30, 30))
         self.addToolBar(self.toolbar)
-        self.actionBtn_toolbar_next = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '071-right-arrow.png')), "Next Slot", self)
-        self.actionBtn_toolbar_previous = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '036-left-arrow.png')), "Previous Slot", self)
-        self.actionBtn_toolbar_refresh = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '068-recycling.png')), "Refresh Slot", self)
-        self.actionBtn_toolbar_load = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '029-folder.png')), "Open File...", self)
-        self.actionBtn_toolbar_save = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '073-diskette.png')), "Save Session", self)
-        self.actionBtn_toolbar_undo = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '068-undo.png')), "Undo", self)
-        self.actionBtn_toolbar_redo = \
-            QAction(QtGui.QIcon(os.path.join(PROJECT_FOLDER, 'icons', '068-redo.png')), "Redo", self)
+        self.actionBtn_toolbar_next = QAction(PsortGuiIcon('RARROW'), "Next Slot", self)
+        self.actionBtn_toolbar_previous = QAction(PsortGuiIcon('LARROW'), "Previous Slot", self)
+        self.actionBtn_toolbar_refresh = QAction(PsortGuiIcon('RECYCLING'), "Refresh Slot", self)
+        self.actionBtn_toolbar_load = QAction(PsortGuiIcon('FOLDER'), "Open File...", self)
+        self.actionBtn_toolbar_save = QAction(PsortGuiIcon('DISKETTE'), "Save Session", self)
+        self.actionBtn_toolbar_undo = QAction(PsortGuiIcon('UNDO'), "Undo", self)
+        self.actionBtn_toolbar_redo = QAction(PsortGuiIcon('REDO'), "Redo", self)
 
         self.txtlabel_toolbar_fileName = QLabel("File_Name")
         lib.setFont(self.txtlabel_toolbar_fileName)
@@ -574,8 +574,7 @@ class PsortGuiWidget(QMainWindow, ):
         lib.setFont(self.txtlabel_toolbar_filePath)
 
         self.widget_toolbar_empty = QWidget()
-        self.widget_toolbar_empty. \
-            setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+        self.widget_toolbar_empty.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
 
         self.txtlabel_toolbar_slotNumLabel = QLabel("Slot#")
         lib.setFont(self.txtlabel_toolbar_slotNumLabel)
