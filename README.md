@@ -1,5 +1,7 @@
 # psort
-purkinjeSort
+A graphical application for sorting purkinje cell spikes.
+
+![screenshot of psort](https://github.com/esedaghatnejad/psort/blob/packaging/Screenshot_1.png)
 
 ## Packaging branch
 This branch was created by Kyle Poe to begin the process of turning this project into a Python package.
