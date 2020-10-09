@@ -169,8 +169,8 @@ class SlotBoundaryWidget(QWidget):
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
         if self.plot_slotBoundary_mainPlot.sceneBoundingRect().contains(pos):
             mousePoint = self.viewBox_mainPlot.mapSceneToView(pos)
-            self.infLine_crosshair_vLine.setPos(mousePoint.x())
-            self.infLine_crosshair_hLine.setPos(mousePoint.y())
+            self.infLine_crosshair_vLine.setValue(mousePoint.x())
+            self.infLine_crosshair_hLine.setValue(mousePoint.y())
         return 0
 
     def slotBoundary_mouseClicked(self, evt):

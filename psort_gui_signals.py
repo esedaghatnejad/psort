@@ -2073,9 +2073,9 @@ class PsortGuiSignals(PsortGuiWidget):
         self.WaveDissectWidget.pushBtn_rawPlot_popup_ok.clicked.\
             connect(self.onWaveDissect_Ok_Clicked)
 
-        # self.proxy_MouseMoved_WaveDissectRaw = \
-        #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseMoved, \
-        #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_raw) #J
+        self.proxy_MouseMoved_WaveDissectRaw = \
+            pg.SignalProxy(self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseMoved, \
+            rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_raw)
         # self.proxy_MouseMoved_WaveDissectSS = \
         #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot1.scene().sigMouseMoved, \
         #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_SS) #J

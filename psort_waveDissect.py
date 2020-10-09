@@ -41,9 +41,11 @@ class WaveDissectWidget(QWidget):
         self.layoutWidget_rawPlot_popup_belowMainBtn_waveform = QSplitter(Qt.Vertical)
         self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.setChildrenCollapsible(False)
 
+        self.layout_rawPlot_popup_nextPrev = QGridLayout()
         self.layout_rawPlot_popup_spike = QGridLayout()
+        self.layout_rawPlot_popup_mode = QGridLayout()
+        self.layout_rawPlot_popup_modeCombo = QHBoxLayout()
         self.layout_rawPlot_popup_zoom = QGridLayout()
-        self.layout_rawPlot_popup_mode = QHBoxLayout()
         self.layout_rawPlot_popup_xAxis = QHBoxLayout()
         self.layout_rawPlot_popup_yAxis = QHBoxLayout()
         self.layout_rawPlot_popup_axes = QVBoxLayout()
@@ -63,11 +65,11 @@ class WaveDissectWidget(QWidget):
             from www.flaticon.com
         '''
         icon_size = 30
-        self.pushBtn_rawPlot_popup_select = QPushButton("Select area")
+        self.pushBtn_rawPlot_popup_select = QPushButton("Select spikes")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_select, color="black")
         self.pushBtn_rawPlot_popup_select.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'select.png')))
         self.pushBtn_rawPlot_popup_select.setToolTip('<b>S</b>elect spikes in<br>the region of interest')
-        self.pushBtn_rawPlot_popup_clear = QPushButton("Clear Area")
+        self.pushBtn_rawPlot_popup_clear = QPushButton("Clear ROI")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_clear, color="black")
         self.pushBtn_rawPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'clear.png')))
         self.pushBtn_rawPlot_popup_clear.setToolTip('<b>C</b>lear the regions<br>of interest')
@@ -89,6 +91,14 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_next_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'next_spike.png')))
         self.pushBtn_rawPlot_popup_next_spike.setToolTip('Move to the next spike<br><b>(Right Arrow)')
         self.pushBtn_rawPlot_popup_next_spike.setAutoRepeat(True) # allow holding button
+        self.pushBtn_rawPlot_popup_addspike = QPushButton("Add spike")
+        psort_lib.setFont(self.pushBtn_rawPlot_popup_addspike, color="black")
+        self.pushBtn_rawPlot_popup_addspike.setCheckable(True)
+        self.pushBtn_rawPlot_popup_addspike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'crosshair.png')))
+        self.pushBtn_rawPlot_popup_addspike.setToolTip('Mark spike manually<br><b>(X)')
+        self.checkBx_rawPlot_popup_alignment = QCheckBox("Auto align")
+        psort_lib.setFont(self.checkBx_rawPlot_popup_alignment, color="black")
+        self.checkBx_rawPlot_popup_alignment.setChecked(True)
         self.pushBtn_rawPlot_popup_zoom_out = QPushButton("Zoom out")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_out, color="black")
         self.pushBtn_rawPlot_popup_zoom_out.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_out.png')))
@@ -176,23 +186,31 @@ class WaveDissectWidget(QWidget):
         self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_Btn)
 
         # Add action widgets
-        self.layout_rawPlot_popup_mode.addWidget(self.label_rawPlot_popup_spike_of_interest)
-        self.layout_rawPlot_popup_mode.addWidget(self.comboBx_rawPlot_popup_spike_of_interest)
-        self.layout_rawPlot_popup_mode.setSpacing(1)
-        self.layout_rawPlot_popup_mode.setContentsMargins(1,1,1,1)
+        self.layout_rawPlot_popup_modeCombo.addWidget(self.label_rawPlot_popup_spike_of_interest)
+        self.layout_rawPlot_popup_modeCombo.addWidget(self.comboBx_rawPlot_popup_spike_of_interest)
+        self.layout_rawPlot_popup_modeCombo.setSpacing(1)
+        self.layout_rawPlot_popup_modeCombo.setContentsMargins(1,1,1,1)
 
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_select,      0, 0)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_clear,       0, 1)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_delete,      0, 2)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_move,        0, 3)
-        self.layout_rawPlot_popup_spike.addLayout(self.layout_rawPlot_popup_mode, 0, 4)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_prev_spike,  1, 0)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_next_spike,  1, 1)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_prev_window, 1, 2)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_next_window, 1, 3)
-        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_find_other_spike, 1, 4)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_prev_spike,  0, 0)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_next_spike,  0, 1)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_prev_window, 1, 0)
+        self.layout_rawPlot_popup_spike.addWidget(self.pushBtn_rawPlot_popup_next_window, 1, 1)
         self.layout_rawPlot_popup_spike.setSpacing(1)
         self.layout_rawPlot_popup_spike.setContentsMargins(1,1,1,1)
+
+        self.layout_rawPlot_popup_nextPrev.addWidget(self.pushBtn_rawPlot_popup_select,      0, 0)
+        self.layout_rawPlot_popup_nextPrev.addWidget(self.pushBtn_rawPlot_popup_delete,      0, 1)
+        self.layout_rawPlot_popup_nextPrev.addWidget(self.pushBtn_rawPlot_popup_addspike,    0, 2)
+        self.layout_rawPlot_popup_nextPrev.addWidget(self.pushBtn_rawPlot_popup_clear,       1, 0)
+        self.layout_rawPlot_popup_nextPrev.addWidget(self.pushBtn_rawPlot_popup_move,        1, 1)
+        self.layout_rawPlot_popup_nextPrev.addWidget(self.checkBx_rawPlot_popup_alignment,   1, 2)
+        self.layout_rawPlot_popup_nextPrev.setSpacing(1)
+        self.layout_rawPlot_popup_nextPrev.setContentsMargins(1,1,1,1)
+
+        self.layout_rawPlot_popup_mode.addLayout(self.layout_rawPlot_popup_modeCombo,         0, 0)
+        self.layout_rawPlot_popup_mode.addWidget(self.pushBtn_rawPlot_popup_find_other_spike, 1, 0)
+        self.layout_rawPlot_popup_mode.setSpacing(1)
+        self.layout_rawPlot_popup_mode.setContentsMargins(1,1,1,1)
 
         self.layout_rawPlot_popup_zoom.addWidget(self.pushBtn_rawPlot_popup_zoom_in,       0, 0)
         self.layout_rawPlot_popup_zoom.addWidget(self.pushBtn_rawPlot_popup_zoom_out,      0, 1)
@@ -220,15 +238,17 @@ class WaveDissectWidget(QWidget):
         self.layout_rawPlot_popup_axes.setSpacing(1)
         self.layout_rawPlot_popup_axes.setContentsMargins(1,1,1,1)
 
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_nextPrev)
         self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l0)
         self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_spike)
         self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l1)
-        self.layout_rawPlot_popup_actionBtn.addStretch()
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_mode)
         self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l2)
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_zoom)
+        self.layout_rawPlot_popup_actionBtn.addStretch()
         self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l3)
-        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_axes)
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_zoom)
         self.layout_rawPlot_popup_actionBtn.addWidget(self.line_rawPlot_popup_l4)
+        self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_axes)
         self.layout_rawPlot_popup_actionBtn.setSpacing(1)
         self.layout_rawPlot_popup_actionBtn.setContentsMargins(1,1,1,1)
         self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_actionBtn)
@@ -268,6 +288,7 @@ class WaveDissectWidget(QWidget):
         QShortcut(Qt.Key_Down, self.pushBtn_rawPlot_popup_find_other_spike, self.pushBtn_rawPlot_popup_find_other_spike.animateClick)
         QShortcut(Qt.Key_W, self.pushBtn_rawPlot_popup_find_other_spike, self.pushBtn_rawPlot_popup_find_other_spike.animateClick)
         QShortcut(Qt.Key_G, self.pushBtn_rawPlot_popup_zoom_getRange, self.pushBtn_rawPlot_popup_zoom_getRange.animateClick)
+        QShortcut(Qt.Key_X, self.pushBtn_rawPlot_popup_addspike, self.pushBtn_rawPlot_popup_addspike.animateClick)
         self.pick_CS = QShortcut(Qt.Key_1, self)
         self.pick_CS.activated.connect(self.comboBx_rawPlot_popup_spike_of_interest_CS_shortcut)
         self.pick_SS = QShortcut(Qt.Key_2, self)
@@ -341,11 +362,11 @@ class WaveDissectWidget(QWidget):
         self.infLine_popUpPlot_vLine = \
             pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
                         movable=False, hoverPen='g')
-        self.infLine_popUpPlot_hLine = \
-            pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
-        # self.plot_popup_rawPlot.\
-        #     addItem(self.infLine_popUpPlot_vLine, ignoreBounds=True)
+        # self.infLine_popUpPlot_hLine = \
+        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
+        self.plot_popup_rawPlot.\
+            addItem(self.infLine_popUpPlot_vLine, ignoreBounds=True)
         # self.plot_popup_rawPlot.\
         #     addItem(self.infLine_popUpPlot_hLine, ignoreBounds=True)
             # Viewbox
@@ -381,12 +402,12 @@ class WaveDissectWidget(QWidget):
                 symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
         # Adding crosshair
         # cross hair
-        self.infLine_popUpPlot_vLine_SS = \
-            pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
-        self.infLine_popUpPlot_hLine_SS = \
-            pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
+        # self.infLine_popUpPlot_vLine_SS = \
+        #     pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
+        # self.infLine_popUpPlot_hLine_SS = \
+        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
         # self.plot_popup_sidePlot1.\
         #     addItem(self.infLine_popUpPlot_vLine_SS, ignoreBounds=True)
         # self.plot_popup_sidePlot1.\
@@ -423,12 +444,12 @@ class WaveDissectWidget(QWidget):
 
         # Adding crosshair
         # cross hair
-        self.infLine_popUpPlot_vLine_CS = \
-            pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
-        self.infLine_popUpPlot_hLine_CS = \
-            pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
+        # self.infLine_popUpPlot_vLine_CS = \
+        #     pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
+        # self.infLine_popUpPlot_hLine_CS = \
+        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
         # self.plot_popup_sidePlot2.\
         #     addItem(self.infLine_popUpPlot_vLine_CS, ignoreBounds=True)
         # self.plot_popup_sidePlot2.\
@@ -450,6 +471,8 @@ class WaveDissectWidget(QWidget):
             connect(self.pushBtn_rawPlot_popup_prev_spike_Clicked)
         self.pushBtn_rawPlot_popup_next_spike.clicked.\
             connect(self.pushBtn_rawPlot_popup_next_spike_Clicked)
+        self.pushBtn_rawPlot_popup_addspike.clicked.\
+            connect(self.pushBtn_rawPlot_popup_addspike_Clicked)
         self.pushBtn_rawPlot_popup_zoom_out.clicked.\
             connect(self.pushBtn_rawPlot_popup_zoom_out_Clicked)
         self.pushBtn_rawPlot_popup_zoom_in.clicked.\
@@ -611,6 +634,8 @@ class WaveDissectWidget(QWidget):
             setData(np.zeros((0)), np.zeros((0)) )
         self.pltData_CS_popUpPlot_ROI2.\
             setData(np.zeros((0)), np.zeros((0)) )
+        self.pushBtn_rawPlot_popup_addspike.setChecked(False)
+        self.infLine_popUpPlot_vLine.setValue(0.)
         return 0
 
     # 'D' - delete the selected waveforms of the type currently of interest
@@ -843,6 +868,12 @@ class WaveDissectWidget(QWidget):
             self.plot_cs_waveform_popUp()
         return 0
 
+    # 'X' - Add spike in time
+    def pushBtn_rawPlot_popup_addspike_Clicked(self):
+        if not(self.pushBtn_rawPlot_popup_addspike.isChecked()):
+            self.infLine_popUpPlot_vLine.setValue(0.)
+        return 0
+
     # 'A' - zoom out
     def pushBtn_rawPlot_popup_zoom_out_Clicked(self):
         self.viewBox_rawSignal_popUpPlot.autoRange()
@@ -999,6 +1030,70 @@ class WaveDissectWidget(QWidget):
         self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('SS')
         return 0
 
+    def add_spike(self, selected_time_point):
+        # Determine which waveform is currently of interest
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+
+        _time = self._workingDataBase['ch_time']
+
+        idx = (np.abs(_time - selected_time_point)).argmin()
+
+        if which_waveform_current == "CS":
+            if self.checkBx_rawPlot_popup_alignment.isChecked() == True:
+                self.align_cs(idx)
+            else:
+                self._workingDataBase["cs_index"][idx] = True
+        else:
+            if self.checkBx_rawPlot_popup_alignment.isChecked() == True:
+                self.align_ss(idx)
+            else:
+                self._workingDataBase["ss_index"][idx] = True
+
+        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+
+        if self._workingDataBase['ss_index'].sum() > 1:
+            self._workingDataBase['ss_index_selected'] = \
+                np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
+        else:
+            self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
+        if self._workingDataBase['cs_index'].sum() > 1:
+            self._workingDataBase['cs_index_selected'] = \
+                np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
+        else:
+            self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+        self.PsortGuiSignals.extract_ss_peak(self)
+        self.PsortGuiSignals.extract_cs_peak(self)
+        self.PsortGuiSignals.extract_ss_waveform(self)
+        self.PsortGuiSignals.extract_cs_waveform(self)
+
+        # Reset and remove ROI from the plot
+        self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
+        self.pltData_rawSignal_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_rawSignal_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_SS_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_SS_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_CS_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_CS_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+
+        # Re-plot
+        self.plot_rawSignal_CsIndex_popUp()
+        self.plot_rawSignal_CsIndexSelected_popUp()
+        self.plot_cs_waveform_popUp()
+
+        self.plot_rawSignal_SsIndex_popUp()
+        self.plot_rawSignal_SsIndexSelected_popUp()
+        self.plot_ss_waveform_popUp()
+
     def move_selected_from_cs_to_ss(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
@@ -1031,6 +1126,125 @@ class WaveDissectWidget(QWidget):
         self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
         self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
         self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+        return 0
+
+    def align_cs(self, idx):
+        if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
+            win_look_before = self._workingDataBase['GLOBAL_CS_ALIGN_SSINDEX_BEFORE'][0]
+            window_len_before = int(win_look_before * self._workingDataBase['sample_rate'][0])
+            _cs_index_slow_int = idx
+            _cs_index = self._workingDataBase['cs_index']
+            _ss_index = self._workingDataBase['ss_index']
+            _cs_slow_index = _cs_index_slow_int
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_slow_index < window_len_before:
+                return 0
+            search_win_inds = np.arange(_cs_slow_index-window_len_before, _cs_slow_index, 1)
+            ss_search_win_bool = _ss_index[search_win_inds]
+            ss_search_win_int  = np.where(ss_search_win_bool)[0]
+            # if there is no SS in window before the potential CS, then skip it
+            if ss_search_win_int.size < 1:
+                return 0
+            # convert the SS to CS which has happened closer to the CS_SLOW
+            cs_ind_search_win = np.max(ss_search_win_int)
+            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
+            _cs_index[cs_ind] = True
+            _ss_index[cs_ind] = False
+
+        elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
+            win_look_before  = self._workingDataBase['GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE'][0]
+            win_look_after = self._workingDataBase['GLOBAL_CS_ALIGN_SSTEMPLATE_AFTER'][0]
+            win_ss_template_before = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
+            win_ss_template_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
+            window_len_before = int( (win_look_before+win_ss_template_before) \
+                * self._workingDataBase['sample_rate'][0] )
+            window_len_after = int( (win_look_after+win_ss_template_after) \
+                * self._workingDataBase['sample_rate'][0] )
+            window_len_ss_temp = int( win_ss_template_after \
+                                    * self._workingDataBase['sample_rate'][0])
+            _cs_index_slow_int = idx
+            _cs_index = self._workingDataBase['cs_index']
+            _data_ss  = self._workingDataBase['ch_data_ss']
+            _ss_temp = self._workingDataBase['ss_wave_template']
+
+            _cs_slow_index = _cs_index_slow_int
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_slow_index < window_len_before:
+                return 0
+            # if there is not enough data window after the potential CS, then skip it
+            if _cs_slow_index > (_data_ss.size - window_len_after):
+                return 0
+            search_win_inds = np.arange(_cs_slow_index-window_len_before, \
+                                        _cs_slow_index+window_len_after, 1)
+            ss_data_search_win = _data_ss[search_win_inds]
+            corr = np.correlate(ss_data_search_win, _ss_temp, 'full')
+            cs_ind_search_win = np.argmax(corr) - window_len_ss_temp + 2
+            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
+            _cs_index[cs_ind] = True
+
+        elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
+            win_look_before  = self._workingDataBase['GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE'][0]
+            win_look_after = self._workingDataBase['GLOBAL_CS_ALIGN_CSTEMPLATE_AFTER'][0]
+            win_cs_template_before = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
+            win_cs_template_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
+            window_len_before = int( (win_look_before+win_cs_template_before) \
+                * self._workingDataBase['sample_rate'][0] )
+            window_len_after = int( (win_look_after+win_cs_template_after) \
+                * self._workingDataBase['sample_rate'][0] )
+            window_len_cs_temp = int( win_cs_template_after \
+                                    * self._workingDataBase['sample_rate'][0])
+            _cs_index_slow_int = idx
+            _cs_index = self._workingDataBase['cs_index']
+            _data_ss  = self._workingDataBase['ch_data_ss']
+            _cs_temp = self._workingDataBase['cs_wave_template']
+            _cs_slow_index = _cs_index_slow_int
+            # if there is not enough data window before the potential CS, then skip it
+            if _cs_slow_index < window_len_before:
+                return 0
+            # if there is not enough data window after the potential CS, then skip it
+            if _cs_slow_index > (_data_ss.size - window_len_after):
+                return 0
+            search_win_inds = np.arange(_cs_slow_index-window_len_before, \
+                                        _cs_slow_index+window_len_after, 1)
+            ss_data_search_win = _data_ss[search_win_inds]
+            corr = np.correlate(ss_data_search_win, _cs_temp, 'full')
+            cs_ind_search_win = np.argmax(corr) - window_len_cs_temp + 2
+            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
+            _cs_index[cs_ind] = True
+
+        return 0
+
+    def align_ss(self, idx):
+        win_look_before  = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
+        win_look_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
+        window_len_before = int( (win_look_before) \
+            * self._workingDataBase['sample_rate'][0] )
+        window_len_after = int( (win_look_after) \
+            * self._workingDataBase['sample_rate'][0] )
+
+        _ss_index_selected_int = idx
+        _ss_index = self._workingDataBase['ss_index']
+        _data_ss  = self._workingDataBase['ch_data_ss']
+
+        _ss_index_selected = _ss_index_selected_int
+        # if there is not enough data window before the potential SS, then skip it
+        if _ss_index_selected < window_len_before:
+            return 0
+        # if there is not enough data window after the potential SS, then skip it
+        if _ss_index_selected > (_data_ss.size - window_len_after):
+            return 0
+
+        search_win_inds = np.arange(_ss_index_selected-window_len_before, \
+                                    _ss_index_selected+window_len_after, 1)
+        ss_data_search_win = _data_ss[search_win_inds]
+
+        if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
+            ss_ind_search_win = np.argmin(ss_data_search_win)
+        elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
+            ss_ind_search_win = np.argmax(ss_data_search_win)
+
+        ss_ind = ss_ind_search_win + _ss_index_selected - window_len_before
+        _ss_index[ss_ind] = True
         return 0
 
 ## ################################################################################################
@@ -1181,28 +1395,30 @@ class WaveDissectWidget(QWidget):
         return 0
 
     def popUpPlot_mouseMoved_raw(self, evt):
+        if not(self.pushBtn_rawPlot_popup_addspike.isChecked()):
+            return 0
         pos = evt[0]  ## using signal proxy turns original arguments into a tuple
         if self.plot_popup_rawPlot.sceneBoundingRect().contains(pos):
             mousePoint = self.viewBox_rawSignal_popUpPlot.mapSceneToView(pos)
-            self.infLine_popUpPlot_vLine.setPos(mousePoint.x())
-            self.infLine_popUpPlot_hLine.setPos(mousePoint.y())
+            self.infLine_popUpPlot_vLine.setValue(mousePoint.x())
+            # self.infLine_popUpPlot_hLine.setValue(mousePoint.y())
         return 0
 
-    def popUpPlot_mouseMoved_SS(self, evt):
-        pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-        if self.plot_popup_sidePlot1.sceneBoundingRect().contains(pos):
-            mousePoint = self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.mapSceneToView(pos)
-            self.infLine_popUpPlot_vLine_SS.setPos(mousePoint.x())
-            self.infLine_popUpPlot_hLine_SS.setPos(mousePoint.y())
-        return 0
+    # def popUpPlot_mouseMoved_SS(self, evt):
+    #     pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+    #     if self.plot_popup_sidePlot1.sceneBoundingRect().contains(pos):
+    #         mousePoint = self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.mapSceneToView(pos)
+    #         self.infLine_popUpPlot_vLine_SS.setValue(mousePoint.x())
+    #         self.infLine_popUpPlot_hLine_SS.setValue(mousePoint.y())
+    #     return 0
 
-    def popUpPlot_mouseMoved_CS(self, evt):
-        pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-        if self.plot_popup_sidePlot2.sceneBoundingRect().contains(pos):
-            mousePoint = self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.mapSceneToView(pos)
-            self.infLine_popUpPlot_vLine_CS.setPos(mousePoint.x())
-            self.infLine_popUpPlot_hLine_CS.setPos(mousePoint.y())
-        return 0
+    # def popUpPlot_mouseMoved_CS(self, evt):
+    #     pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+    #     if self.plot_popup_sidePlot2.sceneBoundingRect().contains(pos):
+    #         mousePoint = self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.mapSceneToView(pos)
+    #         self.infLine_popUpPlot_vLine_CS.setValue(mousePoint.x())
+    #         self.infLine_popUpPlot_hLine_CS.setValue(mousePoint.y())
+    #     return 0
 
     def popUpPlot_mouseClicked_raw(self, evt):
         # If this plot is not currently active, remove all ROI points and set it to the active plot
@@ -1214,19 +1430,25 @@ class WaveDissectWidget(QWidget):
             pos = evt[0].scenePos()
             if self.plot_popup_rawPlot.sceneBoundingRect().contains(pos):
                 mousePoint = self.viewBox_rawSignal_popUpPlot.mapSceneToView(pos)
-                self._workingDataBase['popUp_ROI_x'] = \
-                    np.append(self._workingDataBase['popUp_ROI_x'], [mousePoint.x()])
-                self._workingDataBase['popUp_ROI_y'] = \
-                    np.append(self._workingDataBase['popUp_ROI_y'], [mousePoint.y()])
-                self.pltData_rawSignal_popUpPlot_ROI.\
-                        setData(self._workingDataBase['popUp_ROI_x'],
-                            self._workingDataBase['popUp_ROI_y'],
-                            pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine))
-                if self._workingDataBase['popUp_ROI_x'].size > 2:
-                        self.pltData_rawSignal_popUpPlot_ROI2.\
-                            setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
-                                    self._workingDataBase['popUp_ROI_y'][[0,-1],],
-                                    pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
+                if self.pushBtn_rawPlot_popup_addspike.isChecked():
+                    selected_time_point = float(mousePoint.x())
+                    self.add_spike(selected_time_point)
+                    self.pushBtn_rawPlot_popup_addspike.setChecked(False)
+                    self.infLine_popUpPlot_vLine.setValue(0.)
+                else:
+                    self._workingDataBase['popUp_ROI_x'] = \
+                        np.append(self._workingDataBase['popUp_ROI_x'], [mousePoint.x()])
+                    self._workingDataBase['popUp_ROI_y'] = \
+                        np.append(self._workingDataBase['popUp_ROI_y'], [mousePoint.y()])
+                    self.pltData_rawSignal_popUpPlot_ROI.\
+                            setData(self._workingDataBase['popUp_ROI_x'],
+                                self._workingDataBase['popUp_ROI_y'],
+                                pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.SolidLine))
+                    if self._workingDataBase['popUp_ROI_x'].size > 2:
+                            self.pltData_rawSignal_popUpPlot_ROI2.\
+                                setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
+                                        self._workingDataBase['popUp_ROI_y'][[0,-1],],
+                                        pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
         return 0
     def popUpPlot_mouseClicked_SS(self, evt):
         # If this plot is not currently active, remove all ROI points and set it to the active plot
