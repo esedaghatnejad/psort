@@ -21,6 +21,7 @@ BLUE = QtGui.QColor(0, 0, 255, 30)
 RED = QtGui.QColor(255, 0, 0, 30)
 WHITE = QtGui.QColor(255, 255, 255, 30)
 CLEAR = QtGui.QColor(255, 255, 255, 0)
+GREEN = QtGui.QColor(0, 255, 0 , 30)
 
 DEFAULT_CONFIG = {
     'SS': {
@@ -116,17 +117,6 @@ class PsortFilterPanel(PsortPanel):
         ]
     }
 
-    FILTER_CONFIG = {
-        'SS': {
-            'min': 50.0,
-            'max': 5000.0
-        },
-        'CS': {
-            'min': 10.0,
-            'max': 200.0
-        }
-    }
-
     def __init__(self):
         self.option_menu = {
             name: self.filter_combobox(
@@ -138,10 +128,10 @@ class PsortFilterPanel(PsortPanel):
         self.filters = {
             spike_type: PsortFilter(
                 name=f'{spike_type} Filter (Hz)',
-                min_val=params['min'],
-                max_val=params['max'],
-                color=DEFAULT_CONFIG[spike_type]['Colortext']
-            ) for spike_type, params in self.FILTER_CONFIG.items()
+                min_val=params['Filter Range'][0],
+                max_val=params['Filter Range'][1],
+                color=params['Colortext']
+            ) for spike_type, params in DEFAULT_CONFIG.items()
         }
 
         super(PsortFilterPanel, self).__init__(
@@ -267,7 +257,6 @@ class PsortPlotWidget(pg.PlotWidget):
         super(PsortPlotWidget, self).__init__(**kwargs)
         lib.set_plotWidget(self, bkg=bkg)
         self.setTitle(title)
-
 
 
 class PsortTemplateAnalysisPanel(PsortPlotPanel):

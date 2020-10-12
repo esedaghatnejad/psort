@@ -328,6 +328,14 @@ class CellSummarySignals(CellSummaryWidget):
         return 0
 
     def plot_waveform(self):
+        # for pltData in [
+        #     self.pltData_SsWave95Min,
+        #     self.pltData_SsWave95Max,
+        #     self.pltData_SsWave,
+        #     self.pltData_CsWave95Min,
+        #     self.pltData_CsWave95Max,
+        #     self.pltData_CsWave,
+        # ]:
         self.pltData_SsWave95Min.\
             setData(
                 self._workingDataBase['ss_wave_span_mean']*1000.,
