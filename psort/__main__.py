@@ -7,7 +7,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 ## #############################################################################
 #%% IMPORT PACKAGES
 from PyQt5 import QtWidgets, QtGui, QtCore
-from psort.gui.signals import PsortGuiSignals
+from .gui.signals import PsortGuiSignals
 from .utils import PROJECT_FOLDER
 import os
 import sys # We need sys so that we can pass argv to QApplication

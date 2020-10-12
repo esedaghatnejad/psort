@@ -12,7 +12,8 @@ source:
 build:
   number: 0
   entry_points:
-    - psort = psort.main:run_from_cmdline
+#    - psort = psort.main:run_from_cmdline
+    - psort = psort.__main__ # Not sure if this will work
   script: "{{ PYTHON }} -m pip install . -vv"
 
 requirements:
