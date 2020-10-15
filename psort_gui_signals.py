@@ -139,7 +139,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.loadData = psort_lib.LoadData()
         self.saveData = psort_lib.SaveData()
         self._fileDataBase = deepcopy(_fileDataBase)
-        self.init_workingDataBase()
+        self._workingDataBase = deepcopy(_workingDataBase)
         self.init_plots()
         self.connect_menubar_signals()
         self.connect_toolbar_signals()
@@ -151,6 +151,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.connect_ScatterSelectWidget() # Add ScatterSelectWidget as the 2nd widget to layout_grand
         self.connect_WaveDissectWidget() # Add WaveDissectWidget as the 3rd widget to layout_grand
         self.connect_SlotBoundaryWidget() # Add SlotBoundaryWidget as the 4th widget to layout_grand
+        self.init_workingDataBase()
         self.setEnableWidgets(False)
         return None
 
@@ -209,16 +210,72 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(_workingDataBase)
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            disconnect(self.onToolbar_slotNumCurrent_ValueChanged)
+        self.txtedit_toolbar_slotNumCurrent.setValue(1)
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            connect(self.onToolbar_slotNumCurrent_ValueChanged)
+
+        self.comboBx_mainwin_filterPanel_SsFast.currentIndexChanged.\
+            disconnect(self.onfilterPanel_SsFast_IndexChanged)
         self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
+        self.comboBx_mainwin_filterPanel_SsFast.currentIndexChanged.\
+            connect(self.onfilterPanel_SsFast_IndexChanged)
+
+        self.comboBx_mainwin_filterPanel_CsSlow.currentIndexChanged.\
+            disconnect(self.onfilterPanel_CsSlow_IndexChanged)
         self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
+        self.comboBx_mainwin_filterPanel_CsSlow.currentIndexChanged.\
+            connect(self.onfilterPanel_CsSlow_IndexChanged)
+
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
+            disconnect(self.onSsPanel_learnWave_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.clicked.\
+            connect(self.onSsPanel_learnWave_Clicked)
+
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
+            disconnect(self.onCsPanel_learnWave_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.clicked.\
+            connect(self.onCsPanel_learnWave_Clicked)
+
+        self.comboBx_mainwin_filterPanel_CsAlign.currentIndexChanged.\
+            disconnect(self.onfilterPanel_CsAlign_IndexChanged)
         self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
+        self.comboBx_mainwin_filterPanel_CsAlign.currentIndexChanged.\
+            connect(self.onfilterPanel_CsAlign_IndexChanged)
+
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.activated.\
+            disconnect(self.onSsPanel_PcaNum1_IndexChanged)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.activated.\
+            connect(self.onSsPanel_PcaNum1_IndexChanged)
+
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.activated.\
+            disconnect(self.onSsPanel_PcaNum2_IndexChanged)
         self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.activated.\
+            connect(self.onSsPanel_PcaNum2_IndexChanged)
+
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.activated.\
+            disconnect(self.onCsPanel_PcaNum1_IndexChanged)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.activated.\
+            connect(self.onCsPanel_PcaNum1_IndexChanged)
+
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.activated.\
+            disconnect(self.onCsPanel_PcaNum2_IndexChanged)
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.activated.\
+            connect(self.onCsPanel_PcaNum2_IndexChanged)
+
+        self.actionBtn_menubar_edit_umap.triggered.\
+            disconnect(self.onMenubar_umap_ButtonClick)
         self.actionBtn_menubar_edit_umap.setChecked(False)
+        self.actionBtn_menubar_edit_umap.triggered.\
+            connect(self.onMenubar_umap_ButtonClick)
+
         self.undoRedo_reset()
         return 0
 
@@ -1557,14 +1614,18 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_rawSignal_waveforms(self):
+        len_data = self._workingDataBase['ch_data'].size
+        sample_rate = self._workingDataBase['sample_rate'][0]
+        # ESN's secret recipe for improving the speed
+        step_size = int( (len_data / ((len_data/15) + (60*sample_rate))) + 1 )
         self.pltData_rawSignal_Ss.\
             setData(
-                self._workingDataBase['ch_time'],
-                self._workingDataBase['ch_data_ss'])
+                self._workingDataBase['ch_time'][::step_size],
+                self._workingDataBase['ch_data_ss'][::step_size])
         self.pltData_rawSignal_Cs.\
             setData(
-                self._workingDataBase['ch_time'],
-                self._workingDataBase['ch_data_cs'])
+                self._workingDataBase['ch_time'][::step_size],
+                self._workingDataBase['ch_data_cs'][::step_size])
         self.viewBox_rawSignal.autoRange()
         return 0
 
@@ -1671,9 +1732,14 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_ss_waveform(self):
-        nan_array = np.full((self._workingDataBase['ss_wave'].shape[0]), np.NaN).reshape(-1, 1)
-        ss_waveform = np.append(self._workingDataBase['ss_wave'], nan_array, axis=1)
-        ss_wave_span = np.append(self._workingDataBase['ss_wave_span'], nan_array, axis=1)
+        tot_sample = self._workingDataBase['ss_wave'].shape[0]
+        # ESN's secret recipe for improving the speed
+        step_size = int( (tot_sample / ((tot_sample/15) + 5000)) + 1 );
+        idx = np.random.choice(tot_sample, size=int(tot_sample/step_size), replace=False)
+
+        nan_array = np.full((self._workingDataBase['ss_wave'][idx, :].shape[0]), np.NaN).reshape(-1, 1)
+        ss_waveform = np.append(self._workingDataBase['ss_wave'][idx, :], nan_array, axis=1)
+        ss_wave_span = np.append(self._workingDataBase['ss_wave_span'][idx, :], nan_array, axis=1)
         self.pltData_SsWave.\
             setData(
                 ss_wave_span.ravel()*1000.,
@@ -1700,9 +1766,14 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def plot_cs_waveform(self):
-        nan_array = np.full((self._workingDataBase['cs_wave'].shape[0]), np.NaN).reshape(-1, 1)
-        cs_waveform = np.append(self._workingDataBase['cs_wave'], nan_array, axis=1)
-        cs_wave_span = np.append(self._workingDataBase['cs_wave_span'], nan_array, axis=1)
+        tot_sample = self._workingDataBase['cs_wave'].shape[0]
+        # ESN's secret recipe for improving the speed
+        step_size = int( (tot_sample / ((tot_sample/15) + 5000)) + 1 );
+        idx = np.random.choice(tot_sample, size=int(tot_sample/step_size), replace=False)
+
+        nan_array = np.full((self._workingDataBase['cs_wave'][idx, :].shape[0]), np.NaN).reshape(-1, 1)
+        cs_waveform = np.append(self._workingDataBase['cs_wave'][idx, :], nan_array, axis=1)
+        cs_wave_span = np.append(self._workingDataBase['cs_wave_span'][idx, :], nan_array, axis=1)
         self.pltData_CsWave.\
             setData(
                 cs_wave_span.ravel()*1000.,
