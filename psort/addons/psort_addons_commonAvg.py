@@ -12,7 +12,7 @@ import numpy as np
 from copy import deepcopy
 import sys # We need sys so that we can pass argv to QApplication
 import os
-import psort_lib
+from psort.utils import psort_lib
 ## #############################################################################
 #%% CommonAvgDataBase
 _workingDataBase = {

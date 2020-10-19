@@ -10,25 +10,24 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
 import pyqtgraph as pg
-import psort_lib
-import psort_database
-from psort_gui_widgets import PsortGuiWidget
-from psort_inputDialog import PsortInputDialog
-from psort_database import PsortDataBase
-from psort_addons_commonAvg import CommonAvgSignals
-from psort_tools_cellSummary import CellSummarySignals
-from psort_tools_prefrences import EditPrefrencesDialog
-from psort_scatterSelect import ScatterSelectWidget
-from psort_waveDissect import WaveDissectWidget
-from psort_slotBoundary import SlotBoundaryWidget
-from psort_waveClust import WaveClustWidget
 import numpy as np
 from copy import deepcopy
 import os
 import datetime
 import sys
 import decorator
-
+from psort.utils import psort_lib
+from psort.utils import psort_database
+from psort.utils.psort_database import PsortDataBase
+from psort.gui.psort_gui_widgets import PsortGuiWidget
+from psort.gui.psort_inputDialog import PsortInputDialog
+from psort.addons.psort_addons_commonAvg import CommonAvgSignals
+from psort.tools.psort_tools_cellSummary import CellSummarySignals
+from psort.tools.psort_tools_prefrences import EditPrefrencesDialog
+from psort.tools.psort_scatterSelect import ScatterSelectWidget
+from psort.tools.psort_waveDissect import WaveDissectWidget
+from psort.tools.psort_slotBoundary import SlotBoundaryWidget
+from psort.tools.psort_waveClust import WaveClustWidget
 
 ## ################################################################################################
 ## ################################################################################################
@@ -3003,39 +3002,57 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_ss_similarity(self):
+        _ind_begin_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
+                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_end_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
+                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        if self._workingDataBase['ssLearnTemp_mode'][0]:
+            _min_range_ss_ss = np.min([(_ind_end_ss_ss - _ind_begin_ss_ss), \
+                                     self._workingDataBase['ss_wave_template'].size])
+            _ind_end_ss_ss = _ind_begin_ss_ss + _min_range_ss_ss
+        _window_ss_ss = np.arange(_ind_begin_ss_ss, _ind_end_ss_ss, 1)
+        _ind_begin_ss_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
+                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_end_ss_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
+                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_begin_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
+                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_end_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
+                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _min_range_len = np.min([(_ind_end_ss_cs - _ind_begin_ss_cs), \
+                                 (_ind_end_cs_cs - _ind_begin_cs_cs)])
+        if self._workingDataBase['csLearnTemp_mode'][0]:
+            _min_range_len = np.min([_min_range_len, \
+                                     self._workingDataBase['cs_wave_template'].size])
+        _ind_end_ss_cs = _ind_begin_ss_cs + _min_range_len
+        _ind_end_cs_cs = _ind_begin_cs_cs + _min_range_len
+        _window_ss_cs = np.arange(_ind_begin_ss_cs, _ind_end_ss_cs, 1)
+        _window_cs_cs = np.arange(_ind_begin_cs_cs, _ind_end_cs_cs, 1)
         if self._workingDataBase['ss_index'].sum() > 1:
             # extract_ss_similarity to ss
-            _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                                -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                                +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _window = np.arange(_ind_begin, _ind_end, 1)
-            ss_wave = self._workingDataBase['ss_wave'][:,_window]
+            ss_wave = self._workingDataBase['ss_wave'][:,_window_ss_ss]
             if self._workingDataBase['ssLearnTemp_mode'][0]:
-                ss_wave_template = self._workingDataBase['ss_wave_template']
+                ss_wave_template = self._workingDataBase['ss_wave_template'][0:_min_range_ss_ss]
                 self._workingDataBase['ss_similarity_to_ss'] = \
                     np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             else:
-                ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
+                ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window_ss_ss],axis=0)
                 self._workingDataBase['ss_similarity_to_ss'] = \
                     np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             # extract_ss_similarity to cs
-            _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                                -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                                +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _window = np.arange(_ind_begin, _ind_end, 1)
-            ss_wave = self._workingDataBase['ss_wave'][:,_window]
+            ss_wave = self._workingDataBase['ss_wave'][:,_window_ss_cs]
             if self._workingDataBase['csLearnTemp_mode'][0]:
-                cs_wave_template = self._workingDataBase['cs_wave_template']
+                cs_wave_template = self._workingDataBase['cs_wave_template'][0:_min_range_len]
                 self._workingDataBase['ss_similarity_to_cs'] = \
                     np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             elif (self._workingDataBase['cs_index'].sum() > 1):
-                cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
+                cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window_cs_cs],axis=0)
                 self._workingDataBase['ss_similarity_to_cs'] = \
                     np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             else:
@@ -3047,45 +3064,62 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def extract_cs_similarity(self):
+        _ind_begin_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
+                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_end_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
+                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        if self._workingDataBase['csLearnTemp_mode'][0]:
+            _min_range_cs_cs = np.min([(_ind_end_cs_cs - _ind_begin_cs_cs), \
+                                     self._workingDataBase['cs_wave_template'].size])
+            _ind_end_cs_cs = _ind_begin_cs_cs + _min_range_cs_cs
+        _window_cs_cs = np.arange(_ind_begin_cs_cs, _ind_end_cs_cs, 1)
+        _ind_begin_cs_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
+                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_end_cs_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
+                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_begin_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
+                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _ind_end_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
+                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
+                            * self._workingDataBase['sample_rate'][0])
+        _min_range_len = np.min([(_ind_end_cs_ss - _ind_begin_cs_ss), \
+                                 (_ind_end_ss_ss - _ind_begin_ss_ss)])
+        if self._workingDataBase['ssLearnTemp_mode'][0]:
+            _min_range_len = np.min([_min_range_len, \
+                                     self._workingDataBase['ss_wave_template'].size])
+        _ind_end_cs_ss = _ind_begin_cs_ss + _min_range_len
+        _ind_end_ss_ss = _ind_begin_ss_ss + _min_range_len
+        _window_cs_ss = np.arange(_ind_begin_cs_ss, _ind_end_cs_ss, 1)
+        _window_ss_ss = np.arange(_ind_begin_ss_ss, _ind_end_ss_ss, 1)
         if self._workingDataBase['cs_index'].sum() > 1:
             # extract_cs_similarity to cs
-            _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                                -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                                +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _window = np.arange(_ind_begin, _ind_end, 1)
-            cs_wave = self._workingDataBase['cs_wave'][:,_window]
+            cs_wave = self._workingDataBase['cs_wave'][:,_window_cs_cs]
             if self._workingDataBase['csLearnTemp_mode'][0]:
-                cs_wave_template = self._workingDataBase['cs_wave_template']
+                cs_wave_template = self._workingDataBase['cs_wave_template'][0:_min_range_cs_cs]
                 self._workingDataBase['cs_similarity_to_cs'] = \
                     np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             else:
-                cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
+                cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window_cs_cs],axis=0)
                 self._workingDataBase['cs_similarity_to_cs'] = \
                     np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             # extract_cs_similarity to ss
-            _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                                -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                                +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _window = np.arange(_ind_begin, _ind_end, 1)
-            cs_wave = self._workingDataBase['cs_wave'][:,_window]
+            cs_wave = self._workingDataBase['cs_wave'][:,_window_cs_ss]
             if self._workingDataBase['ssLearnTemp_mode'][0]:
-                ss_wave_template = self._workingDataBase['ss_wave_template']
+                ss_wave_template = self._workingDataBase['ss_wave_template'][0:_min_range_len]
                 self._workingDataBase['cs_similarity_to_ss'] = \
                     np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             elif (self._workingDataBase['ss_index'].sum() > 1):
-                ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
+                ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window_ss_ss],axis=0)
                 self._workingDataBase['cs_similarity_to_ss'] = \
                     np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             else:
                 self._workingDataBase['cs_similarity_to_ss'] = \
                     np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.float32)
-
         else:
             self._workingDataBase['cs_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_similarity_to_ss'] = np.zeros((0), dtype=np.float32)

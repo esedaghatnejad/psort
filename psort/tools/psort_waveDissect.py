@@ -14,15 +14,15 @@ from PyQt5.QtWidgets import QShortcut
 from PyQt5.Qt import Qt
 import os
 import pyqtgraph as pg
-import psort_lib
 import numpy as np
+from psort.utils import psort_lib
 ## #############################################################################
 #%% CellSummaryWidget
 class WaveDissectWidget(QWidget):
     def __init__(self, parent=None):
         super(WaveDissectWidget, self).__init__(parent)
         self._workingDataBase = {}
-        from psort_gui_signals import PsortGuiSignals
+        from psort.gui.psort_gui_signals import PsortGuiSignals
         self.PsortGuiSignals = PsortGuiSignals
         self.build_rawPlot_popup_Widget()
         self.init_rawPlot_popup_shortcut()
@@ -67,60 +67,60 @@ class WaveDissectWidget(QWidget):
         icon_size = 30
         self.pushBtn_rawPlot_popup_select = QPushButton("Select spikes")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_select, color="black")
-        self.pushBtn_rawPlot_popup_select.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'select.png')))
+        self.pushBtn_rawPlot_popup_select.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'select.png')))
         self.pushBtn_rawPlot_popup_select.setToolTip('<b>S</b>elect spikes in<br>the region of interest')
         self.pushBtn_rawPlot_popup_clear = QPushButton("Clear ROI")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_clear, color="black")
-        self.pushBtn_rawPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'clear.png')))
+        self.pushBtn_rawPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'clear.png')))
         self.pushBtn_rawPlot_popup_clear.setToolTip('<b>C</b>lear the regions<br>of interest')
         self.pushBtn_rawPlot_popup_delete = QPushButton("Delete spikes")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_delete, color="black")
-        self.pushBtn_rawPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'delete.png')))
+        self.pushBtn_rawPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'delete.png')))
         self.pushBtn_rawPlot_popup_delete.setToolTip('<b>D</b>elete the selected spikes')
         self.pushBtn_rawPlot_popup_move = QPushButton("Move spikes")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_move, color="black")
-        self.pushBtn_rawPlot_popup_move.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'move.png')))
+        self.pushBtn_rawPlot_popup_move.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'move.png')))
         self.pushBtn_rawPlot_popup_move.setToolTip('<b>M</b>ove the selected<br>spikes to different<br>type')
         self.pushBtn_rawPlot_popup_prev_spike = QPushButton("Prev spike")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_spike, color="black")
-        self.pushBtn_rawPlot_popup_prev_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'previous_spike.png')))
+        self.pushBtn_rawPlot_popup_prev_spike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'previous_spike.png')))
         self.pushBtn_rawPlot_popup_prev_spike.setToolTip('Move to the previous spike<br><b>(Left Arrow)')
         self.pushBtn_rawPlot_popup_prev_spike.setAutoRepeat(True) # allow holding button
         self.pushBtn_rawPlot_popup_next_spike = QPushButton("Next spike")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_next_spike, color="black")
-        self.pushBtn_rawPlot_popup_next_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'next_spike.png')))
+        self.pushBtn_rawPlot_popup_next_spike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'next_spike.png')))
         self.pushBtn_rawPlot_popup_next_spike.setToolTip('Move to the next spike<br><b>(Right Arrow)')
         self.pushBtn_rawPlot_popup_next_spike.setAutoRepeat(True) # allow holding button
         self.pushBtn_rawPlot_popup_addspike = QPushButton("Add spike")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_addspike, color="black")
         self.pushBtn_rawPlot_popup_addspike.setCheckable(True)
-        self.pushBtn_rawPlot_popup_addspike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'crosshair.png')))
+        self.pushBtn_rawPlot_popup_addspike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
         self.pushBtn_rawPlot_popup_addspike.setToolTip('Mark spike manually<br><b>(X)')
         self.checkBx_rawPlot_popup_alignment = QCheckBox("Auto align")
         psort_lib.setFont(self.checkBx_rawPlot_popup_alignment, color="black")
         self.checkBx_rawPlot_popup_alignment.setChecked(True)
         self.pushBtn_rawPlot_popup_zoom_out = QPushButton("Zoom out")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_out, color="black")
-        self.pushBtn_rawPlot_popup_zoom_out.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_out.png')))
+        self.pushBtn_rawPlot_popup_zoom_out.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'zoom_out.png')))
         self.pushBtn_rawPlot_popup_zoom_out.setToolTip('Zoom out<br><b>(A)')
         self.pushBtn_rawPlot_popup_zoom_in = QPushButton("Zoom in")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_in, color="black")
-        self.pushBtn_rawPlot_popup_zoom_in.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'zoom_in.png')))
+        self.pushBtn_rawPlot_popup_zoom_in.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'zoom_in.png')))
         self.pushBtn_rawPlot_popup_zoom_in.setToolTip('<b>Z</b>oom in')
         self.checkBx_rawPlot_popup_zoom_hold = QCheckBox("Auto zoom")
         psort_lib.setFont(self.checkBx_rawPlot_popup_zoom_hold, color="black")
         self.pushBtn_rawPlot_popup_zoom_getRange = QPushButton("Get range")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_getRange, color="black")
-        self.pushBtn_rawPlot_popup_zoom_getRange.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'range.png')))
+        self.pushBtn_rawPlot_popup_zoom_getRange.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'range.png')))
         self.pushBtn_rawPlot_popup_zoom_getRange.setToolTip('<b>G</b>et zoom range<br>from current plot')
         self.pushBtn_rawPlot_popup_prev_window = QPushButton("Pan back")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_window, color="black")
-        self.pushBtn_rawPlot_popup_prev_window.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'previous_window.png')))
+        self.pushBtn_rawPlot_popup_prev_window.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'previous_window.png')))
         self.pushBtn_rawPlot_popup_prev_window.setToolTip('Move to the previous<br>time window<br><b>(Q)')
         self.pushBtn_rawPlot_popup_prev_window.setAutoRepeat(True)
         self.pushBtn_rawPlot_popup_next_window = QPushButton("Pan next")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_next_window, color="black")
-        self.pushBtn_rawPlot_popup_next_window.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'next_window.png')))
+        self.pushBtn_rawPlot_popup_next_window.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'next_window.png')))
         self.pushBtn_rawPlot_popup_next_window.setToolTip('Move to the next<br>time window<br><b>(E)')
         self.pushBtn_rawPlot_popup_next_window.setAutoRepeat(True)
         self.slider_rawPlot_popup_x_zoom_level = QSlider(QtCore.Qt.Horizontal)
@@ -142,7 +142,7 @@ class WaveDissectWidget(QWidget):
         psort_lib.setFont(self.label_rawPlot_popup_spike_of_interest, color="black")
         self.pushBtn_rawPlot_popup_find_other_spike = QPushButton("Toggle mode")
         psort_lib.setFont(self.pushBtn_rawPlot_popup_find_other_spike, color="black")
-        self.pushBtn_rawPlot_popup_find_other_spike.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'toggle.png')))
+        self.pushBtn_rawPlot_popup_find_other_spike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'toggle.png')))
         self.pushBtn_rawPlot_popup_find_other_spike.setToolTip("If spike selected,<br>find the nearest spike<br>of different type<br>If not, only change type<br><b>(Up or Down Arrow or W)")
 
         # Housekeeping items

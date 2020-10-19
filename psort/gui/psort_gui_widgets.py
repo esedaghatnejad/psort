@@ -10,7 +10,7 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
-import psort_lib
+from psort.utils import psort_lib
 ## #############################################################################
 #%% PsortGuiWidget
 class PsortGuiWidget(QMainWindow):
@@ -465,19 +465,19 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete = QPushButton("Delete")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDelete, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDelete.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '067-trash-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '067-trash-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep = QPushButton("Keep")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsKeep, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsKeep.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '023-download-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '023-download-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs = QPushButton("Move to CS")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-right-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '084-shuffle-right-blue.png')))
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Unselect")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-blue.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '030-forbidden-blue.png')))
 
         self.layout_mainwin_SsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_SsPanel_buttons_SsDelete)
@@ -622,19 +622,19 @@ class PsortGuiWidget(QMainWindow):
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete = QPushButton("Delete")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDelete, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDelete.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '067-trash-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '067-trash-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep = QPushButton("Keep")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsKeep, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsKeep.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '023-download-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '023-download-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs = QPushButton("Move to SS")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-left-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '084-shuffle-left-red.png')))
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Unselect")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
-            setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-red.png')))
+            setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '030-forbidden-red.png')))
 
         self.layout_mainwin_CsPanel_buttons.\
             addWidget(self.pushBtn_mainwin_CsPanel_buttons_CsDelete)
@@ -662,19 +662,19 @@ class PsortGuiWidget(QMainWindow):
         self.toolbar.setIconSize(QtCore.QSize(30, 30))
         self.addToolBar(self.toolbar)
         self.actionBtn_toolbar_next = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '071-right-arrow.png')), "Next Slot", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '071-right-arrow.png')), "Next Slot", self)
         self.actionBtn_toolbar_previous = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '036-left-arrow.png')), "Previous Slot", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '036-left-arrow.png')), "Previous Slot", self)
         self.actionBtn_toolbar_refresh = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-recycling.png')), "Refresh Slot", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '068-recycling.png')), "Refresh Slot", self)
         self.actionBtn_toolbar_load = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '029-folder.png')), "Open File...", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '029-folder.png')), "Open File...", self)
         self.actionBtn_toolbar_save = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '073-diskette.png')), "Save Session", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '073-diskette.png')), "Save Session", self)
         self.actionBtn_toolbar_undo = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-undo.png')), "Undo", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '068-undo.png')), "Undo", self)
         self.actionBtn_toolbar_redo = \
-            QAction(QtGui.QIcon(os.path.join('.', 'icon', '068-redo.png')), "Redo", self)
+            QAction(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', '068-redo.png')), "Redo", self)
 
         self.txtlabel_toolbar_fileName = QLabel("File_Name")
         psort_lib.setFont(self.txtlabel_toolbar_fileName)

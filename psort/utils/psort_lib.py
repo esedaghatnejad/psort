@@ -19,18 +19,20 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import LocalOutlierFactor
 import matplotlib as plt
 from matplotlib import path
-import deepdish_package
-import pymatreader_package
-import openephys_package
-from neo_package import spike2io
 from copy import deepcopy
 from numba import jit
+from psort.dependencies import deepdish_package
+from psort.dependencies import pymatreader_package
+from psort.dependencies import openephys_package
+from psort.dependencies.neo_package import spike2io
+
 import sys
 import os
 import subprocess
 import pkg_resources
 installed_pkg = {pkg.key for pkg in pkg_resources.working_set}
 
+(PROJECT_FOLDER, _) = os.path.split(os.path.dirname(os.path.abspath(__file__)))
 ## #############################################################################
 #%% list_color
 list_color = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
@@ -659,7 +661,7 @@ def GaussianMixture(input_data, n_clusters=2, init_val=None, covariance_type='fu
 missing = {'cuml'} - installed_pkg
 if missing:
     is_cuml_available = False
-    from umap_package import UMAP
+    from psort.dependencies.umap_package import UMAP
 else:
     is_cuml_available = True
     from cuml import UMAP

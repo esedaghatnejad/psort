@@ -10,9 +10,9 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
-import psort_lib
 import numpy as np
 from copy import deepcopy
+from psort.utils import psort_lib
 ## #############################################################################
 #%% CellSummaryWidget
 class SlotBoundaryWidget(QWidget):
@@ -73,7 +73,7 @@ class SlotBoundaryWidget(QWidget):
         self.pushBtn_slotBoundary_addSlot = QPushButton("Add line at click")
         psort_lib.setFont(self.pushBtn_slotBoundary_addSlot)
         self.pushBtn_slotBoundary_addSlot.setCheckable(True)
-        self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join('.', 'icon', 'crosshair.png')))
+        self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
         self.label_slotBoundary_description = QLabel("Drag line out of boundries to delete.")
         psort_lib.setFont(self.label_slotBoundary_description)
         self.label_slotBoundary_duration = QLabel(f"Avg slot duration: {10}s.")

@@ -13,7 +13,7 @@ import numpy as np
 from copy import deepcopy
 import sys # We need sys so that we can pass argv to QApplication
 import os
-import psort_lib
+from psort.utils import psort_lib
 ## #############################################################################
 #%% CellSummaryDataBase
 _workingDataBase = {
@@ -53,7 +53,7 @@ class CellSummarySignals(CellSummaryWidget):
         super(CellSummarySignals, self).__init__(parent)
         self.init_plot()
         self._workingDataBase = deepcopy(_workingDataBase)
-        from psort_gui_signals import PsortGuiSignals
+        from psort.gui.psort_gui_signals import PsortGuiSignals
         self.PsortGuiSignals = PsortGuiSignals
         if psort_grandDataBase is None:
             isDataLoaded = self.load_grandDataBase()
@@ -359,11 +359,3 @@ class CellSummarySignals(CellSummaryWidget):
                 connect="finite")
         self.viewBox_Waveform.autoRange()
         return 0
-
-
-if __name__ == '__main__':
-    if sys.flags.interactive != 1 or not hasattr(QtCore, 'PYQT_VERSION'):
-        cellSum_application = QtWidgets.QApplication(sys.argv)
-        cellSum_widget = CellSummarySignals()
-        cellSum_widget.show()
-        cellSum_application.exec_()

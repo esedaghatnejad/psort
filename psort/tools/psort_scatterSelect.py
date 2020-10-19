@@ -10,10 +10,10 @@ from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import *
 import os
 import pyqtgraph as pg
-import psort_lib
 import numpy as np
 from copy import deepcopy
-from psort_inputDialog import PsortInputDialog
+from psort.utils import psort_lib
+from psort.gui.psort_inputDialog import PsortInputDialog
 ## #############################################################################
 #%% ScatterSelectWidget
 class ScatterSelectWidget(QWidget):

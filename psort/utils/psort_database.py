@@ -7,12 +7,12 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 ## #############################################################################
 #%% IMPORT PACKAGES
 import numpy as np
-import deepdish_package
-import pymatreader_package
-import openephys_package
-import psort_lib
 from copy import deepcopy
 import os
+from psort.dependencies import deepdish_package
+from psort.dependencies import pymatreader_package
+from psort.dependencies import openephys_package
+from psort.utils import psort_lib
 
 _singleSlotDataBase = {
         'isAnalyzed':             np.array([False], dtype=np.bool),
@@ -57,7 +57,7 @@ for key in psort_lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 29], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 30], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
