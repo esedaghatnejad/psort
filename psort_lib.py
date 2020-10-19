@@ -15,18 +15,22 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn import cluster
 from sklearn import mixture
+from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import LocalOutlierFactor
 import matplotlib as plt
 from matplotlib import path
 import deepdish_package
 import pymatreader_package
 import openephys_package
-from umap_package import UMAP
-umap_object = UMAP()
 from neo_package import spike2io
 from copy import deepcopy
 from numba import jit
 import sys
 import os
+import subprocess
+import pkg_resources
+installed_pkg = {pkg.key for pkg in pkg_resources.working_set}
+
 ## #############################################################################
 #%% list_color
 list_color = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
@@ -652,6 +656,14 @@ def GaussianMixture(input_data, n_clusters=2, init_val=None, covariance_type='fu
     centers = gmm.means_
     return labels, centers
 
+missing = {'cuml'} - installed_pkg
+if missing:
+    is_cuml_available = False
+    from umap_package import UMAP
+else:
+    is_cuml_available = True
+    from cuml import UMAP
+umap_object = UMAP()
 def umap(waveform):
     """
         Uniform Manifold Approximation and Projection (UMAP)
@@ -730,3 +742,125 @@ def distance_to_next_element(bool_array_from, bool_array_to):
     out_[hold_index_next_to==-1] = 0
     out_[np.logical_not(bool_array_from)] = 0
     return out_
+
+def isolation_score(scatter_mat,labels,nknn = 6):
+    unique_labels = np.unique(labels)
+    n = unique_labels.shape[0]
+    isolation = np.NaN + np.ones([n,n],dtype=np.float32)
+    iso_score = np.zeros([n],dtype=np.float32)
+    for ii in range(n-1):
+        loi = unique_labels[ii]
+        num_loi = sum(labels == loi)
+        if num_loi < nknn:
+            isolation[ii,:] = np.NAN
+            isolation[:,ii] = np.NAN
+            continue
+        for i in range(ii+1,n):
+            label = unique_labels[i]
+
+            num_label = sum(labels == label)
+            if num_label < nknn:
+                isolation[ii,i] = np.NAN
+                isolation[i,ii] = np.NAN
+                continue
+            max_num_events = 500
+            num_events = \
+                min(max_num_events,num_loi,num_label)
+            ind_loi = labels == loi
+            ind_label = labels == label
+
+            _data_loi = scatter_mat[ind_loi,:]
+            _data_label = scatter_mat[ind_label,:]
+
+            idx_rnd_loi = np.random.randint(np.sum(ind_loi), size = num_events)
+            idx_rnd_label = np.random.randint(np.sum(ind_label), size = num_events)
+
+            _data_loi_rnd = _data_loi[idx_rnd_loi,:]
+            _data_label_rnd = _data_label[idx_rnd_label,:]
+
+            _data = np.concatenate([_data_loi_rnd,_data_label_rnd],axis=0)
+
+            distances, indices = NearestNeighbors(n_neighbors=nknn, algorithm='auto').fit(_data).kneighbors()
+
+            group_id = np.zeros(_data.shape[0], dtype = int)
+            group_id[0:num_events] = 1
+            group_id[num_events:] = 2
+            num_overlap = 0
+            total = 0
+            for j in range(num_events*2):
+                for k in range(1,nknn):
+                    ind = indices[j][k]
+                    if group_id[j] != group_id[ind]:
+                        num_overlap = num_overlap + 1
+                    total = total + 1
+            pct_overlap = num_overlap/total
+            isolation[ii,i] = 200 * np.absolute(.5 - pct_overlap)
+            isolation[i,ii] = isolation[ii,i]
+
+    iso_score = np.nanmin(isolation, axis = 1)
+    return iso_score
+
+def outlier_score(input_data, quant = .9, knn = 20):
+    if input_data.size < 1:
+        return np.zeros((0)), np.zeros((0))
+
+    clf = LocalOutlierFactor(n_neighbors=knn)
+    clf.fit_predict(input_data)
+    score = - clf.negative_outlier_factor_
+
+    thresh = np.quantile(score, quant)
+
+    outliers = np.where(score > thresh)[0]
+
+    return outliers
+
+def MAD(input_data, k, peak_mode):
+    if peak_mode == 'min':
+        sgn = -1
+    elif peak_mode == 'max':
+        sgn = 1
+    else:
+        return 0
+
+    if input_data.size < 1:
+        return np.zeros((0))
+    mad = scipy.stats.median_absolute_deviation(input_data)
+    med = np.median(input_data)
+    return med - sgn * k * mad
+
+missing = {'hdbscan'} - installed_pkg
+if missing:
+    is_hdbscan_available = False
+    def HDBSCAN(input_data):
+        return np.zeros((0)), np.zeros((0))
+else:
+    is_hdbscan_available = True
+    from hdbscan import HDBSCAN as Hierarchical_DBSCAN
+    def HDBSCAN(input_data):
+        if input_data.size < 1:
+            return np.zeros((0)), np.zeros((0))
+        hdbscan_object = Hierarchical_DBSCAN(allow_single_cluster = True)
+        hdbscan_object.fit(input_data)
+        labels = hdbscan_object.labels_
+        uniqueLabels, Count = np.unique(labels, return_counts=True)
+        if len(uniqueLabels) > 10:
+            ind_sorted = np.argsort(-Count)
+            lbls_sorted = uniqueLabels[ind_sorted]
+            lbls_rm = lbls_sorted[10:-1]
+            for i in lbls_rm:
+                labels[labels == i] = -1
+        return labels
+
+missing = {'isosplit5'} - installed_pkg
+if missing:
+    is_isosplit_available = False
+    def isosplit(input_data):
+        return np.zeros((0)), np.zeros((0))
+else:
+    is_isosplit_available = True
+    from isosplit5 import isosplit5
+    def isosplit(input_data):
+        if input_data.size < 1:
+            return np.zeros((0)), np.zeros((0))
+        labels = isosplit5(input_data.T) - 1
+        return labels

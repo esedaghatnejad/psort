@@ -15,12 +15,13 @@ import psort_database
 from psort_gui_widgets import PsortGuiWidget
 from psort_inputDialog import PsortInputDialog
 from psort_database import PsortDataBase
-from psort_tools_commonAvg import CommonAvgSignals
+from psort_addons_commonAvg import CommonAvgSignals
 from psort_tools_cellSummary import CellSummarySignals
-from psort_edit_prefrences import EditPrefrencesDialog
+from psort_tools_prefrences import EditPrefrencesDialog
 from psort_scatterSelect import ScatterSelectWidget
 from psort_waveDissect import WaveDissectWidget
 from psort_slotBoundary import SlotBoundaryWidget
+from psort_waveClust import WaveClustWidget
 import numpy as np
 from copy import deepcopy
 import os
@@ -101,7 +102,7 @@ _workingDataBase = {
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
     'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
     'flag_index_detection':   np.array([True], dtype=np.bool),
-    'flag_edit_prefrences':   np.array([False],dtype=np.bool),
+    'flag_tools_prefrences':   np.array([False],dtype=np.bool),
     'ss_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
     'cs_index_slow_undoRedo': np.zeros((0,0), dtype=np.bool),
     'cs_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
@@ -151,6 +152,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.connect_ScatterSelectWidget() # Add ScatterSelectWidget as the 2nd widget to layout_grand
         self.connect_WaveDissectWidget() # Add WaveDissectWidget as the 3rd widget to layout_grand
         self.connect_SlotBoundaryWidget() # Add SlotBoundaryWidget as the 4th widget to layout_grand
+        self.connect_WaveClustWidget() # Add WaveClustWidget as the 5th widget to layout_grand
         self.init_workingDataBase()
         self.setEnableWidgets(False)
         return None
@@ -186,6 +188,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_xprob()
         self.extract_ss_pca()
         self.extract_cs_pca()
+        self.extract_ss_scatter()
+        self.extract_cs_scatter()
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=False)
@@ -270,10 +274,10 @@ class PsortGuiSignals(PsortGuiWidget):
         self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.activated.\
             connect(self.onCsPanel_PcaNum2_IndexChanged)
 
-        self.actionBtn_menubar_edit_umap.triggered.\
+        self.actionBtn_menubar_tools_umap.triggered.\
             disconnect(self.onMenubar_umap_ButtonClick)
-        self.actionBtn_menubar_edit_umap.setChecked(False)
-        self.actionBtn_menubar_edit_umap.triggered.\
+        self.actionBtn_menubar_tools_umap.setChecked(False)
+        self.actionBtn_menubar_tools_umap.triggered.\
             connect(self.onMenubar_umap_ButtonClick)
 
         self.undoRedo_reset()
@@ -284,17 +288,28 @@ class PsortGuiSignals(PsortGuiWidget):
         self.widget_mainwin_rawSignalPanel.setEnabled(isEnable)
         self.widget_mainwin_SsCsPanel.setEnabled(isEnable)
         self.txtedit_toolbar_slotNumCurrent.setEnabled(isEnable)
+        self.menu_menubar_tools.setEnabled(isEnable)
         self.actionBtn_toolbar_previous.setEnabled(isEnable)
         self.actionBtn_toolbar_refresh.setEnabled(isEnable)
         self.actionBtn_toolbar_next.setEnabled(isEnable)
         self.actionBtn_toolbar_save.setEnabled(isEnable)
         self.actionBtn_menubar_file_save.setEnabled(isEnable)
-        # self.actionBtn_menubar_file_restart.setEnabled(isEnable)
+        self.actionBtn_menubar_file_restart.setEnabled(isEnable)
         if isEnable:
             self.undoRedo_enable()
         else:
             self.actionBtn_toolbar_undo.setEnabled(isEnable)
             self.actionBtn_toolbar_redo.setEnabled(isEnable)
+        return 0
+
+    def setEnableMainModule(self, isEnable):
+        self.toolbar.setEnabled(isEnable)
+        self.menu_menubar_tools.setEnabled(isEnable)
+        self.menu_menubar_addons.setEnabled(isEnable)
+        self.actionBtn_menubar_file_open.setEnabled(isEnable)
+        self.actionBtn_menubar_file_restart.setEnabled(isEnable)
+        if isEnable:
+            self.layout_grand.setCurrentIndex(0)
         return 0
 
     def init_plots(self):
@@ -504,11 +519,11 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onToolbar_save_ButtonClick)
         self.actionBtn_menubar_file_exit.triggered.\
             connect(sys.exit)
-        self.actionBtn_menubar_edit_prefrences.triggered.\
+        self.actionBtn_menubar_tools_prefrences.triggered.\
             connect(self.onMenubar_prefrences_ButtonClick)
-        self.actionBtn_menubar_edit_umap.triggered.\
+        self.actionBtn_menubar_tools_umap.triggered.\
             connect(self.onMenubar_umap_ButtonClick)
-        self.actionBtn_menubar_tools_commonAvg.triggered.\
+        self.actionBtn_menubar_addons_commonAvg.triggered.\
             connect(self.onMenubar_commonAvg_ButtonClick)
         self.actionBtn_menubar_tools_cellSummary.triggered.\
             connect(self.onMenubar_cellSummary_ButtonClick)
@@ -596,6 +611,8 @@ class PsortGuiSignals(PsortGuiWidget):
     def connect_ssPanel_signals(self):
         self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData.clicked.\
             connect(self.onSsPanel_selectPcaData_Clicked)
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_waveClust.clicked.\
+            connect(self.onSsPanel_waveClust_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave.clicked.\
             connect(self.onSsPanel_selectWave_Clicked)
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect.clicked.\
@@ -620,6 +637,8 @@ class PsortGuiSignals(PsortGuiWidget):
     def connect_csPanel_signals(self):
         self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData.clicked.\
             connect(self.onCsPanel_selectPcaData_Clicked)
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_waveClust.clicked.\
+            connect(self.onCsPanel_waveClust_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave.clicked.\
             connect(self.onCsPanel_selectWave_Clicked)
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect.clicked.\
@@ -756,12 +775,12 @@ class PsortGuiSignals(PsortGuiWidget):
             else:
                 self._workingDataBase[key][0] = np.cast[np.float32](value)
         psort_lib.GLOBAL_check_variables(self._workingDataBase)
-        self._workingDataBase['flag_edit_prefrences'][0] = True
+        self._workingDataBase['flag_tools_prefrences'][0] = True
         self.onInfLineSsWaveMinPca_positionChangeFinished()
         self.onInfLineSsWaveMaxPca_positionChangeFinished()
         self.onInfLineCsWaveMinPca_positionChangeFinished()
         self.onInfLineCsWaveMaxPca_positionChangeFinished()
-        self._workingDataBase['flag_edit_prefrences'][0] = False
+        self._workingDataBase['flag_tools_prefrences'][0] = False
         self._workingDataBase['flag_index_detection'][0] = False
         self.refresh_workingDataBase()
         self.onSsPanel_learnWave_Clicked()
@@ -770,7 +789,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onMenubar_umap_ButtonClick(self):
         self._workingDataBase['umap_enable'][0] = \
-            self.actionBtn_menubar_edit_umap.isChecked()
+            self.actionBtn_menubar_tools_umap.isChecked()
         if self._workingDataBase['umap_enable'][0]:
             if (0 <= self._workingDataBase['ss_pca1_index'][0] <= 1):
                 self._workingDataBase['ss_pca1_index'][0] += 3
@@ -790,10 +809,12 @@ class PsortGuiSignals(PsortGuiWidget):
             if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
                 self._workingDataBase['cs_pca2_index'][0] -= 3
         self.extract_ss_pca()
-        self.update_SSPcaNum_comboBx()
-        self.plot_ss_pca()
         self.extract_cs_pca()
+        self.extract_ss_scatter()
+        self.extract_cs_scatter()
+        self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
+        self.plot_ss_pca()
         self.plot_cs_pca()
         return 0
 
@@ -804,21 +825,10 @@ class PsortGuiSignals(PsortGuiWidget):
         self.txtlabel_toolbar_slotNumTotal.\
             setText("/ " + str(self.psortDataBase.get_total_slot_num()) + \
             "(" + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ")")
-        _reply = QMessageBox.question(
-                            self, 'Use current dataset',
-                            "Do you want to use current dataset?",
-                            QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-        if (_reply == QtGui.QMessageBox.Yes) \
-            and (self.psortDataBase.get_total_slot_isAnalyzed()>0):
-            self.menubar_cellSummary = \
-                CellSummarySignals(
-                    psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
-                )
-        else:
-            self.menubar_cellSummary = \
-                CellSummarySignals(
-                    psort_grandDataBase = None
-                )
+        self.menubar_cellSummary = \
+            CellSummarySignals(
+                psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
+            )
         self.menubar_cellSummary.show()
         return 0
 
@@ -889,8 +899,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_SsWave_minPca.value()/1000.
         self._workingDataBase['ss_pca_bound_max'][0] = \
             self.infLine_SsWave_maxPca.value()/1000.
-        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+        if not(self._workingDataBase['flag_tools_prefrences'][0]):
             self.extract_ss_pca()
+            self.extract_ss_scatter()
             self.update_SSPcaNum_comboBx()
             self.plot_ss_pca()
         return 0
@@ -918,8 +929,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_SsWave_minPca.value()/1000.
         self._workingDataBase['ss_pca_bound_max'][0] = \
             self.infLine_SsWave_maxPca.value()/1000.
-        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+        if not(self._workingDataBase['flag_tools_prefrences'][0]):
             self.extract_ss_pca()
+            self.extract_ss_scatter()
             self.update_SSPcaNum_comboBx()
             self.plot_ss_pca()
         return 0
@@ -947,8 +959,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_minPca.value()/1000.
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
-        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+        if not(self._workingDataBase['flag_tools_prefrences'][0]):
             self.extract_cs_pca()
+            self.extract_cs_scatter()
             self.update_CSPcaNum_comboBx()
             self.plot_cs_pca()
         return 0
@@ -976,8 +989,9 @@ class PsortGuiSignals(PsortGuiWidget):
             self.infLine_CsWave_minPca.value()/1000.
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
-        if not(self._workingDataBase['flag_edit_prefrences'][0]):
+        if not(self._workingDataBase['flag_tools_prefrences'][0]):
             self.extract_cs_pca()
+            self.extract_cs_scatter()
             self.update_CSPcaNum_comboBx()
             self.plot_cs_pca()
         return 0
@@ -1229,6 +1243,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_template()
         self.extract_ss_similarity()
         self.extract_cs_similarity()
+        self.extract_ss_scatter()
+        self.extract_cs_scatter()
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
@@ -1245,6 +1261,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_template()
         self.extract_ss_similarity()
         self.extract_cs_similarity()
+        self.extract_ss_scatter()
+        self.extract_cs_scatter()
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
@@ -1283,6 +1301,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_xprob()
         self.extract_cs_xprob()
         self.extract_ss_pca()
+        self.extract_ss_scatter()
         self.update_SSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
@@ -1314,6 +1333,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_time()
         self.extract_cs_xprob()
         self.extract_cs_pca()
+        self.extract_cs_scatter()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
@@ -1341,6 +1361,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_ss_xprob()
         self.extract_cs_xprob()
         self.extract_ss_pca()
+        self.extract_ss_scatter()
         self.update_SSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
@@ -1372,6 +1393,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_time()
         self.extract_cs_xprob()
         self.extract_cs_pca()
+        self.extract_cs_scatter()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
@@ -1505,7 +1527,7 @@ class PsortGuiSignals(PsortGuiWidget):
             doubleSpinBx_params['step'] = 5.
             doubleSpinBx_params['max'] = 3600.
             doubleSpinBx_params['min'] = 5.
-            doubleSpinBx_params['okDefault'] = False
+            doubleSpinBx_params['okDefault'] = True
             self.input_dialog = PsortInputDialog(self, \
                 message=message, doubleSpinBx_params=doubleSpinBx_params)
             if self.input_dialog.exec_():
@@ -1550,6 +1572,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
                     psort_grandDataBase[-1]['ch_data'] = ch_data * scale_value
         self.setEnableWidgets(True)
+        self.setEnableMainModule(True)
         _, file_path, file_name, file_ext, _ = self.psortDataBase.get_file_fullPath_components()
         # Setting the value of slotNumCurrent to 1
         # the disconnet and connect commands are to solve an issue when a new file is loaded
@@ -1962,6 +1985,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.extract_cs_xprob()
         self.extract_ss_pca()
         self.extract_cs_pca()
+        self.extract_ss_scatter()
+        self.extract_cs_scatter()
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
@@ -1981,15 +2006,15 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% SCATTERSELECT
     def connect_ScatterSelectWidget(self):
         self.ScatterSelectWidget = ScatterSelectWidget(self)
-        # Add ScatterSelectWidget as the 2nd widget to layout_grand
+        # Add ScatterSelectWidget as the 2nd (idx=1) widget to layout_grand
         self.layout_grand.addWidget(self.ScatterSelectWidget)
         self.ScatterSelectWidget.pushBtn_scatterSelect_cancel.clicked.\
             connect(self.onScatterSelect_Cancel_Clicked)
         self.ScatterSelectWidget.pushBtn_scatterSelect_ok.clicked.\
             connect(self.onScatterSelect_Ok_Clicked)
-        self.proxy_MouseMoved_ScatterSelect = \
-            pg.SignalProxy(self.ScatterSelectWidget.plot_scatterSelect_mainPlot.scene().sigMouseMoved, \
-            rateLimit=60, slot=self.ScatterSelectWidget.scatterSelect_mouseMoved)
+        # self.proxy_MouseMoved_ScatterSelect = \
+        #     pg.SignalProxy(self.ScatterSelectWidget.plot_scatterSelect_mainPlot.scene().sigMouseMoved, \
+        #     rateLimit=60, slot=self.ScatterSelectWidget.scatterSelect_mouseMoved)
         self.proxy_MouseClicked_ScatterSelect = \
             pg.SignalProxy(self.ScatterSelectWidget.plot_scatterSelect_mainPlot.scene().sigMouseClicked, \
             rateLimit=60, slot=self.ScatterSelectWidget.scatterSelect_mouseClicked)
@@ -2009,7 +2034,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def scatterSelect_showWidget(self, showScatterSelect=False):
         self.ScatterSelectWidget.scatterSelect_reset_ROI()
-        self.toolbar.setEnabled(not(showScatterSelect))
+        self.setEnableMainModule(not(showScatterSelect))
         if showScatterSelect:
             # copy _workingDataBase over to ScatterSelectWidget
             self.ScatterSelectWidget._workingDataBase = deepcopy(self._workingDataBase)
@@ -2018,7 +2043,6 @@ class PsortGuiSignals(PsortGuiWidget):
             self.layout_grand.setCurrentIndex(1)
         else:
             self.ScatterSelectWidget.scatterSelect_task_cancelled()
-            self.layout_grand.setCurrentIndex(0)
         return 0
 
     def scatterSelect_task_completed(self):
@@ -2137,7 +2161,7 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% WAVEDISSECT
     def connect_WaveDissectWidget(self):
         self.WaveDissectWidget = WaveDissectWidget(self)
-        # Add WaveDissectWidget as the 3rd widget to layout_grand
+        # Add WaveDissectWidget as the 3rd (idx=2) widget to layout_grand
         self.layout_grand.addWidget(self.WaveDissectWidget)
         self.WaveDissectWidget.pushBtn_rawPlot_popup_cancel.clicked.\
             connect(self.onWaveDissect_Cancel_Clicked)
@@ -2222,18 +2246,16 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def waveDissect_showWidget(self, showWaveDissect=False):
-        self.toolbar.setEnabled(not(showWaveDissect))
+        self.setEnableMainModule(not(showWaveDissect))
         if showWaveDissect:
             self.layout_grand.setCurrentIndex(2)
-        else:
-            self.layout_grand.setCurrentIndex(0)
         return 0
 ## ################################################################################################
 ## ################################################################################################
 #%% SLOTBOUNDARY
     def connect_SlotBoundaryWidget(self):
         self.SlotBoundaryWidget = SlotBoundaryWidget(self)
-        # Add SlotBoundaryWidget as the 4th widget to layout_grand
+        # Add SlotBoundaryWidget as the 4th (idx=3) widget to layout_grand
         self.layout_grand.addWidget(self.SlotBoundaryWidget)
         self.SlotBoundaryWidget.pushBtn_slotBoundary_cancel.clicked.\
             connect(self.onSlotBoundary_Cancel_Clicked)
@@ -2258,7 +2280,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def slotBoundary_showWidget(self, showSlotBoundary=False):
-        self.toolbar.setEnabled(not(showSlotBoundary))
+        self.setEnableMainModule(not(showSlotBoundary))
         if showSlotBoundary:
             psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
             self.SlotBoundaryWidget._workingDataBase['ch_data'] = \
@@ -2271,9 +2293,88 @@ class PsortGuiSignals(PsortGuiWidget):
             self.SlotBoundaryWidget.clear_infLine_list()
             self.SlotBoundaryWidget.build_infLine_list()
             self.layout_grand.setCurrentIndex(3)
-        else:
-            self.layout_grand.setCurrentIndex(0)
         return 0
+
+## ################################################################################################
+## ################################################################################################
+#%% WAVECLUST
+    def connect_WaveClustWidget(self):
+        self.WaveClustWidget = WaveClustWidget(self)
+        # Add WaveClustWidget as the 5th widget to layout_grand
+        self.layout_grand.addWidget(self.WaveClustWidget)
+        self.WaveClustWidget.pushBtn_scatterPlot_popup_cancel.clicked.\
+            connect(self.onWaveClust_Cancel_Clicked)
+        self.WaveClustWidget.pushBtn_scatterPlot_popup_ok.clicked.\
+            connect(self.onWaveClust_Ok_Clicked)
+
+        self.proxy_MouseClicked_WaveClustScatter = \
+            pg.SignalProxy(self.WaveClustWidget.plot_popup_scatter.scene().sigMouseClicked, \
+            rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseClicked_scatter)
+        self.proxy_MouseClicked_WaveClustWaveform = \
+            pg.SignalProxy(self.WaveClustWidget.plot_popup_waveform.scene().sigMouseClicked, \
+            rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseClicked_waveform)
+        return 0
+
+    @showWaitCursor
+    def onWaveClust_Cancel_Clicked(self):
+        self.WaveClustWidget.popUp_task_cancelled()
+        self.waveClust_showWidget(False)
+        return 0
+
+    @showWaitCursor
+    def onWaveClust_Ok_Clicked(self):
+        self.WaveClustWidget.popUp_task_completed()
+        self.waveClust_showWidget(False)
+        flag_update = False
+        if ( np.sum(np.logical_xor(self._workingDataBase['ss_index'],
+            self.WaveClustWidget._workingDataBase['ss_index'])) > 0 ):
+            self._workingDataBase['ss_index'] = \
+                deepcopy(self.WaveClustWidget._workingDataBase['ss_index'])
+            flag_update = True
+        if ( np.sum(np.logical_xor(self._workingDataBase['cs_index'],
+            self.WaveClustWidget._workingDataBase['cs_index'])) > 0 ):
+            self._workingDataBase['cs_index'] = \
+                deepcopy(self.WaveClustWidget._workingDataBase['cs_index'])
+            self._workingDataBase['cs_index_slow'] = \
+                deepcopy(self.WaveClustWidget._workingDataBase['cs_index_slow'])
+            flag_update = True
+        self._workingDataBase['ss_index_selected'] = \
+            deepcopy(self.WaveClustWidget._workingDataBase['ss_index_selected'])
+        self._workingDataBase['cs_index_selected'] = \
+            deepcopy(self.WaveClustWidget._workingDataBase['cs_index_selected'])
+
+        self._workingDataBase['flag_index_detection'][0] = False
+        self.refresh_workingDataBase()
+        if flag_update:
+            self.undoRedo_add()
+        return 0
+
+    def onSsPanel_waveClust_Clicked(self):
+        self.WaveClustWidget.comboBx_scatterPlot_popup_spike_mode.setCurrentIndex(1)
+        self.WaveClustWidget._localDataBase["is_ss"] = True
+        self.onPushBtn_waveClust_Clicked()
+        return 0
+
+    def onCsPanel_waveClust_Clicked(self):
+        self.WaveClustWidget.comboBx_scatterPlot_popup_spike_mode.setCurrentIndex(0)
+        self.WaveClustWidget._localDataBase["is_ss"] = False
+        self.onPushBtn_waveClust_Clicked()
+        return 0
+
+    def onPushBtn_waveClust_Clicked(self):
+        # copy _workingDataBase over to WaveClustWidget
+        self.WaveClustWidget._workingDataBase = deepcopy(self._workingDataBase)
+        # Enable the WaveClustWidget module
+        self.WaveClustWidget.pushBtn_waveClust_Clicked()
+        self.waveClust_showWidget(True)
+        return 0
+
+    def waveClust_showWidget(self, showWaveClust=False):
+        self.setEnableMainModule(not(showWaveClust))
+        if showWaveClust:
+            self.layout_grand.setCurrentIndex(4)
+        return 0
+
 ## ################################################################################################
 ## ################################################################################################
 #%% DATA MANAGEMENT
@@ -3096,7 +3197,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
         return 0
 
-    def update_SSPcaNum_comboBx(self):
+    def extract_ss_scatter(self):
         if (self._workingDataBase['ss_index'].sum() > 1):
             comboBx_Items = []
             ss_scatter_mat_ = deepcopy(self._workingDataBase['ss_pca1'].reshape(-1,1))
@@ -3132,37 +3233,23 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = len(comboBx_Items)
             self._workingDataBase['ss_scatter_mat'] = ss_scatter_mat_
             self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
             if not(self._workingDataBase['umap_enable'][0]):
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
                 if (3 <= self._workingDataBase['ss_pca1_index'][0] <= 4):
                     self._workingDataBase['ss_pca1_index'][0] -= 3
                 if (3 <= self._workingDataBase['ss_pca2_index'][0] <= 4):
                     self._workingDataBase['ss_pca2_index'][0] -= 3
             # ss_pca1_index
             if (self._workingDataBase['ss_pca1_index'][0] < num_D):
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
-                    self._workingDataBase['ss_pca1_index'][0])
                 self._workingDataBase['ss_scatter1'] = self._workingDataBase\
                     ['ss_scatter_mat'][:,self._workingDataBase['ss_pca1_index'][0]]
             else:
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
                 self._workingDataBase['ss_scatter1'] = self._workingDataBase['ss_scatter_mat'][:,0]
                 self._workingDataBase['ss_pca1_index'][0] = 0
             # ss_pca2_index
             if (self._workingDataBase['ss_pca2_index'][0] < num_D):
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
-                    self._workingDataBase['ss_pca2_index'][0])
                 self._workingDataBase['ss_scatter2'] = self._workingDataBase\
                     ['ss_scatter_mat'][:,self._workingDataBase['ss_pca2_index'][0]]
             else:
-                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
                 self._workingDataBase['ss_scatter2'] = self._workingDataBase['ss_scatter_mat'][:,1]
                 self._workingDataBase['ss_pca2_index'][0] = 1
         else:
@@ -3174,19 +3261,47 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
             self._workingDataBase['ss_scatter1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_scatter2'] = np.zeros((0), dtype=np.float32)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(comboBx_Items)
             # ss_pca1_index
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
             self._workingDataBase['ss_pca1_index'][0] = 0
             # ss_pca2_index
-            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
             self._workingDataBase['ss_pca2_index'][0] = 1
+
+    def update_SSPcaNum_comboBx(self):
+        if (self._workingDataBase['ss_index'].sum() > 1):
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(self._workingDataBase['ss_scatter_list'])
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(self._workingDataBase['ss_scatter_list'])
+            if not(self._workingDataBase['umap_enable'][0]):
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
+            # ss_pca1_index
+            num_D = len(self._workingDataBase['ss_scatter_list'])
+            if (self._workingDataBase['ss_pca1_index'][0] < num_D):
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(
+                    self._workingDataBase['ss_pca1_index'][0])
+            else:
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+            # ss_pca2_index
+            if (self._workingDataBase['ss_pca2_index'][0] < num_D):
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(
+                    self._workingDataBase['ss_pca2_index'][0])
+            else:
+                self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
+        else:
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.addItems(self._workingDataBase['ss_scatter_list'])
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.addItems(self._workingDataBase['ss_scatter_list'])
+            # ss_pca1_index
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.setCurrentIndex(0)
+            # ss_pca2_index
+            self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         return 0
 
-    def update_CSPcaNum_comboBx(self):
+    def extract_cs_scatter(self):
         if (self._workingDataBase['cs_index'].sum() > 1):
             comboBx_Items = []
             cs_scatter_mat_ = deepcopy(self._workingDataBase['cs_pca1'].reshape(-1,1))
@@ -3222,37 +3337,23 @@ class PsortGuiSignals(PsortGuiWidget):
             num_D = len(comboBx_Items)
             self._workingDataBase['cs_scatter_mat'] = cs_scatter_mat_
             self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
             if not(self._workingDataBase['umap_enable'][0]):
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
                 if (3 <= self._workingDataBase['cs_pca1_index'][0] <= 4):
                     self._workingDataBase['cs_pca1_index'][0] -= 3
                 if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
                     self._workingDataBase['cs_pca2_index'][0] -= 3
             # cs_pca1_index
             if (self._workingDataBase['cs_pca1_index'][0] < num_D):
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
-                    self._workingDataBase['cs_pca1_index'][0])
                 self._workingDataBase['cs_scatter1'] = self._workingDataBase\
                     ['cs_scatter_mat'][:,self._workingDataBase['cs_pca1_index'][0]]
             else:
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
                 self._workingDataBase['cs_scatter1'] = self._workingDataBase['cs_scatter_mat'][:,0]
                 self._workingDataBase['cs_pca1_index'][0] = 0
             # cs_pca2_index
             if (self._workingDataBase['cs_pca2_index'][0] < num_D):
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
-                    self._workingDataBase['cs_pca2_index'][0])
                 self._workingDataBase['cs_scatter2'] = self._workingDataBase\
                     ['cs_scatter_mat'][:,self._workingDataBase['cs_pca2_index'][0]]
             else:
-                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
                 self._workingDataBase['cs_scatter2'] = self._workingDataBase['cs_scatter_mat'][:,1]
                 self._workingDataBase['cs_pca2_index'][0] = 1
         else:
@@ -3264,16 +3365,44 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
             self._workingDataBase['cs_scatter1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_scatter2'] = np.zeros((0), dtype=np.float32)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(comboBx_Items)
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(comboBx_Items)
             # cs_pca1_index
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
             self._workingDataBase['cs_pca1_index'][0] = 0
             # cs_pca2_index
-            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
             self._workingDataBase['cs_pca2_index'][0] = 1
+
+    def update_CSPcaNum_comboBx(self):
+        if (self._workingDataBase['cs_index'].sum() > 1):
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(self._workingDataBase['cs_scatter_list'])
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(self._workingDataBase['cs_scatter_list'])
+            if not(self._workingDataBase['umap_enable'][0]):
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(3).setEnabled(False)
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.model().item(4).setEnabled(False)
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(3).setEnabled(False)
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.model().item(4).setEnabled(False)
+            # cs_pca1_index
+            num_D = len(self._workingDataBase['cs_scatter_list'])
+            if (self._workingDataBase['cs_pca1_index'][0] < num_D):
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(
+                    self._workingDataBase['cs_pca1_index'][0])
+            else:
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+            # cs_pca2_index
+            if (self._workingDataBase['cs_pca2_index'][0] < num_D):
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(
+                    self._workingDataBase['cs_pca2_index'][0])
+            else:
+                self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
+        else:
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.clear()
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.addItems(self._workingDataBase['cs_scatter_list'])
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.addItems(self._workingDataBase['cs_scatter_list'])
+            # cs_pca1_index
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum1.setCurrentIndex(0)
+            # cs_pca2_index
+            self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         return 0
 
 ## ################################################################################################

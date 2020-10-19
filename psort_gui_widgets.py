@@ -343,28 +343,32 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_SsPanel_plots_SsWaveBtn = QHBoxLayout()
         self.layout_mainwin_SsPanel_plots_SsPcaBtn = QHBoxLayout()
 
-        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select")
-        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect = QPushButton("Dissect")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect, color="blue")
+        self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave = QPushButton("Select")
+        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform = QPushButton("Learn Template")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform, color="blue")
         self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
-            addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave)
-        self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_waveDissect)
+        self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
+            addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_selectWave)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setSpacing(1)
         self.layout_mainwin_SsPanel_plots_SsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select Data")
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_waveClust = QPushButton("Cluster")
+        psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_waveClust, color="blue")
+        self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData = QPushButton("Select")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData, color="blue")
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo = QComboBox()
         self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
-        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.setCurrentIndex(1)
+        self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.setCurrentIndex(0)
         psort_lib.setFont(self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo, color="blue")
+        self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
+            addWidget(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_waveClust)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
             addWidget(self.pushBtn_mainwin_SsPanel_plots_SsPcaBtn_selectPcaData)
         self.layout_mainwin_SsPanel_plots_SsPcaBtn.\
@@ -470,7 +474,7 @@ class PsortGuiWidget(QMainWindow):
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsMoveToCs.\
             setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-right-blue.png')))
-        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Deselect")
+        self.pushBtn_mainwin_SsPanel_buttons_SsDeselect = QPushButton("Unselect")
         psort_lib.setFont(self.pushBtn_mainwin_SsPanel_buttons_SsDeselect, color="blue")
         self.pushBtn_mainwin_SsPanel_buttons_SsDeselect.\
             setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-blue.png')))
@@ -500,28 +504,32 @@ class PsortGuiWidget(QMainWindow):
         self.layout_mainwin_CsPanel_plots_CsWaveBtn = QHBoxLayout()
         self.layout_mainwin_CsPanel_plots_CsPcaBtn = QHBoxLayout()
 
-        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select")
-        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect = QPushButton("Dissect")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect, color="red")
+        self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave = QPushButton("Select")
+        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform = QPushButton("Learn Template")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform, color="red")
         self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setCheckable(True)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
-            addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave)
-        self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_waveDissect)
+        self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
+            addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_selectWave)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setSpacing(1)
         self.layout_mainwin_CsPanel_plots_CsWaveBtn.setContentsMargins(1, 1, 1, 1)
 
-        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select Data")
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_waveClust = QPushButton("Cluster")
+        psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_waveClust, color="red")
+        self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData = QPushButton("Select")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData, color="red")
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo = QComboBox()
         self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.addItems(["Manual","GMM-2D"])
-        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.setCurrentIndex(1)
+        self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.setCurrentIndex(0)
         psort_lib.setFont(self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo, color="red")
+        self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
+            addWidget(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_waveClust)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
             addWidget(self.pushBtn_mainwin_CsPanel_plots_CsPcaBtn_selectPcaData)
         self.layout_mainwin_CsPanel_plots_CsPcaBtn.\
@@ -623,7 +631,7 @@ class PsortGuiWidget(QMainWindow):
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsMoveToSs.\
             setIcon(QtGui.QIcon(os.path.join('.', 'icon', '084-shuffle-left-red.png')))
-        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Deselect")
+        self.pushBtn_mainwin_CsPanel_buttons_CsDeselect = QPushButton("Unselect")
         psort_lib.setFont(self.pushBtn_mainwin_CsPanel_buttons_CsDeselect, color="red")
         self.pushBtn_mainwin_CsPanel_buttons_CsDeselect.\
             setIcon(QtGui.QIcon(os.path.join('.', 'icon', '030-forbidden-red.png')))
@@ -720,19 +728,20 @@ class PsortGuiWidget(QMainWindow):
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_save)
         self.menu_menubar_file.addAction(self.actionBtn_menubar_file_exit)
 
-        self.menu_menubar_edit = self.menubar.addMenu("Edit")
-        self.actionBtn_menubar_edit_prefrences = QAction("Prefrences...", self)
-        self.actionBtn_menubar_edit_umap = QAction("UMAP for dim reduction", self, checkable=True)
-        self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_prefrences)
-        self.menu_menubar_edit.addAction(self.actionBtn_menubar_edit_umap)
-
         self.menu_menubar_tools = self.menubar.addMenu("Tools")
-        self.actionBtn_menubar_tools_csTune = QAction("CS Tuning", self)
-        self.actionBtn_menubar_tools_commonAvg = QAction("Common Average", self)
+        self.actionBtn_menubar_tools_umap = QAction("UMAP for dim reduction", self, checkable=True)
         self.actionBtn_menubar_tools_cellSummary = QAction("Cell Summary", self)
-        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_csTune)
-        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_commonAvg)
+        self.actionBtn_menubar_tools_prefrences = QAction("Prefrences...", self)
+        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_umap)
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_cellSummary)
+        self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_prefrences)
+
+
+        self.menu_menubar_addons = self.menubar.addMenu("Add-ons")
+        # self.actionBtn_menubar_addons_csTune = QAction("CS Tuning", self)
+        self.actionBtn_menubar_addons_commonAvg = QAction("Common Average", self)
+        # self.menu_menubar_addons.addAction(self.actionBtn_menubar_addons_csTune)
+        self.menu_menubar_addons.addAction(self.actionBtn_menubar_addons_commonAvg)
 
         self.menubar.setNativeMenuBar(False)
         return 0

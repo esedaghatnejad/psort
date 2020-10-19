@@ -38,12 +38,19 @@ class ScatterSelectWidget(QWidget):
         psort_lib.setFont(self.pushBtn_scatterSelect_ok)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_cancel)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_ok)
+        # Housekeeping items
+        self.line_scatterPlot_popup_h0 = QtGui.QFrame()
+        self.line_scatterPlot_popup_h0.setFrameShape(QFrame.HLine)
+        self.line_scatterPlot_popup_h0.setFrameShadow(QFrame.Sunken)
         # plot
         self.plot_scatterSelect_mainPlot = pg.PlotWidget()
         psort_lib.set_plotWidget(self.plot_scatterSelect_mainPlot)
         # add widgets to the layout
         self.layout_scatterSelect.addLayout(self.layout_scatterSelect_Btn)
+        self.layout_scatterSelect.addWidget(self.line_scatterPlot_popup_h0)
         self.layout_scatterSelect.addWidget(self.plot_scatterSelect_mainPlot)
+        self.layout_scatterSelect.setSpacing(1)
+        self.layout_scatterSelect.setContentsMargins(1,1,1,1)
         self.setLayout(self.layout_scatterSelect)
         return 0
 
@@ -61,16 +68,16 @@ class ScatterSelectWidget(QWidget):
             plot(np.zeros((0)), np.zeros((0)), name="scatterSelectTemplate", pen=None,
                 symbol='o', symbolSize=3, symbolBrush=(0,0,0,255), symbolPen=None)
             # cross hair
-        self.infLine_scatterSelectPlot_vLine = \
-            pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
-        self.plot_scatterSelect_mainPlot.\
-            addItem(self.infLine_scatterSelectPlot_vLine, ignoreBounds=True)
-        self.infLine_scatterSelectPlot_hLine = \
-            pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-                        movable=False, hoverPen='g')
-        self.plot_scatterSelect_mainPlot.\
-            addItem(self.infLine_scatterSelectPlot_hLine, ignoreBounds=True)
+        # self.infLine_scatterSelectPlot_vLine = \
+        #     pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
+        # self.plot_scatterSelect_mainPlot.\
+        #     addItem(self.infLine_scatterSelectPlot_vLine, ignoreBounds=True)
+        # self.infLine_scatterSelectPlot_hLine = \
+        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
+        #                 movable=False, hoverPen='g')
+        # self.plot_scatterSelect_mainPlot.\
+        #     addItem(self.infLine_scatterSelectPlot_hLine, ignoreBounds=True)
             # scatterSelect ROI
         self.pltData_scatterSelectPlot_ROI =\
             self.plot_scatterSelect_mainPlot.\
@@ -101,13 +108,13 @@ class ScatterSelectWidget(QWidget):
         self.viewBox_scatterSelectPlot.autoRange()
         return 0
 
-    def scatterSelect_mouseMoved(self, evt):
-        pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-        if self.plot_scatterSelect_mainPlot.sceneBoundingRect().contains(pos):
-            mousePoint = self.viewBox_scatterSelectPlot.mapSceneToView(pos)
-            self.infLine_scatterSelectPlot_vLine.setPos(mousePoint.x())
-            self.infLine_scatterSelectPlot_hLine.setPos(mousePoint.y())
-        return 0
+    # def scatterSelect_mouseMoved(self, evt):
+    #     pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+    #     if self.plot_scatterSelect_mainPlot.sceneBoundingRect().contains(pos):
+    #         mousePoint = self.viewBox_scatterSelectPlot.mapSceneToView(pos)
+    #         self.infLine_scatterSelectPlot_vLine.setPos(mousePoint.x())
+    #         self.infLine_scatterSelectPlot_hLine.setPos(mousePoint.y())
+    #     return 0
 
     def scatterSelect_mouseClicked(self, evt):
         if evt[0].button() == QtCore.Qt.LeftButton:
