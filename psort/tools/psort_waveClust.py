@@ -283,8 +283,6 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup_Btn.addWidget(self.pushBtn_scatterPlot_popup_ok)
         self.layout_scatterPlot_popup_Btn.setSpacing(1)
         self.layout_scatterPlot_popup_Btn.setContentsMargins(1,1,1,1)
-        self.layout_scatterPlot_popup.addLayout(self.layout_scatterPlot_popup_Btn)
-        self.layout_scatterPlot_popup.addWidget(self.line_scatterPlot_popup_h0)
 
         # Add action widgets
         self.layout_scatterPlot_popup_mode0.addWidget(self.label_scatterPlot_popup_method)
@@ -344,8 +342,6 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup_actionBtn.addLayout(self.layout_scatterPlot_popup_label)
         self.layout_scatterPlot_popup_actionBtn.setSpacing(1)
         self.layout_scatterPlot_popup_actionBtn.setContentsMargins(1,1,1,1)
-        self.layout_scatterPlot_popup.addLayout(self.layout_scatterPlot_popup_actionBtn)
-        self.layout_scatterPlot_popup.addWidget(self.line_scatterPlot_popup_h1)
 
         self.layout_scatterPlot_popup_belowMainBtn_hdivider1.addWidget(self.plot_popup_waveform)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider1.addWidget(self.plot_popup_ssxprob)
@@ -356,11 +352,17 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup_belowMainBtn_vdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider)
         self.layout_scatterPlot_popup_belowMainBtn_vdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider2)
 
+        self.layout_scatterPlot_popup.addLayout(self.layout_scatterPlot_popup_Btn)
+        self.layout_scatterPlot_popup.addWidget(self.line_scatterPlot_popup_h0)
+        self.layout_scatterPlot_popup.addLayout(self.layout_scatterPlot_popup_actionBtn)
+        self.layout_scatterPlot_popup.addWidget(self.line_scatterPlot_popup_h1)
         self.layout_scatterPlot_popup.addWidget(self.layout_scatterPlot_popup_belowMainBtn_vdivider)
 
         self.layout_scatterPlot_popup.setStretch(0,0)
         self.layout_scatterPlot_popup.setStretch(1,0)
-        self.layout_scatterPlot_popup.setStretch(2,1)
+        self.layout_scatterPlot_popup.setStretch(2,0)
+        self.layout_scatterPlot_popup.setStretch(3,0)
+        self.layout_scatterPlot_popup.setStretch(4,1)
         self.layout_scatterPlot_popup.setSpacing(1)
         self.layout_scatterPlot_popup.setContentsMargins(1,1,1,1)
         self.setLayout(self.layout_scatterPlot_popup)

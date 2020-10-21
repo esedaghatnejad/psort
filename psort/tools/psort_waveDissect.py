@@ -189,8 +189,6 @@ class WaveDissectWidget(QWidget):
         self.layout_rawPlot_popup_Btn.addWidget(self.pushBtn_rawPlot_popup_ok)
         self.layout_rawPlot_popup_Btn.setSpacing(1)
         self.layout_rawPlot_popup_Btn.setContentsMargins(1,1,1,1)
-        self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_Btn)
-        self.layout_rawPlot_popup.addWidget(self.line_rawPlot_popup_h0)
 
         # Add action widgets
         self.layout_rawPlot_popup_modeCombo.addWidget(self.label_rawPlot_popup_spike_of_interest)
@@ -258,19 +256,24 @@ class WaveDissectWidget(QWidget):
         self.layout_rawPlot_popup_actionBtn.addLayout(self.layout_rawPlot_popup_axes)
         self.layout_rawPlot_popup_actionBtn.setSpacing(1)
         self.layout_rawPlot_popup_actionBtn.setContentsMargins(1,1,1,1)
-        self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_actionBtn)
-        self.layout_rawPlot_popup.addWidget(self.line_rawPlot_popup_h1)
+
 
         self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.addWidget(self.plot_popup_sidePlot1)
         self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.addWidget(self.plot_popup_sidePlot2)
         self.layoutWidget_rawPlot_popup_belowMainBtn.addWidget(self.plot_popup_rawPlot)
         self.layoutWidget_rawPlot_popup_belowMainBtn.addWidget(self.layoutWidget_rawPlot_popup_belowMainBtn_waveform)
 
+        self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_Btn)
+        self.layout_rawPlot_popup.addWidget(self.line_rawPlot_popup_h0)
+        self.layout_rawPlot_popup.addLayout(self.layout_rawPlot_popup_actionBtn)
+        self.layout_rawPlot_popup.addWidget(self.line_rawPlot_popup_h1)
         self.layout_rawPlot_popup.addWidget(self.layoutWidget_rawPlot_popup_belowMainBtn)
 
         self.layout_rawPlot_popup.setStretch(0,0)
         self.layout_rawPlot_popup.setStretch(1,0)
-        self.layout_rawPlot_popup.setStretch(2,1)
+        self.layout_rawPlot_popup.setStretch(2,0)
+        self.layout_rawPlot_popup.setStretch(3,0)
+        self.layout_rawPlot_popup.setStretch(4,1)
         self.layout_rawPlot_popup.setSpacing(1)
         self.layout_rawPlot_popup.setContentsMargins(1,1,1,1)
         self.setLayout(self.layout_rawPlot_popup)
