@@ -12,7 +12,7 @@ import os
 import pyqtgraph as pg
 import numpy as np
 from copy import deepcopy
-from psort.utils import psort_lib
+from psort.utils import lib
 ## #############################################################################
 #%% CellSummaryWidget
 class SlotBoundaryWidget(QWidget):
@@ -37,9 +37,9 @@ class SlotBoundaryWidget(QWidget):
         self.layout_slotBoundary_toolbar = QHBoxLayout()
         # Cancel push button for closing the window and terminating the process
         self.pushBtn_slotBoundary_cancel = QPushButton("Cancel")
-        psort_lib.setFont(self.pushBtn_slotBoundary_cancel)
+        lib.setFont(self.pushBtn_slotBoundary_cancel)
         self.pushBtn_slotBoundary_ok = QPushButton("OK")
-        psort_lib.setFont(self.pushBtn_slotBoundary_ok)
+        lib.setFont(self.pushBtn_slotBoundary_ok)
         self.layout_slotBoundary_OkCancel.addWidget(self.pushBtn_slotBoundary_cancel)
         self.layout_slotBoundary_OkCancel.addWidget(self.pushBtn_slotBoundary_ok)
         # separator line
@@ -63,21 +63,21 @@ class SlotBoundaryWidget(QWidget):
         self.line_slotBoundary_v4.setFrameShadow(QFrame.Sunken)
         # toolbar
         self.label_slotBoundary_numSlots = QLabel("Number of slots:")
-        psort_lib.setFont(self.label_slotBoundary_numSlots)
+        lib.setFont(self.label_slotBoundary_numSlots)
         self.spinBx_slotBoundary_numSlots = QSpinBox()
         self.spinBx_slotBoundary_numSlots.setKeyboardTracking(False)
         self.spinBx_slotBoundary_numSlots.setMinimum(1)
         self.spinBx_slotBoundary_numSlots.setMaximum(120)
         self.spinBx_slotBoundary_numSlots.setValue(30)
-        psort_lib.setFont(self.spinBx_slotBoundary_numSlots)
+        lib.setFont(self.spinBx_slotBoundary_numSlots)
         self.pushBtn_slotBoundary_addSlot = QPushButton("Add line at click")
-        psort_lib.setFont(self.pushBtn_slotBoundary_addSlot)
+        lib.setFont(self.pushBtn_slotBoundary_addSlot)
         self.pushBtn_slotBoundary_addSlot.setCheckable(True)
-        self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
+        self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
         self.label_slotBoundary_description = QLabel("Drag line out of boundries to delete.")
-        psort_lib.setFont(self.label_slotBoundary_description)
+        lib.setFont(self.label_slotBoundary_description)
         self.label_slotBoundary_duration = QLabel(f"Avg slot duration: {10}s.")
-        psort_lib.setFont(self.label_slotBoundary_duration)
+        lib.setFont(self.label_slotBoundary_duration)
         self.layout_slotBoundary_toolbar.addWidget(self.label_slotBoundary_numSlots)
         self.layout_slotBoundary_toolbar.addWidget(self.spinBx_slotBoundary_numSlots)
         self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v1)
@@ -92,7 +92,7 @@ class SlotBoundaryWidget(QWidget):
         self.layout_slotBoundary_toolbar.setContentsMargins(1,1,1,1)
         # plot
         self.plot_slotBoundary_mainPlot = pg.PlotWidget()
-        psort_lib.set_plotWidget(self.plot_slotBoundary_mainPlot)
+        lib.set_plotWidget(self.plot_slotBoundary_mainPlot)
         # add widgets to the layout
         self.layout_slotBoundary.addLayout(self.layout_slotBoundary_OkCancel)
         self.layout_slotBoundary.addWidget(self.line_slotBoundary_h0)

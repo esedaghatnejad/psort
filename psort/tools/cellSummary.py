@@ -13,7 +13,7 @@ import numpy as np
 from copy import deepcopy
 import sys # We need sys so that we can pass argv to QApplication
 import os
-from psort.utils import psort_lib
+from psort.utils import lib
 ## #############################################################################
 #%% CellSummaryDataBase
 _workingDataBase = {
@@ -53,7 +53,7 @@ class CellSummarySignals(CellSummaryWidget):
         super(CellSummarySignals, self).__init__(parent)
         self.init_plot()
         self._workingDataBase = deepcopy(_workingDataBase)
-        from psort.gui.psort_gui_signals import PsortGuiSignals
+        from psort.gui.signals import PsortGuiSignals
         self.PsortGuiSignals = PsortGuiSignals
         if psort_grandDataBase is None:
             isDataLoaded = self.load_grandDataBase()
@@ -104,7 +104,7 @@ class CellSummarySignals(CellSummaryWidget):
         self.graphWin.nextRow()
         # Waveform
         self.pltWidget_Waveform = self.graphWin.addPlot(title="Waveform")
-        psort_lib.set_plotWidget(self.pltWidget_Waveform, bkg=False)
+        lib.set_plotWidget(self.pltWidget_Waveform, bkg=False)
         self.pltWidget_Waveform.setTitle("Y: Waveform(uV) | X: Time(ms)")
         self.pltData_SsWave95Min =\
             self.pltWidget_Waveform.\
@@ -134,7 +134,7 @@ class CellSummarySignals(CellSummaryWidget):
         self.viewBox_Waveform.autoRange()
         # SS_IFR
         self.pltWidget_SsIfr = self.graphWin.addPlot(title="SS_Ifr")
-        psort_lib.set_plotWidget(self.pltWidget_SsIfr, bkg=False)
+        lib.set_plotWidget(self.pltWidget_SsIfr, bkg=False)
         self.pltWidget_SsIfr.setTitle("Y: SS_IFR(#) | X: Freq(Hz)")
         self.pltData_SsIfr =\
             self.pltWidget_SsIfr.\
@@ -150,7 +150,7 @@ class CellSummarySignals(CellSummaryWidget):
         self.viewBox_SsIfr.autoRange()
         # SS_Peak
         self.pltWidget_SsPeak = self.graphWin.addPlot(title="SS_Peak")
-        psort_lib.set_plotWidget(self.pltWidget_SsPeak, bkg=False)
+        lib.set_plotWidget(self.pltWidget_SsPeak, bkg=False)
         self.pltWidget_SsPeak.setTitle("X: SS_Peak_Dist(uV) | Y: Count(#)")
         self.pltData_SsPeak =\
             self.pltWidget_SsPeak.\
@@ -162,7 +162,7 @@ class CellSummarySignals(CellSummaryWidget):
         self.graphWin.nextRow()
         # Cross_Probability
         self.pltWidget_xProb = self.graphWin.addPlot(title="Cross_Probability")
-        psort_lib.set_plotWidget(self.pltWidget_xProb, bkg=False)
+        lib.set_plotWidget(self.pltWidget_xProb, bkg=False)
         self.pltWidget_xProb.setTitle("Y: Cross_Probability(1) | X: Time(ms)")
         self.pltData_SsCorr =\
             self.pltWidget_xProb.\
@@ -176,7 +176,7 @@ class CellSummarySignals(CellSummaryWidget):
         self.viewBox_xProb.autoRange()
         # CS_IFR
         self.pltWidget_CsIfr = self.graphWin.addPlot(title="CS_Ifr")
-        psort_lib.set_plotWidget(self.pltWidget_CsIfr, bkg=False)
+        lib.set_plotWidget(self.pltWidget_CsIfr, bkg=False)
         self.pltWidget_CsIfr.setTitle("Y: CS_IFR(#) | X: Freq(Hz)")
         self.pltData_CsIfr =\
             self.pltWidget_CsIfr.\
@@ -192,7 +192,7 @@ class CellSummarySignals(CellSummaryWidget):
         self.viewBox_CsIfr.autoRange()
         # CS_Peak
         self.pltWidget_CsPeak = self.graphWin.addPlot(title="CS_Peak")
-        psort_lib.set_plotWidget(self.pltWidget_CsPeak, bkg=False)
+        lib.set_plotWidget(self.pltWidget_CsPeak, bkg=False)
         self.pltWidget_CsPeak.setTitle("X: CS_Peak_Dist(uV) | Y: Count(#)")
         self.pltData_CsPeak =\
             self.pltWidget_CsPeak.\
@@ -208,7 +208,7 @@ class CellSummarySignals(CellSummaryWidget):
             getOpenFileName(self, "Open File", file_path,
                             filter="Data file (*.psort)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
-            self._grandDataBase = psort_lib.load_file_psort(file_fullPath)
+            self._grandDataBase = lib.load_file_psort(file_fullPath)
         else:
             return 0
         return 1
@@ -246,7 +246,7 @@ class CellSummarySignals(CellSummaryWidget):
             self._workingDataBase['ss_wave_mean'], \
                 self._workingDataBase['ss_wave_stdv_plus'], \
                 self._workingDataBase['ss_wave_stdv_minus'] = \
-                    psort_lib.mean_std_plus_minus(self._workingDataBase['ss_wave'])
+                    lib.mean_std_plus_minus(self._workingDataBase['ss_wave'])
             self._workingDataBase['ss_wave_span_mean'] = \
                 np.mean(self._workingDataBase['ss_wave_span'][:,:],axis=0)
         else:
@@ -262,7 +262,7 @@ class CellSummarySignals(CellSummaryWidget):
             self._workingDataBase['cs_wave_mean'], \
                 self._workingDataBase['cs_wave_stdv_plus'], \
                 self._workingDataBase['cs_wave_stdv_minus'] = \
-                    psort_lib.mean_std_plus_minus(self._workingDataBase['cs_wave'])
+                    lib.mean_std_plus_minus(self._workingDataBase['cs_wave'])
             self._workingDataBase['cs_wave_span_mean'] = \
                 np.mean(self._workingDataBase['cs_wave_span'][:,:],axis=0)
         else:

@@ -12,7 +12,7 @@ import os
 from psort.dependencies import deepdish_package
 from psort.dependencies import pymatreader_package
 from psort.dependencies import openephys_package
-from psort.utils import psort_lib
+from psort.utils import lib
 
 _singleSlotDataBase = {
         'isAnalyzed':             np.array([False], dtype=np.bool),
@@ -53,11 +53,11 @@ _singleSlotDataBase = {
         'csLearnTemp_mode':       np.array([False], dtype=np.bool),
         }
 
-for key in psort_lib.GLOBAL_DICT.keys():
-    _singleSlotDataBase[key] = deepcopy(psort_lib.GLOBAL_DICT[key])
+for key in lib.GLOBAL_DICT.keys():
+    _singleSlotDataBase[key] = deepcopy(lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 31], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 32], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -155,7 +155,7 @@ class PsortDataBase():
 
     def load_dataBase(self, file_fullPath, ch_data=None, ch_time=None, sample_rate=None,
                         grandDataBase=None, isCommonAverage=False):
-        _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        _, _, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self._grandDataBase = grandDataBase
             # Backward compatibility to PSORT_VERSION 03
@@ -194,7 +194,7 @@ class PsortDataBase():
                 self._topLevelDataBase['ch_data'] = \
                     self._topLevelDataBase['ch_data'] - _ch_data_cmn
             else:
-                print('Error: <psort_database.load_dataBase: ' \
+                print('Error: <database.load_dataBase: ' \
                     + 'size of common average data does not match main data.>')
         return 0
 
@@ -206,7 +206,7 @@ class PsortDataBase():
 
     def set_file_fullPath(self, file_fullPath):
         file_fullPath, file_path, file_name, file_ext, file_name_without_ext = \
-            psort_lib.get_fullPath_components(file_fullPath)
+            lib.get_fullPath_components(file_fullPath)
         self._topLevelDataBase['file_fullPath'] = np.array([file_fullPath], dtype=np.unicode)
         self._topLevelDataBase['file_path']     = np.array([file_path], dtype=np.unicode)
         self._topLevelDataBase['file_name']     = np.array([file_name], dtype=np.unicode)
@@ -254,7 +254,7 @@ class PsortDataBase():
             np.array([file_fullPath], dtype=np.unicode)
         return 0
 
-    def update_dataBase_based_on_psort_gui_signals(self, guiSignals_workingDataBase):
+    def update_dataBase_based_on_signals(self, guiSignals_workingDataBase):
         psortDataBase_currentSlot = self._currentSlotDataBase
         psortDataBase_topLevel = self._topLevelDataBase
 

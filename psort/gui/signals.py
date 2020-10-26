@@ -16,18 +16,18 @@ import os
 import datetime
 import sys
 import decorator
-from psort.utils import psort_lib
-from psort.utils import psort_database
-from psort.utils.psort_database import PsortDataBase
-from psort.gui.psort_gui_widgets import PsortGuiWidget
-from psort.gui.psort_inputDialog import PsortInputDialog
-from psort.addons.psort_addons_commonAvg import CommonAvgSignals
-from psort.tools.psort_tools_cellSummary import CellSummarySignals
-from psort.tools.psort_tools_prefrences import EditPrefrencesDialog
-from psort.tools.psort_scatterSelect import ScatterSelectWidget
-from psort.tools.psort_waveDissect import WaveDissectWidget
-from psort.tools.psort_slotBoundary import SlotBoundaryWidget
-from psort.tools.psort_waveClust import WaveClustWidget
+from psort.utils import lib
+from psort.utils import database
+from psort.utils.database import PsortDataBase
+from psort.gui.widgets import PsortGuiWidget
+from psort.gui.inputDialog import PsortInputDialog
+from psort.addons.commonAvg import CommonAvgSignals
+from psort.tools.cellSummary import CellSummarySignals
+from psort.tools.prefrences import EditPrefrencesDialog
+from psort.tools.scatterSelect import ScatterSelectWidget
+from psort.tools.waveDissect import WaveDissectWidget
+from psort.tools.slotBoundary import SlotBoundaryWidget
+from psort.tools.waveClust import WaveClustWidget
 
 ## ################################################################################################
 ## ################################################################################################
@@ -110,8 +110,8 @@ _workingDataBase = {
     'batch_size_undoRedo':    np.full( (1), 20, dtype=np.uint32),
 }
 
-for key in psort_database._singleSlotDataBase.keys():
-    _workingDataBase[key] = deepcopy(psort_database._singleSlotDataBase[key])
+for key in database._singleSlotDataBase.keys():
+    _workingDataBase[key] = deepcopy(database._singleSlotDataBase[key])
 
 _fileDataBase = {
     'load_file_fullPath': np.array([''], dtype=np.unicode),
@@ -133,11 +133,11 @@ def showWaitCursor(func, *args, **kwargs):
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
         super(PsortGuiSignals, self).__init__(parent)
-        self.list_color = deepcopy(psort_lib.list_color)
+        self.list_color = deepcopy(lib.list_color)
         self.input_dialog = PsortInputDialog(self)
         self.psortDataBase = PsortDataBase()
-        self.loadData = psort_lib.LoadData()
-        self.saveData = psort_lib.SaveData()
+        self.loadData = lib.LoadData()
+        self.saveData = lib.SaveData()
         self._fileDataBase = deepcopy(_fileDataBase)
         self._workingDataBase = deepcopy(_workingDataBase)
         self.init_plots()
@@ -740,7 +740,7 @@ class PsortGuiSignals(PsortGuiWidget):
                             filter="psort DataBase (*.psort)")
         if file_fullPath == '':
             return 0
-        _, file_path, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        _, file_path, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if not(file_ext == '.psort'):
             file_fullPath = file_fullPath + '.psort'
         if os.path.isdir(file_path):
@@ -773,7 +773,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase[key][0] = np.cast[np.uint32](value)
             else:
                 self._workingDataBase[key][0] = np.cast[np.float32](value)
-        psort_lib.GLOBAL_check_variables(self._workingDataBase)
+        lib.GLOBAL_check_variables(self._workingDataBase)
         self._workingDataBase['flag_tools_prefrences'][0] = True
         self.onInfLineSsWaveMinPca_positionChangeFinished()
         self.onInfLineSsWaveMaxPca_positionChangeFinished()
@@ -1119,7 +1119,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def onRawSignal_SsAutoThresh_Clicked(self):
         if self._workingDataBase['ch_data_ss'].size < 1:
             self.filter_data()
-        _ss_index = psort_lib.find_peaks(
+        _ss_index = lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=0.0,
                 peakType=self._workingDataBase['ssPeak_mode'][0])
@@ -1127,7 +1127,7 @@ class PsortGuiSignals(PsortGuiWidget):
         gmm_data = _ss_peak.reshape(-1,1)
         if gmm_data.size < 1:
             return 0
-        labels, centers = psort_lib.GaussianMixture(
+        labels, centers = lib.GaussianMixture(
                             input_data=gmm_data,
                             n_clusters=2,
                             init_val=None,
@@ -1145,7 +1145,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def onRawSignal_CsAutoThresh_Clicked(self):
         if self._workingDataBase['ch_data_cs'].size < 1:
             self.filter_data()
-        _cs_index = psort_lib.find_peaks(
+        _cs_index = lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=0.0,
                 peakType=self._workingDataBase['csPeak_mode'][0])
@@ -1153,7 +1153,7 @@ class PsortGuiSignals(PsortGuiWidget):
         gmm_data = _cs_peak.reshape(-1,1)
         if gmm_data.size < 1:
             return 0
-        labels, centers = psort_lib.GaussianMixture(
+        labels, centers = lib.GaussianMixture(
                             input_data=gmm_data,
                             n_clusters=2,
                             init_val=None,
@@ -1427,9 +1427,9 @@ class PsortGuiSignals(PsortGuiWidget):
     def load_process_start(self):
         file_fullPath = self._fileDataBase['load_file_fullPath']
         # in case of a smr file, get the channel index from user
-        _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        _, _, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if file_ext == '.smr':
-            info_str, num_channels, ch_index = psort_lib.get_smr_file_info(file_fullPath)
+            info_str, num_channels, ch_index = lib.get_smr_file_info(file_fullPath)
             message = 'FILE INFO: \n' + info_str + '\n' + 'Which channel do you want to load?'
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = ch_index
@@ -1465,7 +1465,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
         file_fullPath = self._fileDataBase['load_file_fullPath']
         isCommonAverage = self._fileDataBase['isCommonAverage'][0]
-        _, _, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        _, _, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self.psortDataBase.\
                 load_dataBase(file_fullPath, grandDataBase=ch_data, isCommonAverage=False)
@@ -2055,7 +2055,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_index_selected'] = \
-                psort_lib.inpolygon(self._workingDataBase['ss_scatter1'],
+                lib.inpolygon(self._workingDataBase['ss_scatter1'],
                                     self._workingDataBase['ss_scatter2'],
                                     self._workingDataBase['ss_pca1_ROI'],
                                     self._workingDataBase['ss_pca2_ROI'])
@@ -2072,7 +2072,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_index_selected'] = \
-                psort_lib.inpolygon(self._workingDataBase['cs_scatter1'],
+                lib.inpolygon(self._workingDataBase['cs_scatter1'],
                                     self._workingDataBase['cs_scatter2'],
                                     self._workingDataBase['cs_pca1_ROI'],
                                     self._workingDataBase['cs_pca2_ROI'])
@@ -2093,7 +2093,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 _ss_wave_single = self._workingDataBase['ss_wave'][counter_ss,:]
                 _ss_wave_span_single = self._workingDataBase['ss_wave_span'][counter_ss,:]
                 _ss_wave_single_inpolygon = \
-                    psort_lib.inpolygon(_ss_wave_span_single * 1000.,
+                    lib.inpolygon(_ss_wave_span_single * 1000.,
                                         _ss_wave_single,
                                         self._workingDataBase['ss_wave_span_ROI'],
                                         self._workingDataBase['ss_wave_ROI'])
@@ -2118,7 +2118,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 _cs_wave_single = self._workingDataBase['cs_wave'][counter_cs,:]
                 _cs_wave_span_single = self._workingDataBase['cs_wave_span'][counter_cs,:]
                 _cs_wave_single_inpolygon = \
-                    psort_lib.inpolygon(_cs_wave_span_single * 1000.,
+                    lib.inpolygon(_cs_wave_span_single * 1000.,
                                         _cs_wave_single,
                                         self._workingDataBase['cs_wave_span_ROI'],
                                         self._workingDataBase['cs_wave_ROI'])
@@ -2379,13 +2379,13 @@ class PsortGuiSignals(PsortGuiWidget):
 #%% DATA MANAGEMENT
     def filter_data(self):
         self._workingDataBase['ch_data_ss'] = \
-            psort_lib.bandpass_filter(
+            lib.bandpass_filter(
                 self._workingDataBase['ch_data'],
                 sample_rate=self._workingDataBase['sample_rate'][0],
                 lo_cutoff_freq=self._workingDataBase['ss_min_cutoff_freq'][0],
                 hi_cutoff_freq=self._workingDataBase['ss_max_cutoff_freq'][0])
         self._workingDataBase['ch_data_cs'] = \
-            psort_lib.bandpass_filter(
+            lib.bandpass_filter(
                 self._workingDataBase['ch_data'],
                 sample_rate=self._workingDataBase['sample_rate'][0],
                 lo_cutoff_freq=self._workingDataBase['cs_min_cutoff_freq'][0],
@@ -2394,7 +2394,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def detect_ss_index(self):
         self._workingDataBase['ss_index'] = \
-            psort_lib.find_peaks(
+            lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=self._workingDataBase['ss_threshold'][0],
                 peakType=self._workingDataBase['ssPeak_mode'][0])
@@ -2403,7 +2403,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def detect_cs_index_slow(self):
         self._workingDataBase['cs_index_slow'] = \
-            psort_lib.find_peaks(
+            lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=self._workingDataBase['cs_threshold'][0],
                 peakType=self._workingDataBase['csPeak_mode'][0])
@@ -2723,7 +2723,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def extract_ss_waveform(self):
         if self._workingDataBase['ss_index'].sum() > 0:
             self._workingDataBase['ss_wave'], self._workingDataBase['ss_wave_span'] = \
-                psort_lib.extract_waveform(
+                lib.extract_waveform(
                     self._workingDataBase['ch_data_ss'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
@@ -2737,7 +2737,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def extract_cs_waveform(self):
         if self._workingDataBase['cs_index'].sum() > 0:
             self._workingDataBase['cs_wave'], self._workingDataBase['cs_wave_span'] = \
-                psort_lib.extract_waveform(
+                lib.extract_waveform(
                     self._workingDataBase['ch_data_ss'],
                     self._workingDataBase['cs_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
@@ -2755,7 +2755,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 / ( float(self._workingDataBase['ch_data'].size) \
                 / float(self._workingDataBase['sample_rate'][0]) )
             self._workingDataBase['ss_ifr'] = \
-                psort_lib.instant_firing_rate_from_index(
+                lib.instant_firing_rate_from_index(
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0])
             self._workingDataBase['ss_ifr'] = np.append(self._workingDataBase['ss_ifr'],
@@ -2783,7 +2783,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 / ( float(self._workingDataBase['ch_data'].size) \
                 / float(self._workingDataBase['sample_rate'][0]) )
             self._workingDataBase['cs_ifr'] = \
-                psort_lib.instant_firing_rate_from_index(
+                lib.instant_firing_rate_from_index(
                     self._workingDataBase['cs_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0])
             self._workingDataBase['cs_ifr'] = np.append(self._workingDataBase['cs_ifr'],
@@ -2807,7 +2807,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def extract_ss_xprob(self):
         if self._workingDataBase['ss_index'].sum() > 1:
             self._workingDataBase['ss_xprob'], self._workingDataBase['ss_xprob_span'] = \
-                psort_lib.cross_probability(
+                lib.cross_probability(
                     self._workingDataBase['ss_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
@@ -2827,7 +2827,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def extract_cs_xprob(self):
         if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_xprob'], self._workingDataBase['cs_xprob_span'] = \
-                psort_lib.cross_probability(
+                lib.cross_probability(
                     self._workingDataBase['cs_index'],
                     self._workingDataBase['ss_index'],
                     sample_rate=self._workingDataBase['sample_rate'][0],
@@ -2869,7 +2869,7 @@ class PsortGuiSignals(PsortGuiWidget):
             _maxPca += 2
             _minPca -= 2
         if (self._workingDataBase['ss_index'].sum() > 1):
-            ss_pca_mat_, ss_pca_variance_ = psort_lib.extract_pca(
+            ss_pca_mat_, ss_pca_variance_ = lib.extract_pca(
                     self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['ss_pca1'] = deepcopy(ss_pca_mat_[0,:])
             self._workingDataBase['ss_pca2'] = deepcopy(ss_pca_mat_[1,:])
@@ -2884,7 +2884,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     UMAP when we have few datapoints. This will prevent the divergence of UMAP
                     and program crashing due to that. """
                 if (self._workingDataBase['ss_index'].sum() > 15):
-                    ss_embedding_ = psort_lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
+                    ss_embedding_ = lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
                     self._workingDataBase['ss_umap1'] = deepcopy(ss_embedding_[:, 0])
                     self._workingDataBase['ss_umap2'] = deepcopy(ss_embedding_[:, 1])
                 else:
@@ -2932,7 +2932,7 @@ class PsortGuiSignals(PsortGuiWidget):
             _maxPca += 2
             _minPca -= 2
         if (self._workingDataBase['cs_index'].sum() > 1):
-            cs_pca_mat_, cs_pca_variance_ = psort_lib.extract_pca(
+            cs_pca_mat_, cs_pca_variance_ = lib.extract_pca(
                     self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
             self._workingDataBase['cs_pca1'] = deepcopy(cs_pca_mat_[0,:])
             self._workingDataBase['cs_pca2'] = deepcopy(cs_pca_mat_[1,:])
@@ -2947,7 +2947,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     UMAP when we have few datapoints. This will prevent the divergence of UMAP
                     and program crashing due to that. """
                 if (self._workingDataBase['cs_index'].sum() > 15):
-                    cs_embedding_ = psort_lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
+                    cs_embedding_ = lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
                     self._workingDataBase['cs_umap1'] = deepcopy(cs_embedding_[:,0])
                     self._workingDataBase['cs_umap2'] = deepcopy(cs_embedding_[:,1])
                 else:
@@ -3130,23 +3130,23 @@ class PsortGuiSignals(PsortGuiWidget):
             scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
             self._workingDataBase['ss_time'] = self._workingDataBase['ch_time'][self._workingDataBase['ss_index']]
 
-            ss_time_to_prev_ss = psort_lib.distance_from_prev_element(
+            ss_time_to_prev_ss = lib.distance_from_prev_element(
                 self._workingDataBase['ss_index'], self._workingDataBase['ss_index'])
             self._workingDataBase['ss_time_to_prev_ss'] = \
                 ss_time_to_prev_ss[self._workingDataBase['ss_index']] / scale_factor
 
-            ss_time_to_next_ss = psort_lib.distance_to_next_element(
+            ss_time_to_next_ss = lib.distance_to_next_element(
                 self._workingDataBase['ss_index'], self._workingDataBase['ss_index'])
             self._workingDataBase['ss_time_to_next_ss'] = \
                 ss_time_to_next_ss[self._workingDataBase['ss_index']] / scale_factor
 
             if self._workingDataBase['cs_index'].sum() > 1:
-                ss_time_to_prev_cs = psort_lib.distance_from_prev_element(
+                ss_time_to_prev_cs = lib.distance_from_prev_element(
                     self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
                 self._workingDataBase['ss_time_to_prev_cs'] = \
                     ss_time_to_prev_cs[self._workingDataBase['ss_index']] / scale_factor
 
-                ss_time_to_next_cs = psort_lib.distance_to_next_element(
+                ss_time_to_next_cs = lib.distance_to_next_element(
                     self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
                 self._workingDataBase['ss_time_to_next_cs'] = \
                     ss_time_to_next_cs[self._workingDataBase['ss_index']] / scale_factor
@@ -3168,23 +3168,23 @@ class PsortGuiSignals(PsortGuiWidget):
             scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
             self._workingDataBase['cs_time'] = self._workingDataBase['ch_time'][self._workingDataBase['cs_index']]
 
-            cs_time_to_prev_cs = psort_lib.distance_from_prev_element(
+            cs_time_to_prev_cs = lib.distance_from_prev_element(
                 self._workingDataBase['cs_index'], self._workingDataBase['cs_index'])
             self._workingDataBase['cs_time_to_prev_cs'] = \
                 cs_time_to_prev_cs[self._workingDataBase['cs_index']] / scale_factor
 
-            cs_time_to_next_cs = psort_lib.distance_to_next_element(
+            cs_time_to_next_cs = lib.distance_to_next_element(
                 self._workingDataBase['cs_index'], self._workingDataBase['cs_index'])
             self._workingDataBase['cs_time_to_next_cs'] = \
                 cs_time_to_next_cs[self._workingDataBase['cs_index']] / scale_factor
 
             if self._workingDataBase['ss_index'].sum() > 1:
-                cs_time_to_prev_ss = psort_lib.distance_from_prev_element(
+                cs_time_to_prev_ss = lib.distance_from_prev_element(
                     self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
                 self._workingDataBase['cs_time_to_prev_ss'] = \
                     cs_time_to_prev_ss[self._workingDataBase['cs_index']] / scale_factor
 
-                cs_time_to_next_ss = psort_lib.distance_to_next_element(
+                cs_time_to_next_ss = lib.distance_to_next_element(
                     self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
                 self._workingDataBase['cs_time_to_next_ss'] = \
                     cs_time_to_next_ss[self._workingDataBase['cs_index']] / scale_factor
@@ -3441,7 +3441,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
 ## ################################################################################################
 ## ################################################################################################
-#%% BIND PSORT_GUI_SIGNALS TO PSORT_DATABASE
+#%% BIND SIGNALS TO database
     def transfer_data_from_psortDataBase_to_guiSignals(self):
         psortDataBase_currentSlot = self.psortDataBase.get_currentSlotDataBase()
         psortDataBase_topLevel = self.psortDataBase.get_topLevelDataBase()
@@ -3465,7 +3465,7 @@ class PsortGuiSignals(PsortGuiWidget):
         # if the SLOT is already analyzed then transfer the data over,
         # otherwise, do not transfer and use the current values for the new slot
         if self._workingDataBase['isAnalyzed'][0]:
-            for key in psort_database._singleSlotDataBase.keys():
+            for key in database._singleSlotDataBase.keys():
                 self._workingDataBase[key] = psortDataBase_currentSlot[key]
             self._workingDataBase['flag_index_detection'][0] = False
         else:
@@ -3473,7 +3473,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def transfer_data_from_guiSignals_to_psortDataBase(self):
-        self.psortDataBase.update_dataBase_based_on_psort_gui_signals(\
+        self.psortDataBase.update_dataBase_based_on_signals(\
             deepcopy(self._workingDataBase))
         return 0
 

@@ -15,9 +15,9 @@ from PyQt5.Qt import Qt
 import os
 import pyqtgraph as pg
 import numpy as np
-from psort.utils import psort_lib
-from psort.gui.psort_inputDialog import PsortInputDialog
-from psort.gui.psort_checkListDialog import PsortChecklistDialog
+from psort.utils import lib
+from psort.gui.inputDialog import PsortInputDialog
+from psort.gui.checkListDialog import PsortChecklistDialog
 # import warnings
 # warnings.simplefilter('error', RuntimeWarning)
 ## #############################################################################
@@ -26,7 +26,7 @@ class WaveClustWidget(QWidget):
     def __init__(self, parent=None):
         super(WaveClustWidget, self).__init__(parent)
         self._workingDataBase = {}
-        from psort.gui.psort_gui_signals import PsortGuiSignals
+        from psort.gui.signals import PsortGuiSignals
         self.PsortGuiSignals = PsortGuiSignals
 
         self.list_color = ['k', 'b', 'r', 'g', 'c', 'm', 'y',\
@@ -96,9 +96,9 @@ class WaveClustWidget(QWidget):
         # Main buttons
         # Cancel push button for closing the window and terminating the process
         self.pushBtn_scatterPlot_popup_cancel = QPushButton("Cancel")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_cancel)
+        lib.setFont(self.pushBtn_scatterPlot_popup_cancel)
         self.pushBtn_scatterPlot_popup_ok = QPushButton("OK")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_ok)
+        lib.setFont(self.pushBtn_scatterPlot_popup_ok)
 
         # Action widgets
         '''
@@ -109,83 +109,83 @@ class WaveClustWidget(QWidget):
         '''
         icon_size = 30
         self.pushBtn_scatterPlot_popup_select = QPushButton("Select spikes")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_select, color="black")
-        self.pushBtn_scatterPlot_popup_select.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'select.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_select, color="black")
+        self.pushBtn_scatterPlot_popup_select.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'select.png')))
         self.pushBtn_scatterPlot_popup_select.setToolTip('<b>S</b>elect spikes in<br>the region of interest')
         self.pushBtn_scatterPlot_popup_clear = QPushButton("Clear ROI")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_clear, color="black")
-        self.pushBtn_scatterPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'clear.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_clear, color="black")
+        self.pushBtn_scatterPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'clear.png')))
         self.pushBtn_scatterPlot_popup_clear.setToolTip('<b>C</b>lear the regions<br>of interest')
         self.pushBtn_scatterPlot_popup_delete = QPushButton("Delete spikes")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_delete, color="black")
-        self.pushBtn_scatterPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'delete.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_delete, color="black")
+        self.pushBtn_scatterPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'delete.png')))
         self.pushBtn_scatterPlot_popup_delete.setToolTip('<b>D</b>elete the selected spikes')
         self.pushBtn_scatterPlot_popup_move = QPushButton("Move spikes")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_move, color="black")
-        self.pushBtn_scatterPlot_popup_move.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'move.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_move, color="black")
+        self.pushBtn_scatterPlot_popup_move.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'move.png')))
         self.pushBtn_scatterPlot_popup_move.setToolTip('<b>M</b>ove the selected<br>spikes to different<br>type')
         self.comboBx_scatterPlot_popup_spike_mode = QComboBox()
         self.comboBx_scatterPlot_popup_spike_mode.addItems(["CS","SS"])
-        psort_lib.setFont(self.comboBx_scatterPlot_popup_spike_mode, color="black")
+        lib.setFont(self.comboBx_scatterPlot_popup_spike_mode, color="black")
         self.label_scatterPlot_popup_spike_of_interest = QLabel("Current mode: ")
-        psort_lib.setFont(self.label_scatterPlot_popup_spike_of_interest, color="black")
+        lib.setFont(self.label_scatterPlot_popup_spike_of_interest, color="black")
         self.pushBtn_scatterPlot_popup_setlabel = QPushButton("Set label")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_setlabel, color="black")
-        self.pushBtn_scatterPlot_popup_setlabel.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'pin.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_setlabel, color="black")
+        self.pushBtn_scatterPlot_popup_setlabel.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'pin.png')))
         self.pushBtn_scatterPlot_popup_setlabel.setToolTip("Set the <b>L</b>abel of selected spikes")
 
         self.comboBx_scatterPlot_popup_method = QComboBox()
         self.comboBx_scatterPlot_popup_method.addItems(["GMM", "Outlier"])
         # self.comboBx_scatterPlot_popup_method.addItems(["GMM", "Outlier", "Isolation-score"])
-        if psort_lib.is_isosplit_available:
+        if lib.is_isosplit_available:
             self.comboBx_scatterPlot_popup_method.addItems(["ISO-Split"])
-        if psort_lib.is_hdbscan_available:
+        if lib.is_hdbscan_available:
             self.comboBx_scatterPlot_popup_method.addItems(["HDBScan"])
-        psort_lib.setFont(self.comboBx_scatterPlot_popup_method, color="black")
+        lib.setFont(self.comboBx_scatterPlot_popup_method, color="black")
 
         self.label_scatterPlot_popup_method = QLabel("Method: ")
-        psort_lib.setFont(self.label_scatterPlot_popup_method, color="black")
+        lib.setFont(self.label_scatterPlot_popup_method, color="black")
 
         self.pushBtn_scatterPlot_popup_applymethod = QPushButton("Apply")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_applymethod, color="black")
-        self.pushBtn_scatterPlot_popup_applymethod.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'apply.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_applymethod, color="black")
+        self.pushBtn_scatterPlot_popup_applymethod.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'apply.png')))
         self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected Method')
 
         self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
-        self.pushBtn_scatterPlot_popup_reset.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'reset.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
+        self.pushBtn_scatterPlot_popup_reset.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'reset.png')))
         self.pushBtn_scatterPlot_popup_reset.setToolTip('<b>R</b>eset')
 
         self.pushBtn_scatterPlot_popup_selectatt = QPushButton("Select features")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_selectatt, color="black")
-        self.pushBtn_scatterPlot_popup_selectatt.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'list.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_selectatt, color="black")
+        self.pushBtn_scatterPlot_popup_selectatt.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'list.png')))
         self.pushBtn_scatterPlot_popup_selectatt.setToolTip('<b>F</b>eature Selection')
 
         self.comboBx_scatterPlot_popup_ss_label = QComboBox()
         self.comboBx_scatterPlot_popup_ss_label.addItems(['0'])
-        psort_lib.setFont(self.comboBx_scatterPlot_popup_ss_label, color="black")
+        lib.setFont(self.comboBx_scatterPlot_popup_ss_label, color="black")
         self.label_scatterPlot_popup_ss_label = QLabel("Current SS cluster: ")
-        psort_lib.setFont(self.label_scatterPlot_popup_ss_label, color="black")
+        lib.setFont(self.label_scatterPlot_popup_ss_label, color="black")
 
         self.comboBx_scatterPlot_popup_cs_label = QComboBox()
         self.comboBx_scatterPlot_popup_cs_label.addItems(['0'])
-        psort_lib.setFont(self.comboBx_scatterPlot_popup_cs_label, color="black")
+        lib.setFont(self.comboBx_scatterPlot_popup_cs_label, color="black")
         self.label_scatterPlot_popup_cs_label = QLabel("Current CS cluster: ")
-        psort_lib.setFont(self.label_scatterPlot_popup_cs_label, color="black")
+        lib.setFont(self.label_scatterPlot_popup_cs_label, color="black")
 
         self.pushBtn_scatterPlot_popup_select_clust = QPushButton("Select cluster")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_select_clust, color="black")
-        self.pushBtn_scatterPlot_popup_select_clust.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'select.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_select_clust, color="black")
+        self.pushBtn_scatterPlot_popup_select_clust.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'select.png')))
         self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect Cluster")
 
         self.pushBtn_scatterPlot_popup_prev_clust = QPushButton("Prev")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_prev_clust, color="black")
-        self.pushBtn_scatterPlot_popup_prev_clust.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'previous_spike.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_prev_clust, color="black")
+        self.pushBtn_scatterPlot_popup_prev_clust.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'previous_spike.png')))
         self.pushBtn_scatterPlot_popup_prev_clust.setToolTip('Move to the previous cluster<br><b>(Left Arrow)')
         self.pushBtn_scatterPlot_popup_prev_clust.setAutoRepeat(True) # allow holding button
         self.pushBtn_scatterPlot_popup_next_clust = QPushButton("Next")
-        psort_lib.setFont(self.pushBtn_scatterPlot_popup_next_clust, color="black")
-        self.pushBtn_scatterPlot_popup_next_clust.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'next_spike.png')))
+        lib.setFont(self.pushBtn_scatterPlot_popup_next_clust, color="black")
+        self.pushBtn_scatterPlot_popup_next_clust.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'next_spike.png')))
         self.pushBtn_scatterPlot_popup_next_clust.setToolTip('Move to the next cluster<br><b>(Right Arrow)')
         self.pushBtn_scatterPlot_popup_next_clust.setAutoRepeat(True) # allow holding button
 
@@ -219,11 +219,11 @@ class WaveClustWidget(QWidget):
         self.plot_popup_ssxprob = pg.PlotWidget()
         self.plot_popup_csxprob = pg.PlotWidget()
 
-        psort_lib.set_plotWidget(self.plot_popup_scatter)
-        psort_lib.set_plotWidget(self.plot_popup_peakhist)
-        psort_lib.set_plotWidget(self.plot_popup_waveform)
-        psort_lib.set_plotWidget(self.plot_popup_ssxprob)
-        psort_lib.set_plotWidget(self.plot_popup_csxprob)
+        lib.set_plotWidget(self.plot_popup_scatter)
+        lib.set_plotWidget(self.plot_popup_peakhist)
+        lib.set_plotWidget(self.plot_popup_waveform)
+        lib.set_plotWidget(self.plot_popup_ssxprob)
+        lib.set_plotWidget(self.plot_popup_csxprob)
 
         # Set units
         self.plot_popup_scatter.setTitle(None)
@@ -250,15 +250,15 @@ class WaveClustWidget(QWidget):
         self.comboBx_popup_scatterPlot_PcaNum1 = QComboBox()
         self.comboBx_popup_scatterPlot_PcaNum1.addItems(['umap1', 'umap2'])
         self.comboBx_popup_scatterPlot_PcaNum1.setCurrentIndex(0)
-        psort_lib.setFont(self.comboBx_popup_scatterPlot_PcaNum1, color="black")
+        lib.setFont(self.comboBx_popup_scatterPlot_PcaNum1, color="black")
         self.comboBx_popup_scatterPlot_PcaNum2 = QComboBox()
         self.comboBx_popup_scatterPlot_PcaNum2.addItems(['umap1', 'umap2'])
         self.comboBx_popup_scatterPlot_PcaNum2.setCurrentIndex(1)
-        psort_lib.setFont(self.comboBx_popup_scatterPlot_PcaNum2, color="black")
+        lib.setFont(self.comboBx_popup_scatterPlot_PcaNum2, color="black")
         self.txtlabel_popup_scatterPlot_PcaNum1 = QLabel("| X: ")
-        psort_lib.setFont(self.txtlabel_popup_scatterPlot_PcaNum1, color="black")
+        lib.setFont(self.txtlabel_popup_scatterPlot_PcaNum1, color="black")
         self.txtlabel_popup_scatterPlot_PcaNum2 = QLabel(" Y: ")
-        psort_lib.setFont(self.txtlabel_popup_scatterPlot_PcaNum2, color="black")
+        lib.setFont(self.txtlabel_popup_scatterPlot_PcaNum2, color="black")
         self.layout_popup_scatterPlot_PcaNum.addWidget(self.txtlabel_popup_scatterPlot_PcaNum2)
         self.layout_popup_scatterPlot_PcaNum.addWidget(self.comboBx_popup_scatterPlot_PcaNum2)
         self.layout_popup_scatterPlot_PcaNum.addWidget(self.txtlabel_popup_scatterPlot_PcaNum1)
@@ -518,13 +518,13 @@ class WaveClustWidget(QWidget):
             current_WAVE_TEMPLATE_AFTER = "GLOBAL_WAVE_TEMPLATE_CS_AFTER"
 
         self.infLine_waveform_minPca = \
-            pg.InfiniteLine(pos=-psort_lib.GLOBAL_DICT[current_WAVE_TEMPLATE_BEFORE][0]*1000.,
+            pg.InfiniteLine(pos=-lib.GLOBAL_DICT[current_WAVE_TEMPLATE_BEFORE][0]*1000.,
                         angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
         self.plot_popup_waveform.\
             addItem(self.infLine_waveform_minPca, ignoreBounds=False)
         self.infLine_waveform_maxPca = \
-            pg.InfiniteLine(pos=psort_lib.GLOBAL_DICT[current_WAVE_TEMPLATE_AFTER][0]*1000.,
+            pg.InfiniteLine(pos=lib.GLOBAL_DICT[current_WAVE_TEMPLATE_AFTER][0]*1000.,
                         angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
         self.plot_popup_waveform.\
@@ -756,12 +756,12 @@ class WaveClustWidget(QWidget):
                 return 0
         elif self.comboBx_scatterPlot_popup_method.currentText() == "ISO-Split":
             # ISO-SPLIT
-            labels = psort_lib.isosplit(_data)
+            labels = lib.isosplit(_data)
             self._localDataBase[_current_labels_key] = labels
             self.make_clust_centers()
         elif self.comboBx_scatterPlot_popup_method.currentText() == "HDBScan":
             # HDBSCAN
-            labels = psort_lib.HDBSCAN(_data)
+            labels = lib.HDBSCAN(_data)
             if len(np.unique(labels)) <= len(self.list_color):
                 self._localDataBase[_current_labels_key] = labels
                 self.make_clust_centers()
@@ -770,7 +770,7 @@ class WaveClustWidget(QWidget):
             labels_unique, counts = \
                 np.unique(self._localDataBase[_current_labels_key],
                           return_counts = True)
-            iso_score = psort_lib.isolation_score(_data,
+            iso_score = lib.isolation_score(_data,
                                                   self._localDataBase[_current_labels_key],
                                                   nknn = 6)
             for counter_cluster, lbl in enumerate(labels_unique):
@@ -799,7 +799,7 @@ class WaveClustWidget(QWidget):
                 knn = sum(ind_loi)
             else:
                 knn = 20
-            ind_outliers = psort_lib.outlier_score(
+            ind_outliers = lib.outlier_score(
                 _data[ind_loi,], quant = quant, knn = knn)
             self._workingDataBase[current_index_selected_key] = \
                     np.zeros((self._workingDataBase[current_wave_key].shape[0]),dtype=np.bool)
@@ -921,7 +921,7 @@ class WaveClustWidget(QWidget):
         init_val_2D = np.zeros((n_clusters, 2))
         init_val_2D[:,0] = self._workingDataBase['popUp_ROI_x'].reshape(-1)
         init_val_2D[:,1] = self._workingDataBase['popUp_ROI_y'].reshape(-1)
-        labels, centers = psort_lib.GaussianMixture(
+        labels, centers = lib.GaussianMixture(
             input_data=_data,
             n_clusters=n_clusters,
             init_val=init_val_2D,
@@ -933,7 +933,7 @@ class WaveClustWidget(QWidget):
             for counter_cluster in range(n_clusters):
                 index_cluster = (labels == counter_cluster)
                 init_val_ND[counter_cluster, :] = np.mean(_data[index_cluster,:], axis=0)
-            labels, centers = psort_lib.GaussianMixture(
+            labels, centers = lib.GaussianMixture(
                 input_data=_data,
                 n_clusters=n_clusters,
                 init_val=init_val_ND,
@@ -988,7 +988,7 @@ class WaveClustWidget(QWidget):
                 self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
                 self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
                 self._workingDataBase[current_index_selected_key] = \
-                    psort_lib.inpolygon(self._workingDataBase[current_scatter1_key],
+                    lib.inpolygon(self._workingDataBase[current_scatter1_key],
                                         self._workingDataBase[current_scatter2_key],
                                         self._workingDataBase['ss_pca1_ROI'],
                                         self._workingDataBase['ss_pca2_ROI'])
@@ -1012,7 +1012,7 @@ class WaveClustWidget(QWidget):
                     _wave_single = self._workingDataBase[current_wave_key][counter,:]
                     _wave_span_single = self._workingDataBase[current_wave_span_key][counter,:]
                     _wave_single_inpolygon = \
-                        psort_lib.inpolygon(_wave_span_single * 1000.,
+                        lib.inpolygon(_wave_span_single * 1000.,
                                             _wave_single,
                                             self._workingDataBase['ss_wave_span_ROI'],
                                             self._workingDataBase['ss_wave_ROI'])
@@ -1827,7 +1827,7 @@ class WaveClustWidget(QWidget):
 
         if _ss_index_bool.sum() > 1:
             self._workingDataBase['ss_xprob'], self._workingDataBase['ss_xprob_span'] = \
-                psort_lib.cross_probability(
+                lib.cross_probability(
                     _ss_index_label,
                     _ss_index_label,
                     sample_rate=self._workingDataBase['sample_rate'][0],
@@ -1872,7 +1872,7 @@ class WaveClustWidget(QWidget):
 
         if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_xprob'], self._workingDataBase['cs_xprob_span'] = \
-                psort_lib.cross_probability(
+                lib.cross_probability(
                     _cs_index_label,
                     _ss_index_label,
                     sample_rate=self._workingDataBase['sample_rate'][0],

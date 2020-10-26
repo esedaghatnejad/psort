@@ -12,7 +12,7 @@ import numpy as np
 from copy import deepcopy
 import sys # We need sys so that we can pass argv to QApplication
 import os
-from psort.utils import psort_lib
+from psort.utils import lib
 ## #############################################################################
 #%% CommonAvgDataBase
 _workingDataBase = {
@@ -37,7 +37,7 @@ class CommonAvgWidget(QMainWindow):
 
         self.setStatusBar(QStatusBar(self))
         self.label_statusBar = QLabel('Text')
-        psort_lib.setFont(self.label_statusBar)
+        lib.setFont(self.label_statusBar)
         self.progress_statusBar = QProgressBar()
         self.progress_statusBar.setRange(0,1)
         self.statusBar().addWidget(self.label_statusBar,0)
@@ -54,13 +54,13 @@ class CommonAvgWidget(QMainWindow):
 
         self.layout_addRemove = QHBoxLayout()
         self.pushBtn_add = QPushButton("Add")
-        psort_lib.setFont(self.pushBtn_add)
+        lib.setFont(self.pushBtn_add)
         self.pushBtn_add.setEnabled(True)
         self.pushBtn_remove = QPushButton("Remove")
-        psort_lib.setFont(self.pushBtn_remove)
+        lib.setFont(self.pushBtn_remove)
         self.pushBtn_remove.setEnabled(False)
         self.pushBtn_reset = QPushButton("Reset")
-        psort_lib.setFont(self.pushBtn_reset)
+        lib.setFont(self.pushBtn_reset)
         self.pushBtn_reset.setEnabled(False)
         self.layout_addRemove.addWidget(self.pushBtn_add)
         self.layout_addRemove.addWidget(self.pushBtn_remove)
@@ -70,18 +70,18 @@ class CommonAvgWidget(QMainWindow):
         self.layout_addRemove.setContentsMargins(1, 1, 1, 1)
 
         self.comboBx_avgMode = QComboBox()
-        psort_lib.setFont(self.comboBx_avgMode)
+        lib.setFont(self.comboBx_avgMode)
         self.comboBx_avgMode.setEnabled(False)
         self.comboBx_avgMode.addItems(["Mean", "Median"])
         self.comboBx_avgMode.setCurrentIndex(1)
 
         self.pushBtn_start = QPushButton("Start")
-        psort_lib.setFont(self.pushBtn_start)
+        lib.setFont(self.pushBtn_start)
         self.pushBtn_start.setStyleSheet("Text-align:left");
         self.pushBtn_start.setEnabled(False)
 
         self.pushBtn_save = QPushButton("Save")
-        psort_lib.setFont(self.pushBtn_save)
+        lib.setFont(self.pushBtn_save)
         self.pushBtn_save.setStyleSheet("Text-align:left");
         self.pushBtn_save.setEnabled(False)
 
@@ -102,9 +102,9 @@ class CommonAvgWidget(QMainWindow):
 class CommonAvgSignals(CommonAvgWidget):
     def __init__(self, parent=None):
         super(CommonAvgSignals, self).__init__(parent)
-        self.loadData = psort_lib.LoadData()
+        self.loadData = lib.LoadData()
         self.loadData.return_signal.connect(self.compute_cmn_iteration_finished)
-        self.saveData = psort_lib.SaveData()
+        self.saveData = lib.SaveData()
         self.saveData.return_signal.connect(self.save_process_finished)
         self._workingDataBase = deepcopy(_workingDataBase)
         self.widget_table.itemSelectionChanged.connect(self.onTable_itemSelectionChanged)
@@ -180,7 +180,7 @@ class CommonAvgSignals(CommonAvgWidget):
             self.pushBtn_save.setEnabled(False)
             self.pushBtn_save.setEnabled(True)
             return 0
-        _, file_path, _, file_ext, _ = psort_lib.get_fullPath_components(file_fullPath)
+        _, file_path, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if not(file_ext == '.h5'):
             file_fullPath = file_fullPath + '.h5'
         if os.path.isdir(file_path):
@@ -192,7 +192,7 @@ class CommonAvgSignals(CommonAvgWidget):
         num_files = len(file_fullPath_array)
         for counter_file in range(num_files):
             self.widget_table.insertRow(rowCount+counter_file)
-            fullPath_components = psort_lib.get_fullPath_components(\
+            fullPath_components = lib.get_fullPath_components(\
                 file_fullPath_array[counter_file])
             for counter_key in range(len(_file_keys)):
                 self._workingDataBase[_file_keys[counter_key]] = \

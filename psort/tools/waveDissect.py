@@ -15,14 +15,14 @@ from PyQt5.Qt import Qt
 import os
 import pyqtgraph as pg
 import numpy as np
-from psort.utils import psort_lib
+from psort.utils import lib
 ## #############################################################################
 #%% CellSummaryWidget
 class WaveDissectWidget(QWidget):
     def __init__(self, parent=None):
         super(WaveDissectWidget, self).__init__(parent)
         self._workingDataBase = {}
-        from psort.gui.psort_gui_signals import PsortGuiSignals
+        from psort.gui.signals import PsortGuiSignals
         self.PsortGuiSignals = PsortGuiSignals
         self.build_rawPlot_popup_Widget()
         self.init_rawPlot_popup_shortcut()
@@ -53,9 +53,9 @@ class WaveDissectWidget(QWidget):
         # Main buttons
         # Cancel push button for closing the window and terminating the process
         self.pushBtn_rawPlot_popup_cancel = QPushButton("Cancel")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_cancel)
+        lib.setFont(self.pushBtn_rawPlot_popup_cancel)
         self.pushBtn_rawPlot_popup_ok = QPushButton("OK")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_ok)
+        lib.setFont(self.pushBtn_rawPlot_popup_ok)
 
         # Action widgets
         '''
@@ -66,83 +66,83 @@ class WaveDissectWidget(QWidget):
         '''
         icon_size = 30
         self.pushBtn_rawPlot_popup_select = QPushButton("Select spikes")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_select, color="black")
-        self.pushBtn_rawPlot_popup_select.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'select.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_select, color="black")
+        self.pushBtn_rawPlot_popup_select.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'select.png')))
         self.pushBtn_rawPlot_popup_select.setToolTip('<b>S</b>elect spikes in<br>the region of interest')
         self.pushBtn_rawPlot_popup_clear = QPushButton("Clear ROI")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_clear, color="black")
-        self.pushBtn_rawPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'clear.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_clear, color="black")
+        self.pushBtn_rawPlot_popup_clear.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'clear.png')))
         self.pushBtn_rawPlot_popup_clear.setToolTip('<b>C</b>lear the regions<br>of interest')
         self.pushBtn_rawPlot_popup_delete = QPushButton("Delete spikes")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_delete, color="black")
-        self.pushBtn_rawPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'delete.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_delete, color="black")
+        self.pushBtn_rawPlot_popup_delete.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'delete.png')))
         self.pushBtn_rawPlot_popup_delete.setToolTip('<b>D</b>elete the selected spikes')
         self.pushBtn_rawPlot_popup_move = QPushButton("Move spikes")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_move, color="black")
-        self.pushBtn_rawPlot_popup_move.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'move.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_move, color="black")
+        self.pushBtn_rawPlot_popup_move.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'move.png')))
         self.pushBtn_rawPlot_popup_move.setToolTip('<b>M</b>ove the selected<br>spikes to different<br>type')
         self.pushBtn_rawPlot_popup_prev_spike = QPushButton("Prev spike")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_spike, color="black")
-        self.pushBtn_rawPlot_popup_prev_spike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'previous_spike.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_prev_spike, color="black")
+        self.pushBtn_rawPlot_popup_prev_spike.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'previous_spike.png')))
         self.pushBtn_rawPlot_popup_prev_spike.setToolTip('Move to the previous spike<br><b>(Left Arrow)')
         self.pushBtn_rawPlot_popup_prev_spike.setAutoRepeat(True) # allow holding button
         self.pushBtn_rawPlot_popup_next_spike = QPushButton("Next spike")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_next_spike, color="black")
-        self.pushBtn_rawPlot_popup_next_spike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'next_spike.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_next_spike, color="black")
+        self.pushBtn_rawPlot_popup_next_spike.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'next_spike.png')))
         self.pushBtn_rawPlot_popup_next_spike.setToolTip('Move to the next spike<br><b>(Right Arrow)')
         self.pushBtn_rawPlot_popup_next_spike.setAutoRepeat(True) # allow holding button
         self.pushBtn_rawPlot_popup_addspike = QPushButton("Add spike")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_addspike, color="black")
+        lib.setFont(self.pushBtn_rawPlot_popup_addspike, color="black")
         self.pushBtn_rawPlot_popup_addspike.setCheckable(True)
-        self.pushBtn_rawPlot_popup_addspike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
+        self.pushBtn_rawPlot_popup_addspike.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
         self.pushBtn_rawPlot_popup_addspike.setToolTip('Mark spike manually<br><b>(X)')
         self.checkBx_rawPlot_popup_alignment = QCheckBox("Auto align")
-        psort_lib.setFont(self.checkBx_rawPlot_popup_alignment, color="black")
+        lib.setFont(self.checkBx_rawPlot_popup_alignment, color="black")
         self.checkBx_rawPlot_popup_alignment.setChecked(True)
         self.pushBtn_rawPlot_popup_zoom_out = QPushButton("Zoom out")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_out, color="black")
-        self.pushBtn_rawPlot_popup_zoom_out.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'zoom_out.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_zoom_out, color="black")
+        self.pushBtn_rawPlot_popup_zoom_out.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'zoom_out.png')))
         self.pushBtn_rawPlot_popup_zoom_out.setToolTip('Zoom out<br><b>(A)')
         self.pushBtn_rawPlot_popup_zoom_in = QPushButton("Zoom in")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_in, color="black")
-        self.pushBtn_rawPlot_popup_zoom_in.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'zoom_in.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_zoom_in, color="black")
+        self.pushBtn_rawPlot_popup_zoom_in.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'zoom_in.png')))
         self.pushBtn_rawPlot_popup_zoom_in.setToolTip('<b>Z</b>oom in')
         self.checkBx_rawPlot_popup_zoom_hold = QCheckBox("Auto zoom")
-        psort_lib.setFont(self.checkBx_rawPlot_popup_zoom_hold, color="black")
+        lib.setFont(self.checkBx_rawPlot_popup_zoom_hold, color="black")
         self.pushBtn_rawPlot_popup_zoom_getRange = QPushButton("Get range")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_zoom_getRange, color="black")
-        self.pushBtn_rawPlot_popup_zoom_getRange.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'range.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_zoom_getRange, color="black")
+        self.pushBtn_rawPlot_popup_zoom_getRange.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'range.png')))
         self.pushBtn_rawPlot_popup_zoom_getRange.setToolTip('<b>G</b>et zoom range<br>from current plot')
         self.pushBtn_rawPlot_popup_prev_window = QPushButton("Pan back")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_prev_window, color="black")
-        self.pushBtn_rawPlot_popup_prev_window.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'previous_window.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_prev_window, color="black")
+        self.pushBtn_rawPlot_popup_prev_window.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'previous_window.png')))
         self.pushBtn_rawPlot_popup_prev_window.setToolTip('Move to the previous<br>time window<br><b>(Q)')
         self.pushBtn_rawPlot_popup_prev_window.setAutoRepeat(True)
         self.pushBtn_rawPlot_popup_next_window = QPushButton("Pan next")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_next_window, color="black")
-        self.pushBtn_rawPlot_popup_next_window.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'next_window.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_next_window, color="black")
+        self.pushBtn_rawPlot_popup_next_window.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'next_window.png')))
         self.pushBtn_rawPlot_popup_next_window.setToolTip('Move to the next<br>time window<br><b>(E)')
         self.pushBtn_rawPlot_popup_next_window.setAutoRepeat(True)
         self.slider_rawPlot_popup_x_zoom_level = QSlider(QtCore.Qt.Horizontal)
         self.spinBx_rawPlot_popup_x_zoom_level_indicator = QSpinBox()
         self.label_rawPlot_popup_x_zoom = QLabel("X-axis range:")
-        psort_lib.setFont(self.label_rawPlot_popup_x_zoom, color="black")
+        lib.setFont(self.label_rawPlot_popup_x_zoom, color="black")
         self.label_rawPlot_popup_x_zoom_unit = QLabel(" ms ")
-        psort_lib.setFont(self.label_rawPlot_popup_x_zoom_unit, color="black")
+        lib.setFont(self.label_rawPlot_popup_x_zoom_unit, color="black")
         self.slider_rawPlot_popup_y_zoom_level = QSlider(QtCore.Qt.Horizontal)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator = QSpinBox()
         self.label_rawPlot_popup_y_zoom = QLabel("Y-axis range:")
-        psort_lib.setFont(self.label_rawPlot_popup_y_zoom, color="black")
+        lib.setFont(self.label_rawPlot_popup_y_zoom, color="black")
         self.label_rawPlot_popup_y_zoom_unit = QLabel(" uV ")
-        psort_lib.setFont(self.label_rawPlot_popup_y_zoom_unit, color="black")
+        lib.setFont(self.label_rawPlot_popup_y_zoom_unit, color="black")
         self.comboBx_rawPlot_popup_spike_of_interest = QComboBox()
         self.comboBx_rawPlot_popup_spike_of_interest.addItems(["CS","SS"])
-        psort_lib.setFont(self.comboBx_rawPlot_popup_spike_of_interest, color="black")
+        lib.setFont(self.comboBx_rawPlot_popup_spike_of_interest, color="black")
         self.label_rawPlot_popup_spike_of_interest = QLabel("Current mode: ")
-        psort_lib.setFont(self.label_rawPlot_popup_spike_of_interest, color="black")
+        lib.setFont(self.label_rawPlot_popup_spike_of_interest, color="black")
         self.pushBtn_rawPlot_popup_find_other_spike = QPushButton("Toggle mode")
-        psort_lib.setFont(self.pushBtn_rawPlot_popup_find_other_spike, color="black")
-        self.pushBtn_rawPlot_popup_find_other_spike.setIcon(QtGui.QIcon(os.path.join(psort_lib.PROJECT_FOLDER, 'icons', 'toggle.png')))
+        lib.setFont(self.pushBtn_rawPlot_popup_find_other_spike, color="black")
+        self.pushBtn_rawPlot_popup_find_other_spike.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'toggle.png')))
         self.pushBtn_rawPlot_popup_find_other_spike.setToolTip("If spike selected,<br>find the nearest spike<br>of different type<br>If not, only change type<br><b>(Up or Down Arrow or W)")
 
         # Housekeeping items
@@ -172,9 +172,9 @@ class WaveDissectWidget(QWidget):
         self.plot_popup_sidePlot1 = pg.PlotWidget()
         self.plot_popup_sidePlot2 = pg.PlotWidget()
 
-        psort_lib.set_plotWidget(self.plot_popup_rawPlot)
-        psort_lib.set_plotWidget(self.plot_popup_sidePlot1)
-        psort_lib.set_plotWidget(self.plot_popup_sidePlot2)
+        lib.set_plotWidget(self.plot_popup_rawPlot)
+        lib.set_plotWidget(self.plot_popup_sidePlot1)
+        lib.set_plotWidget(self.plot_popup_sidePlot2)
 
         # Set units
         self.plot_popup_rawPlot.setTitle(
@@ -545,7 +545,7 @@ class WaveDissectWidget(QWidget):
                 else:
                     _ss_wave_multiple = self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
                     _ss_wave_span_multiple = self._workingDataBase['ch_time'][self._workingDataBase['ss_index']]
-                _ss_index_selected = psort_lib.inpolygon(_ss_wave_span_multiple, _ss_wave_multiple, wave_span_ROI, wave_ROI)
+                _ss_index_selected = lib.inpolygon(_ss_wave_span_multiple, _ss_wave_multiple, wave_span_ROI, wave_ROI)
 
                 if self._workingDataBase['cs_index_selected'].size == 0:
                      _cs_wave_multiple = np.array([0])
@@ -553,7 +553,7 @@ class WaveDissectWidget(QWidget):
                 else:
                     _cs_wave_multiple = self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
                     _cs_wave_span_multiple = self._workingDataBase['ch_time'][self._workingDataBase['cs_index']]
-                _cs_index_selected = psort_lib.inpolygon(_cs_wave_span_multiple, _cs_wave_multiple, wave_span_ROI, wave_ROI)
+                _cs_index_selected = lib.inpolygon(_cs_wave_span_multiple, _cs_wave_multiple, wave_span_ROI, wave_ROI)
 
                 # If no spikes in ROI, unselect all
                 if not np.any(_cs_index_selected) and not np.any(_ss_index_selected):
@@ -590,7 +590,7 @@ class WaveDissectWidget(QWidget):
                     _ss_wave_single = self._workingDataBase['ss_wave'][counter_ss,:]
                     _ss_wave_span_single = self._workingDataBase['ss_wave_span'][counter_ss,:]
                     _ss_wave_single_inpolygon = \
-                        psort_lib.inpolygon(_ss_wave_span_single * 1000.,
+                        lib.inpolygon(_ss_wave_span_single * 1000.,
                                             _ss_wave_single,
                                             self._workingDataBase['ss_wave_span_ROI'],
                                             self._workingDataBase['ss_wave_ROI'])
@@ -613,7 +613,7 @@ class WaveDissectWidget(QWidget):
                     _cs_wave_single = self._workingDataBase['cs_wave'][counter_cs,:]
                     _cs_wave_span_single = self._workingDataBase['cs_wave_span'][counter_cs,:]
                     _cs_wave_single_inpolygon = \
-                        psort_lib.inpolygon(_cs_wave_span_single * 1000.,
+                        lib.inpolygon(_cs_wave_span_single * 1000.,
                                             _cs_wave_single,
                                             self._workingDataBase['cs_wave_span_ROI'],
                                             self._workingDataBase['cs_wave_ROI'])

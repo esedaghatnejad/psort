@@ -9,7 +9,7 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
 import numpy as np
-from psort.utils.psort_lib import GLOBAL_DICT
+from psort.utils.lib import GLOBAL_DICT
 
 class EditPrefrencesDialog(QDialog):
     def __init__(self, parent=None, workingDataBase=None):
