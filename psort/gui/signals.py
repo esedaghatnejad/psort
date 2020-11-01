@@ -119,35 +119,13 @@ _fileDataBase = {
     'isCommonAverage':    np.zeros((1), dtype=np.bool),
 }
 
-class Worker(QtCore.QRunnable):
-    def __init__(self, fn, *args, **kwargs):
-        super(Worker, self).__init__()
-        # Store constructor arguments (re-used for processing)
-        self.fn = fn
-        self.args = args
-        self.kwargs = kwargs
-    def finished(self):
-        # lib.setFont(self.args[0].txtlabel_statusBar_Busy, color='green')
-        self.args[0].txtlabel_statusBar_Busy.setStyleSheet("QLabel { background-color : green; color : white; }")
-        self.args[0].txtlabel_statusBar_Busy.setText('Ready')
-        self.args[0].progress_statusBar.setRange(0,1)
-        QtWidgets.QApplication.restoreOverrideCursor()
-    @QtCore.pyqtSlot()
-    def run(self):
-        try:
-            self.fn(*self.args, **self.kwargs)
-        finally:
-            self.finished()  # Done
-
 @decorator.decorator
 def showWaitCursor(func, *args, **kwargs):
     QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-    # lib.setFont(args[0].txtlabel_statusBar_Busy, color='red')
-    args[0].txtlabel_statusBar_Busy.setStyleSheet("QLabel { background-color : red; color : white; }")
-    args[0].txtlabel_statusBar_Busy.setText('Busy ')
-    args[0].progress_statusBar.setRange(0,0)
-    worker = Worker(func, *args, **kwargs)
-    args[0].threadpool.start(worker)
+    try:
+        return func(*args, **kwargs)
+    finally:
+        QtWidgets.QApplication.restoreOverrideCursor()
 
 ## ################################################################################################
 ## ################################################################################################
@@ -162,7 +140,6 @@ class PsortGuiSignals(PsortGuiWidget):
         self.saveData = lib.SaveData()
         self._fileDataBase = deepcopy(_fileDataBase)
         self._workingDataBase = deepcopy(_workingDataBase)
-        self.threadpool = QtCore.QThreadPool()
         self.init_plots()
         self.connect_menubar_signals()
         self.connect_toolbar_signals()
