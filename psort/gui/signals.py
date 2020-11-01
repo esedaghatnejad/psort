@@ -119,13 +119,35 @@ _fileDataBase = {
     'isCommonAverage':    np.zeros((1), dtype=np.bool),
 }
 
+class Worker(QtCore.QRunnable):
+    def __init__(self, fn, *args, **kwargs):
+        super(Worker, self).__init__()
+        # Store constructor arguments (re-used for processing)
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+    def finished(self):
+        # lib.setFont(self.args[0].txtlabel_statusBar_Busy, color='green')
+        self.args[0].txtlabel_statusBar_Busy.setStyleSheet("QLabel { background-color : green; color : white; }")
+        self.args[0].txtlabel_statusBar_Busy.setText('Ready')
+        self.args[0].progress_statusBar.setRange(0,1)
+        QtWidgets.QApplication.restoreOverrideCursor()
+    @QtCore.pyqtSlot()
+    def run(self):
+        try:
+            self.fn(*self.args, **self.kwargs)
+        finally:
+            self.finished()  # Done
+
 @decorator.decorator
 def showWaitCursor(func, *args, **kwargs):
     QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-    try:
-        return func(*args, **kwargs)
-    finally:
-        QtWidgets.QApplication.restoreOverrideCursor()
+    # lib.setFont(args[0].txtlabel_statusBar_Busy, color='red')
+    args[0].txtlabel_statusBar_Busy.setStyleSheet("QLabel { background-color : red; color : white; }")
+    args[0].txtlabel_statusBar_Busy.setText('Busy ')
+    args[0].progress_statusBar.setRange(0,0)
+    worker = Worker(func, *args, **kwargs)
+    args[0].threadpool.start(worker)
 
 ## ################################################################################################
 ## ################################################################################################
@@ -140,6 +162,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.saveData = lib.SaveData()
         self._fileDataBase = deepcopy(_fileDataBase)
         self._workingDataBase = deepcopy(_workingDataBase)
+        self.threadpool = QtCore.QThreadPool()
         self.init_plots()
         self.connect_menubar_signals()
         self.connect_toolbar_signals()
@@ -159,6 +182,7 @@ class PsortGuiSignals(PsortGuiWidget):
 ## ################################################################################################
 ## ################################################################################################
 #%% HIGH LEVEL FUNCTIONS
+    @showWaitCursor
     def refresh_workingDataBase(self):
         if self._workingDataBase['isAnalyzed'][0]:
             self.update_guiWidgets_from_guiDataBase()
@@ -529,7 +553,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def connect_toolbar_signals(self):
-        self.txtlabel_statusBar.setText('Please load data to beging sorting or use tools menubar.')
+        self.txtlabel_statusBar.setText('Please load data for sorting or use Add-ons.')
         self.loadData.return_signal.\
             connect(self.load_process_finished)
         self.saveData.return_signal.\
@@ -661,26 +685,24 @@ class PsortGuiSignals(PsortGuiWidget):
 ## ################################################################################################
 ## ################################################################################################
 #%% SIGNALS
-    @showWaitCursor
     def onToolbar_next_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num += 1
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         return 0
 
-    @showWaitCursor
     def onToolbar_previous_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num -= 1
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onToolbar_refresh_ButtonClick(self):
         self.refresh_workingDataBase()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onToolbar_slotNumCurrent_ValueChanged(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
@@ -715,7 +737,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onToolbar_restart_ButtonClick(self):
-        self.slotBoundary_showWidget(True)
+        self.slotBoundary_showWidget(True, 'soft')
         return 0
 
     def onToolbar_save_ButtonClick(self):
@@ -786,6 +808,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.onCsPanel_learnWave_Clicked()
         return 0
 
+    @showWaitCursor
     def onMenubar_umap_ButtonClick(self):
         self._workingDataBase['umap_enable'][0] = \
             self.actionBtn_menubar_tools_umap.isChecked()
@@ -875,6 +898,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.infLine_rawSignal_CsThresh.setValue(self.infLine_CsPeak.value())
         return 0
 
+    @showWaitCursor
     def onInfLineSsWaveMinPca_positionChangeFinished(self):
         # minPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE']
         if self.infLine_SsWave_minPca.value()\
@@ -905,6 +929,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
         return 0
 
+    @showWaitCursor
     def onInfLineSsWaveMaxPca_positionChangeFinished(self):
         # maxPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE']
         if self.infLine_SsWave_maxPca.value()\
@@ -935,6 +960,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
         return 0
 
+    @showWaitCursor
     def onInfLineCsWaveMinPca_positionChangeFinished(self):
         # minPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE']
         if self.infLine_CsWave_minPca.value()\
@@ -965,6 +991,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_pca()
         return 0
 
+    @showWaitCursor
     def onInfLineCsWaveMaxPca_positionChangeFinished(self):
         # maxPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE']
         if self.infLine_CsWave_maxPca.value()\
@@ -1216,7 +1243,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(True)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
@@ -1224,7 +1251,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(True)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
@@ -1268,7 +1295,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_waveform()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_deselect_Clicked(self):
         self.reset_ss_ROI(forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
@@ -1276,7 +1303,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_deselect_Clicked(self):
         self.reset_cs_ROI(forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
@@ -1507,31 +1534,21 @@ class PsortGuiSignals(PsortGuiWidget):
             self.psortDataBase.get_topLevelDataBase()
         ch_data = psortDataBase_topLevel['ch_data']
         ch_data_max = np.max(ch_data)
+        total_slot_num = psortDataBase_topLevel['total_slot_num'][0]
         sample_rate = psortDataBase_topLevel['sample_rate'][0]
         total_duration = float(ch_data.size) / float(sample_rate)
-        slot_duration = 60.
-        total_slot_num = int(np.ceil(total_duration / slot_duration))
+        flag_restart_session = False
         # Reassign slot duration
         if not(file_ext == '.psort'):
             message = str(
                   'Total data duration is: {:.0f}s.\n'\
                 + 'Current number of slots is: {:.0f}.\n'\
-                + 'If you want to change the approximate slot duration,\n'\
-                + "please put the new number in 'seconds',\n"\
-                + "otherwise, please select 'Cancel'"
+                + 'Do you want to change the slot boundaries,\n'\
                 ).format(total_duration, total_slot_num)
-            doubleSpinBx_params = {}
-            doubleSpinBx_params['value'] = 60.
-            doubleSpinBx_params['dec'] = 0
-            doubleSpinBx_params['step'] = 5.
-            doubleSpinBx_params['max'] = 3600.
-            doubleSpinBx_params['min'] = 5.
-            doubleSpinBx_params['okDefault'] = True
-            self.input_dialog = PsortInputDialog(self, \
-                message=message, doubleSpinBx_params=doubleSpinBx_params)
-            if self.input_dialog.exec_():
-                slot_duration = self.input_dialog.doubleSpinBx.value()
-                self.psortDataBase.reassign_slot_duration(slot_duration, file_fullPath)
+            _reply = QMessageBox.question(
+                                self, 'Reset slot boundaries', message,
+                                QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+            flag_restart_session = (_reply == QtGui.QMessageBox.Yes)
             # Scale ch_data UP and put it in 100-10000 range
             if ch_data_max < 100.:
                 message = str('Maximum signal value is: {:f}.\n'+\
@@ -1602,6 +1619,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         self.txtedit_toolbar_slotNumCurrent.valueChanged.\
             connect(self.onToolbar_slotNumCurrent_ValueChanged)
+        if flag_restart_session:
+            self.slotBoundary_showWidget(True, 'hard')
         return 0
 
     def save_process_start(self):
@@ -2019,13 +2038,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.ScatterSelectWidget.scatterSelect_mouseClicked)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onScatterSelect_Cancel_Clicked(self):
         self.ScatterSelectWidget.scatterSelect_task_cancelled()
         self.scatterSelect_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onScatterSelect_Ok_Clicked(self):
         self.scatterSelect_task_completed()
         self.scatterSelect_showWidget(False)
@@ -2188,13 +2207,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseClicked_CS) #J
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveDissect_Cancel_Clicked(self):
         self.WaveDissectWidget.popUp_task_cancelled()
         self.waveDissect_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveDissect_Ok_Clicked(self):
         self.WaveDissectWidget.popUp_task_completed()
         self.waveDissect_showWidget(False)
@@ -2268,17 +2287,21 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.SlotBoundaryWidget.slotBoundary_mouseClicked)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSlotBoundary_Cancel_Clicked(self):
         self.slotBoundary_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSlotBoundary_Ok_Clicked(self):
+        restart_mode = self.SlotBoundaryWidget._workingDataBase['restart_mode'][0]
+        index_slot_edges = deepcopy(self.SlotBoundaryWidget._workingDataBase['index_slot_edges'])
+        self.psortDataBase.reassign_slot_boundaries(index_slot_edges, restart_mode)
+        self.restart_session()
         self.slotBoundary_showWidget(False)
         return 0
 
-    def slotBoundary_showWidget(self, showSlotBoundary=False):
+    def slotBoundary_showWidget(self, showSlotBoundary=False, restart_mode='hard'):
         self.setEnableMainModule(not(showSlotBoundary))
         if showSlotBoundary:
             psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
@@ -2291,7 +2314,34 @@ class PsortGuiSignals(PsortGuiWidget):
             self.SlotBoundaryWidget.set_chData()
             self.SlotBoundaryWidget.clear_infLine_list()
             self.SlotBoundaryWidget.build_infLine_list()
+            self.SlotBoundaryWidget.set_restartMode(restart_mode)
             self.layout_grand.setCurrentIndex(3)
+        return 0
+
+    def restart_session(self):
+        # Setting the value of slotNumCurrent to 1
+        # the disconnet and connect commands are to solve an issue when a new file is loaded
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            disconnect(self.onToolbar_slotNumCurrent_ValueChanged)
+        slot_num = 1;
+        self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
+        self._workingDataBase['current_slot_num'][0] = slot_num - 1
+        self.txtlabel_toolbar_slotNumTotal.\
+            setText('/ ' + str(self.psortDataBase.get_total_slot_num()) + \
+            '(' + str(self.psortDataBase.get_total_slot_isAnalyzed()) + ')')
+        self.transfer_data_from_psortDataBase_to_guiSignals()
+        self.update_guiWidgets_from_guiDataBase()
+        self.update_guiDataBase_from_guiWidgets()
+        self.filter_data()
+        self.onRawSignal_SsAutoThresh_Clicked()
+        self.onRawSignal_CsAutoThresh_Clicked()
+        self.undoRedo_reset()
+        self.refresh_workingDataBase()
+        self.txtedit_toolbar_slotNumCurrent.\
+            setMaximum(self.psortDataBase.get_total_slot_num())
+        self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
+        self.txtedit_toolbar_slotNumCurrent.valueChanged.\
+            connect(self.onToolbar_slotNumCurrent_ValueChanged)
         return 0
 
 ## ################################################################################################
@@ -2314,13 +2364,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseClicked_waveform)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveClust_Cancel_Clicked(self):
         self.WaveClustWidget.popUp_task_cancelled()
         self.waveClust_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveClust_Ok_Clicked(self):
         self.WaveClustWidget.popUp_task_completed()
         self.waveClust_showWidget(False)
@@ -2377,6 +2427,7 @@ class PsortGuiSignals(PsortGuiWidget):
 ## ################################################################################################
 ## ################################################################################################
 #%% DATA MANAGEMENT
+    # @showWaitCursor
     def filter_data(self):
         self._workingDataBase['ch_data_ss'] = \
             lib.bandpass_filter(
@@ -2391,7 +2442,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 lo_cutoff_freq=self._workingDataBase['cs_min_cutoff_freq'][0],
                 hi_cutoff_freq=self._workingDataBase['cs_max_cutoff_freq'][0])
         return 0
-
+    # @showWaitCursor
     def detect_ss_index(self):
         self._workingDataBase['ss_index'] = \
             lib.find_peaks(
@@ -2400,7 +2451,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 peakType=self._workingDataBase['ssPeak_mode'][0])
         self.resolve_ss_ss_conflicts()
         return 0
-
+    # @showWaitCursor
     def detect_cs_index_slow(self):
         self._workingDataBase['cs_index_slow'] = \
             lib.find_peaks(
@@ -2409,7 +2460,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 peakType=self._workingDataBase['csPeak_mode'][0])
         self.resolve_cs_slow_cs_slow_conflicts()
         return 0
-
+    # @showWaitCursor
     def align_cs(self):
         if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
             self.align_cs_wrt_ss_index()
@@ -2679,7 +2730,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
                 _ss_index[_ss_ind_invalid] = False
         return 0
-
+    # @showWaitCursor
     def move_selected_from_ss_to_cs(self):
         _cs_index_bool = self._workingDataBase['cs_index']
         _ss_index_bool = self._workingDataBase['ss_index']
@@ -2694,7 +2745,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.resolve_cs_cs_slow_conflicts()
         self.resolve_cs_ss_conflicts()
         return 0
-
+    # @showWaitCursor
     def move_selected_from_cs_to_ss(self):
         _cs_index_bool = self._workingDataBase['cs_index']
         _ss_index_bool = self._workingDataBase['ss_index']
@@ -2709,17 +2760,17 @@ class PsortGuiSignals(PsortGuiWidget):
         self.resolve_cs_cs_slow_conflicts()
         self.resolve_cs_ss_conflicts()
         return 0
-
+    # @showWaitCursor
     def extract_ss_peak(self):
         self._workingDataBase['ss_peak'] = \
             self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
         return 0
-
+    # @showWaitCursor
     def extract_cs_peak(self):
         self._workingDataBase['cs_peak'] = \
             self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
         return 0
-
+    # @showWaitCursor
     def extract_ss_waveform(self):
         if self._workingDataBase['ss_index'].sum() > 0:
             self._workingDataBase['ss_wave'], self._workingDataBase['ss_wave_span'] = \
@@ -2733,7 +2784,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_wave'] = np.zeros((0,0), dtype=np.float32)
             self._workingDataBase['ss_wave_span'] = np.zeros((0,0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_cs_waveform(self):
         if self._workingDataBase['cs_index'].sum() > 0:
             self._workingDataBase['cs_wave'], self._workingDataBase['cs_wave_span'] = \
@@ -2747,7 +2798,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_wave'] = np.zeros((0,0), dtype=np.float32)
             self._workingDataBase['cs_wave_span'] = np.zeros((0,0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_ss_ifr(self):
         if self._workingDataBase['ss_index'].sum() > 1:
             self._workingDataBase['ss_ifr_mean'][0] = \
@@ -2775,7 +2826,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_ifr_hist'] = np.zeros((1), dtype=np.float32)
             self._workingDataBase['ss_ifr_mean'][0] = 0.
         return 0
-
+    # @showWaitCursor
     def extract_cs_ifr(self):
         if self._workingDataBase['cs_index'].sum() > 1:
             self._workingDataBase['cs_ifr_mean'][0] = \
@@ -2803,7 +2854,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_ifr_hist'] = np.zeros((1), dtype=np.float32)
             self._workingDataBase['cs_ifr_mean'][0] = 0.
         return 0
-
+    # @showWaitCursor
     def extract_ss_xprob(self):
         if self._workingDataBase['ss_index'].sum() > 1:
             self._workingDataBase['ss_xprob'], self._workingDataBase['ss_xprob_span'] = \
@@ -2823,7 +2874,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_xprob'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_xprob_span'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_cs_xprob(self):
         if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_xprob'], self._workingDataBase['cs_xprob_span'] = \
@@ -2838,7 +2889,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_xprob'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_xprob_span'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_ss_pca(self):
         """
         -> check the minPca and maxPca and make sure they are less than 1s
@@ -2901,7 +2952,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_umap1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_umap2'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_cs_pca(self):
         """
         -> check the minPca and maxPca and make sure they are less than 1s
@@ -2964,7 +3015,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_umap1'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_umap2'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_ss_template(self):
         if (self._workingDataBase['ss_index'].sum() > 0) and (self._workingDataBase['ssLearnTemp_mode'][0]):
             _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
@@ -2982,7 +3033,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_wave_template'] = np.zeros((0),dtype=np.float32)
             self._workingDataBase['ss_wave_span_template'] = np.zeros((0),dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_cs_template(self):
         if (self._workingDataBase['cs_index'].sum() > 0) and (self._workingDataBase['csLearnTemp_mode'][0]):
             _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
@@ -3000,7 +3051,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_wave_template'] = np.zeros((0),dtype=np.float32)
             self._workingDataBase['cs_wave_span_template'] = np.zeros((0),dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_ss_similarity(self):
         _ind_begin_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
                             -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
@@ -3008,7 +3059,7 @@ class PsortGuiSignals(PsortGuiWidget):
         _ind_end_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
                             +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
                             * self._workingDataBase['sample_rate'][0])
-        if self._workingDataBase['ssLearnTemp_mode'][0]:
+        if self._workingDataBase['ss_wave_template'].size>1:
             _min_range_ss_ss = np.min([(_ind_end_ss_ss - _ind_begin_ss_ss), \
                                      self._workingDataBase['ss_wave_template'].size])
             _ind_end_ss_ss = _ind_begin_ss_ss + _min_range_ss_ss
@@ -3027,7 +3078,7 @@ class PsortGuiSignals(PsortGuiWidget):
                             * self._workingDataBase['sample_rate'][0])
         _min_range_len = np.min([(_ind_end_ss_cs - _ind_begin_ss_cs), \
                                  (_ind_end_cs_cs - _ind_begin_cs_cs)])
-        if self._workingDataBase['csLearnTemp_mode'][0]:
+        if self._workingDataBase['cs_wave_template'].size>1:
             _min_range_len = np.min([_min_range_len, \
                                      self._workingDataBase['cs_wave_template'].size])
         _ind_end_ss_cs = _ind_begin_ss_cs + _min_range_len
@@ -3037,7 +3088,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['ss_index'].sum() > 1:
             # extract_ss_similarity to ss
             ss_wave = self._workingDataBase['ss_wave'][:,_window_ss_ss]
-            if self._workingDataBase['ssLearnTemp_mode'][0]:
+            if self._workingDataBase['ss_wave_template'].size>1:
                 ss_wave_template = self._workingDataBase['ss_wave_template'][0:_min_range_ss_ss]
                 self._workingDataBase['ss_similarity_to_ss'] = \
                     np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
@@ -3047,7 +3098,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
             # extract_ss_similarity to cs
             ss_wave = self._workingDataBase['ss_wave'][:,_window_ss_cs]
-            if self._workingDataBase['csLearnTemp_mode'][0]:
+            if self._workingDataBase['cs_wave_template'].size>1:
                 cs_wave_template = self._workingDataBase['cs_wave_template'][0:_min_range_len]
                 self._workingDataBase['ss_similarity_to_cs'] = \
                     np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
@@ -3062,7 +3113,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_similarity_to_ss'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_cs_similarity(self):
         _ind_begin_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
                             -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
@@ -3070,7 +3121,7 @@ class PsortGuiSignals(PsortGuiWidget):
         _ind_end_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
                             +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
                             * self._workingDataBase['sample_rate'][0])
-        if self._workingDataBase['csLearnTemp_mode'][0]:
+        if self._workingDataBase['cs_wave_template'].size>1:
             _min_range_cs_cs = np.min([(_ind_end_cs_cs - _ind_begin_cs_cs), \
                                      self._workingDataBase['cs_wave_template'].size])
             _ind_end_cs_cs = _ind_begin_cs_cs + _min_range_cs_cs
@@ -3089,7 +3140,7 @@ class PsortGuiSignals(PsortGuiWidget):
                             * self._workingDataBase['sample_rate'][0])
         _min_range_len = np.min([(_ind_end_cs_ss - _ind_begin_cs_ss), \
                                  (_ind_end_ss_ss - _ind_begin_ss_ss)])
-        if self._workingDataBase['ssLearnTemp_mode'][0]:
+        if self._workingDataBase['ss_wave_template'].size>1:
             _min_range_len = np.min([_min_range_len, \
                                      self._workingDataBase['ss_wave_template'].size])
         _ind_end_cs_ss = _ind_begin_cs_ss + _min_range_len
@@ -3099,7 +3150,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['cs_index'].sum() > 1:
             # extract_cs_similarity to cs
             cs_wave = self._workingDataBase['cs_wave'][:,_window_cs_cs]
-            if self._workingDataBase['csLearnTemp_mode'][0]:
+            if self._workingDataBase['cs_wave_template'].size>1:
                 cs_wave_template = self._workingDataBase['cs_wave_template'][0:_min_range_cs_cs]
                 self._workingDataBase['cs_similarity_to_cs'] = \
                     np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
@@ -3109,7 +3160,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
             # extract_cs_similarity to ss
             cs_wave = self._workingDataBase['cs_wave'][:,_window_cs_ss]
-            if self._workingDataBase['ssLearnTemp_mode'][0]:
+            if self._workingDataBase['ss_wave_template'].size>1:
                 ss_wave_template = self._workingDataBase['ss_wave_template'][0:_min_range_len]
                 self._workingDataBase['cs_similarity_to_ss'] = \
                     np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
@@ -3124,7 +3175,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['cs_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['cs_similarity_to_ss'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_ss_time(self):
         if self._workingDataBase['ss_index'].sum() > 1:
             scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
@@ -3162,7 +3213,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self._workingDataBase['ss_time_to_prev_cs'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['ss_time_to_next_cs'] = np.zeros((0), dtype=np.float32)
         return 0
-
+    # @showWaitCursor
     def extract_cs_time(self):
         if self._workingDataBase['cs_index'].sum() > 1:
             scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.

@@ -149,7 +149,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_applymethod = QPushButton("Apply")
         lib.setFont(self.pushBtn_scatterPlot_popup_applymethod, color="black")
         self.pushBtn_scatterPlot_popup_applymethod.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'apply.png')))
-        self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected Method')
+        self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected method')
 
         self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset")
         lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
@@ -159,7 +159,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_selectatt = QPushButton("Select features")
         lib.setFont(self.pushBtn_scatterPlot_popup_selectatt, color="black")
         self.pushBtn_scatterPlot_popup_selectatt.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'list.png')))
-        self.pushBtn_scatterPlot_popup_selectatt.setToolTip('<b>F</b>eature Selection')
+        self.pushBtn_scatterPlot_popup_selectatt.setToolTip('<b>F</b>eature selection')
 
         self.comboBx_scatterPlot_popup_ss_label = QComboBox()
         self.comboBx_scatterPlot_popup_ss_label.addItems(['0'])
@@ -176,7 +176,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_select_clust = QPushButton("Select cluster")
         lib.setFont(self.pushBtn_scatterPlot_popup_select_clust, color="black")
         self.pushBtn_scatterPlot_popup_select_clust.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'select.png')))
-        self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect Cluster")
+        self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect cluster")
 
         self.pushBtn_scatterPlot_popup_prev_clust = QPushButton("Prev")
         lib.setFont(self.pushBtn_scatterPlot_popup_prev_clust, color="black")

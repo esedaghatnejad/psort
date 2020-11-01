@@ -57,7 +57,7 @@ for key in lib.GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(lib.GLOBAL_DICT[key])
 
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 32], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 33], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -65,8 +65,8 @@ _topLevelDataBase = {
         'file_name':              np.array([''], dtype=np.unicode),
         'file_ext':               np.array([''], dtype=np.unicode),
         'file_name_without_ext':  np.array([''], dtype=np.unicode),
-        'index_slot_edges' :      np.zeros((30), dtype=np.uint32),
-        'total_slot_num':         np.full( (1), 30, dtype=np.uint32),
+        'index_slot_edges' :      np.zeros((2), dtype=np.uint32),
+        'total_slot_num':         np.full( (1), 1, dtype=np.uint32),
         'current_slot_num':       np.zeros((1), dtype=np.uint32),
         'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint32),
         'ch_data':                np.zeros((0), dtype=np.float64),
@@ -82,24 +82,28 @@ class PsortDataBase():
         self._grandDataBase = [[],[],[]]
         self._currentSlotDataBase = self._grandDataBase[-2]
         self._topLevelDataBase = self._grandDataBase[-1]
-        self.init_slotsDataBase()
+        self.init_slotsDataBase_hard()
         self.set_file_fullPath(os.getcwd()+os.sep+"dataBase.psort")
         return None
 
-    def init_slotsDataBase(self, ch_data=None, ch_time=None, \
-                            sample_rate=30000, slot_duration = 60.0):
+    def init_slotsDataBase_hard(self, ch_data=None, ch_time=None, \
+                            sample_rate=30000, index_slot_edges = None):
         if ch_data is None:
             ch_data=np.zeros((0), dtype=np.float64)
-            total_slot_num = 30
-            index_slot_edges = np.zeros((total_slot_num+1), dtype=np.uint32)
-        else:
+            ch_time=np.zeros((0), dtype=np.float64)
+            index_slot_edges = np.zeros((2), dtype=np.uint32)
+        if index_slot_edges is None:
             data_size = ch_data.size
+            slot_duration = 100.0
             total_slot_num = \
                 int(np.ceil(float(data_size) / float(sample_rate) / slot_duration))
             index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
                                         endpoint=True)).astype(int)
-        if ch_time is None:
-            ch_time=np.zeros((0), dtype=np.float64)
+        if index_slot_edges.size < 2:
+            index_slot_edges = np.zeros((2), dtype=np.uint32)
+        index_slot_edges[0] = 0
+        index_slot_edges[-1] = ch_data.size
+        total_slot_num = index_slot_edges.size - 1
         # _grandDataBase is a list of dict with len : total_slot_num+1
         # index 0 up to total_slot_num-1 belong to single SlotDataBase
         # index total_slot_num or (-2) is the current SlotDataBase
@@ -116,10 +120,10 @@ class PsortDataBase():
         self._currentSlotDataBase = self._grandDataBase[-2]
         self._topLevelDataBase = self._grandDataBase[-1]
         current_slot_num = 0
-        self._topLevelDataBase['current_slot_num'][0] = current_slot_num
         self._grandDataBase[-2] = deepcopy(self._grandDataBase[current_slot_num])
+        # hard reset _topLevelDataBase
+        self._topLevelDataBase['current_slot_num'][0] = current_slot_num
         self._topLevelDataBase['total_slot_num'][0] = total_slot_num
-
         self._topLevelDataBase['ch_data'] = deepcopy(ch_data)
         self._topLevelDataBase['ch_time'] = deepcopy(ch_time)
         self._topLevelDataBase['ss_index'] = \
@@ -130,6 +134,48 @@ class PsortDataBase():
             np.zeros((self._topLevelDataBase['ch_data'].size), dtype=np.bool)
         self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
         self._topLevelDataBase['sample_rate'][0] = sample_rate
+
+        self.changeCurrentSlot_to(0)
+        return 0
+
+    def init_slotsDataBase_soft(self, index_slot_edges = None):
+        if len(self._grandDataBase) < 3:
+            print('Error: <database.init_slotsDataBase_soft: grandDataBase is empty.>')
+            return 0
+        if self._grandDataBase[-1]['ch_data'].size < 2:
+            print('Error: <database.init_slotsDataBase_soft: ch_data is empty.>')
+            return 0
+        if index_slot_edges.size < 2:
+            index_slot_edges = np.zeros((2), dtype=np.uint32)
+        index_slot_edges[0] = 0
+        index_slot_edges[-1] = self._grandDataBase[-1]['ch_data'].size
+        total_slot_num = index_slot_edges.size - 1
+        topLevelDataBase_bkp = deepcopy(self._grandDataBase[-1])
+        # _grandDataBase is a list of dict with len : total_slot_num+1
+        # index 0 up to total_slot_num-1 belong to single SlotDataBase
+        # index total_slot_num or (-2) is the current SlotDataBase
+        # index total_slot_num+1 or (-1) is the topLevel DataBase
+        self._grandDataBase.clear()
+        for counter_slot in range(total_slot_num):
+            self._grandDataBase.append(deepcopy(_singleSlotDataBase))
+            self._grandDataBase[counter_slot]['index_start_on_ch_data'][0] = \
+                index_slot_edges[counter_slot]
+            self._grandDataBase[counter_slot]['index_end_on_ch_data'][0] = \
+                index_slot_edges[counter_slot+1]
+        self._grandDataBase.append(deepcopy(_singleSlotDataBase))
+        self._grandDataBase.append(deepcopy(_topLevelDataBase))
+        self._currentSlotDataBase = self._grandDataBase[-2]
+        self._topLevelDataBase = self._grandDataBase[-1]
+        current_slot_num = 0
+        self._grandDataBase[-2] = deepcopy(self._grandDataBase[current_slot_num])
+        # soft reset _topLevelDataBase
+        for key in topLevelDataBase_bkp.keys():
+            self._topLevelDataBase[key] = deepcopy(topLevelDataBase_bkp[key])
+        del topLevelDataBase_bkp
+        self._topLevelDataBase['index_slot_edges'] = deepcopy(index_slot_edges)
+        self._topLevelDataBase['total_slot_num'][0] = total_slot_num
+        self._topLevelDataBase['current_slot_num'][0] = current_slot_num
+        self._topLevelDataBase['total_slot_isAnalyzed'][0] = 0
 
         self.changeCurrentSlot_to(0)
         return 0
@@ -158,7 +204,7 @@ class PsortDataBase():
         _, _, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self._grandDataBase = grandDataBase
-            # Backward compatibility to PSORT_VERSION 03
+            # Backward compatibility for PSORT_VERSION 0_3 and PSORT_VERSION 0_4_10
             if not('PSORT_VERSION' in self._grandDataBase[-1].keys()):
                 self.backward_compatibility_for_Psort_03()
             elif (self._grandDataBase[-1]['PSORT_VERSION'][1] == 4) and \
@@ -179,7 +225,7 @@ class PsortDataBase():
             _ch_data = deepcopy(ch_data)
             _ch_time = deepcopy(ch_time)
             _sample_rate = deepcopy(sample_rate)
-            self.init_slotsDataBase(_ch_data, _ch_time, _sample_rate)
+            self.init_slotsDataBase_hard(_ch_data, _ch_time, _sample_rate)
             self.set_file_fullPath(file_fullPath)
             self._topLevelDataBase['file_fullPathOriginal'] = \
                 np.array([file_fullPath], dtype=np.unicode)
@@ -242,16 +288,18 @@ class PsortDataBase():
         return deepcopy(self._currentSlotDataBase)
 
     def get_topLevelDataBase(self):
-        return deepcopy(self._topLevelDataBase)
+        return deepcopy(self._grandDataBase[-1])
 
-    def reassign_slot_duration(self, slot_duration, file_fullPath):
-        _ch_data = deepcopy(self._grandDataBase[-1]['ch_data'])
-        _ch_time = deepcopy(self._grandDataBase[-1]['ch_time'])
-        _sample_rate = self._grandDataBase[-1]['sample_rate'][0]
-        self.init_slotsDataBase(_ch_data, _ch_time, _sample_rate, slot_duration)
-        self.set_file_fullPath(file_fullPath)
-        self._topLevelDataBase['file_fullPathOriginal'] = \
-            np.array([file_fullPath], dtype=np.unicode)
+    def reassign_slot_boundaries(self, index_slot_edges, restart_mode='soft'):
+        self.init_slotsDataBase_soft(index_slot_edges)
+        isAnalyzed_ = True
+        if restart_mode == 'soft':
+            isAnalyzed_ = True
+        elif restart_mode == 'hard':
+            isAnalyzed_ = False
+        for counter_slot in range(len(self._grandDataBase)-1):
+            self._grandDataBase[counter_slot]['isAnalyzed'][0] = isAnalyzed_
+        self.get_total_slot_isAnalyzed()
         return 0
 
     def update_dataBase_based_on_signals(self, guiSignals_workingDataBase):
@@ -280,19 +328,12 @@ class PsortDataBase():
         return 0
 
     def backward_compatibility_for_Psort_03(self):
-        file_fullPath = deepcopy(self._grandDataBase[-1]['file_fullPath'][0])
-        _ch_data = deepcopy(self._grandDataBase[-1]['ch_data'])
-        _ch_time = deepcopy(self._grandDataBase[-1]['ch_time'])
-        _ss_index = deepcopy(self._grandDataBase[-1]['ss_index'])
-        _cs_index = deepcopy(self._grandDataBase[-1]['cs_index'])
-        _cs_index_slow = deepcopy(self._grandDataBase[-1]['cs_index_slow'])
-        self.reassign_slot_duration(60, file_fullPath)
-        self._grandDataBase[-1]['ch_data'] = deepcopy(_ch_data)
-        self._grandDataBase[-1]['ch_time'] = deepcopy(_ch_time)
-        self._grandDataBase[-1]['ss_index'] = deepcopy(_ss_index)
-        self._grandDataBase[-1]['cs_index'] = deepcopy(_cs_index)
-        self._grandDataBase[-1]['cs_index_slow'] = deepcopy(_cs_index_slow)
-        for counter_slot in range(len(self._grandDataBase)-1):
-            self._grandDataBase[counter_slot]['isAnalyzed'][0] = True
-        self.get_total_slot_isAnalyzed()
+        data_size = self._grandDataBase[-1]['ch_data'].size
+        sample_rate = self._grandDataBase[-1]['sample_rate'][0]
+        slot_duration = 60.0
+        total_slot_num = \
+            int(np.ceil(float(data_size) / float(sample_rate) / slot_duration))
+        index_slot_edges = np.round(np.linspace(0, data_size, total_slot_num+1, \
+                                    endpoint=True)).astype(int)
+        self.reassign_slot_boundaries(index_slot_edges, restart_mode='soft')
         return 0

@@ -749,8 +749,13 @@ class PsortGuiWidget(QMainWindow):
     def build_statusbar(self):
         self.setStatusBar(QStatusBar(self))
         self.txtlabel_statusBar = QLabel('Text')
+        lib.setFont(self.txtlabel_statusBar)
+        self.txtlabel_statusBar_Busy = QLabel('Ready')
+        lib.setFont(self.txtlabel_statusBar_Busy, color='white')
+        self.txtlabel_statusBar_Busy.setStyleSheet("QLabel { background-color : green; color : white; }")
         self.progress_statusBar = QProgressBar()
         self.progress_statusBar.setRange(0,1)
         self.statusBar().addWidget(self.txtlabel_statusBar,0)
         self.statusBar().addWidget(self.progress_statusBar,1)
+        self.statusBar().addWidget(self.txtlabel_statusBar_Busy,0)
         return 0

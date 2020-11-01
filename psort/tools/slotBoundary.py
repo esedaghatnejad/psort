@@ -23,6 +23,7 @@ class SlotBoundaryWidget(QWidget):
             'index_slot_edges' :      np.linspace(0, int(50e2), num=10+1, endpoint=True, dtype=np.uint32),
             'ch_data':                np.random.normal(loc=0.0, scale=1.0, size=int(50e2)),
             'sample_rate':            np.full( (1), int(30e3), dtype=np.uint32),
+            'restart_mode':           np.array(['hard'],   dtype=np.unicode),
         }
         self.infLine_list = []
         self.build_slotBoundary_Widget()
@@ -49,6 +50,9 @@ class SlotBoundaryWidget(QWidget):
         self.line_slotBoundary_h1 = QtGui.QFrame()
         self.line_slotBoundary_h1.setFrameShape(QFrame.HLine)
         self.line_slotBoundary_h1.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_v0 = QtGui.QFrame()
+        self.line_slotBoundary_v0.setFrameShape(QFrame.VLine)
+        self.line_slotBoundary_v0.setFrameShadow(QFrame.Sunken)
         self.line_slotBoundary_v1 = QtGui.QFrame()
         self.line_slotBoundary_v1.setFrameShape(QFrame.VLine)
         self.line_slotBoundary_v1.setFrameShadow(QFrame.Sunken)
@@ -76,16 +80,24 @@ class SlotBoundaryWidget(QWidget):
         self.pushBtn_slotBoundary_addSlot.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'crosshair.png')))
         self.label_slotBoundary_description = QLabel("Drag line out of boundries to delete.")
         lib.setFont(self.label_slotBoundary_description)
+        self.label_slotBoundary_resetModeDescription = QLabel("Restart mode: ")
+        lib.setFont(self.label_slotBoundary_resetModeDescription)
+        self.comboBx_slotBoundary_restartMode = QComboBox()
+        self.comboBx_slotBoundary_restartMode.addItems(["Hard restart","Soft restart"])
+        lib.setFont(self.comboBx_slotBoundary_restartMode)
         self.label_slotBoundary_duration = QLabel(f"Avg slot duration: {10}s.")
         lib.setFont(self.label_slotBoundary_duration)
         self.layout_slotBoundary_toolbar.addWidget(self.label_slotBoundary_numSlots)
         self.layout_slotBoundary_toolbar.addWidget(self.spinBx_slotBoundary_numSlots)
-        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v1)
+        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v0)
         self.layout_slotBoundary_toolbar.addWidget(self.pushBtn_slotBoundary_addSlot)
-        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v2)
+        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v1)
         self.layout_slotBoundary_toolbar.addWidget(self.label_slotBoundary_description)
-        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v3)
+        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v2)
         self.layout_slotBoundary_toolbar.addStretch()
+        self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v3)
+        self.layout_slotBoundary_toolbar.addWidget(self.label_slotBoundary_resetModeDescription)
+        self.layout_slotBoundary_toolbar.addWidget(self.comboBx_slotBoundary_restartMode)
         self.layout_slotBoundary_toolbar.addWidget(self.line_slotBoundary_v4)
         self.layout_slotBoundary_toolbar.addWidget(self.label_slotBoundary_duration)
         self.layout_slotBoundary_toolbar.setSpacing(1)
@@ -109,6 +121,8 @@ class SlotBoundaryWidget(QWidget):
             connect(self.onAddSlot_Clicked)
         self.spinBx_slotBoundary_numSlots.valueChanged.\
             connect(self.onSpinBxNumSlots_ValueChanged)
+        self.comboBx_slotBoundary_restartMode.currentIndexChanged.\
+            connect(self.onRestartMode_IndexChanged)
         return 0
 
     def init_slotBoundary_plot(self):
@@ -154,6 +168,22 @@ class SlotBoundaryWidget(QWidget):
         self.build_infLine_list()
         return 0
 
+    def onRestartMode_IndexChanged(self):
+        if self.comboBx_slotBoundary_restartMode.currentIndex() == 0:
+            self._workingDataBase['restart_mode'] = np.array(['hard'], dtype=np.unicode)
+        elif self.comboBx_slotBoundary_restartMode.currentIndex() == 1:
+            self._workingDataBase['restart_mode'] = np.array(['soft'], dtype=np.unicode)
+        return 0
+
+    def set_restartMode(self, restart_mode):
+        if restart_mode == 'hard':
+            self._workingDataBase['restart_mode'] = np.array(['hard'], dtype=np.unicode)
+            self.comboBx_slotBoundary_restartMode.setCurrentIndex(0)
+        elif restart_mode == 'soft':
+            self._workingDataBase['restart_mode'] = np.array(['soft'], dtype=np.unicode)
+            self.comboBx_slotBoundary_restartMode.setCurrentIndex(1)
+        return 0
+
     def onInfLine_positionChangeFinished(self):
         infLine_values = self.get_infLine_values()
         len_data = len(self._workingDataBase['ch_data'])
@@ -167,10 +197,10 @@ class SlotBoundaryWidget(QWidget):
             infLine_values = np.delete(infLine_values, idx)
             flag_rebuild_infLine_list = True
         if flag_rebuild_infLine_list:
-            self._workingDataBase['index_slot_edges'] = \
-                np.concatenate(([0],infLine_values,[len_data]))
+            self._workingDataBase['index_slot_edges'] = np.concatenate(([0],infLine_values,[len_data]))
             self.clear_infLine_list()
             self.build_infLine_list()
+        self._workingDataBase['index_slot_edges'] = np.concatenate(([0],infLine_values,[len_data]))
         return 0
 
     def slotBoundary_mouseMoved(self, evt):
@@ -180,7 +210,6 @@ class SlotBoundaryWidget(QWidget):
         if self.plot_slotBoundary_mainPlot.sceneBoundingRect().contains(pos):
             mousePoint = self.viewBox_mainPlot.mapSceneToView(pos)
             self.infLine_crosshair_vLine.setValue(mousePoint.x())
-            self.infLine_crosshair_hLine.setValue(mousePoint.y())
         return 0
 
     def slotBoundary_mouseClicked(self, evt):
