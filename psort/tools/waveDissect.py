@@ -16,14 +16,13 @@ import os
 import pyqtgraph as pg
 import numpy as np
 from psort.utils import lib
+from psort.utils import signals_lib
 ## #############################################################################
 #%% CellSummaryWidget
 class WaveDissectWidget(QWidget):
     def __init__(self, parent=None):
         super(WaveDissectWidget, self).__init__(parent)
         self._workingDataBase = {}
-        from psort.gui.signals import PsortGuiSignals
-        self.PsortGuiSignals = PsortGuiSignals
         self.build_rawPlot_popup_Widget()
         self.init_rawPlot_popup_shortcut()
         self.connect_rawPlot_popup_signals()
@@ -707,9 +706,9 @@ class WaveDissectWidget(QWidget):
 
             # Re-extract waveforms
             if which_waveform_current == "CS":
-                self.PsortGuiSignals.extract_cs_waveform(self)
+                signals_lib.extract_cs_waveform(self._workingDataBase)
             else:
-                self.PsortGuiSignals.extract_ss_waveform(self)
+                signals_lib.extract_ss_waveform(self._workingDataBase)
 
             # Reset and remove ROI from the plot
             self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
@@ -782,10 +781,10 @@ class WaveDissectWidget(QWidget):
                     np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
             else:
                 self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
-            self.PsortGuiSignals.extract_ss_peak(self)
-            self.PsortGuiSignals.extract_cs_peak(self)
-            self.PsortGuiSignals.extract_ss_waveform(self)
-            self.PsortGuiSignals.extract_cs_waveform(self)
+            signals_lib.extract_ss_peak(self._workingDataBase)
+            signals_lib.extract_cs_peak(self._workingDataBase)
+            signals_lib.extract_ss_waveform(self._workingDataBase)
+            signals_lib.extract_cs_waveform(self._workingDataBase)
             # Reset and remove ROI from the plot
             self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
             self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
@@ -1165,10 +1164,10 @@ class WaveDissectWidget(QWidget):
             else:
                 self._workingDataBase["ss_index"][idx] = True
 
-        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+        signals_lib.resolve_ss_ss_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
 
         if self._workingDataBase['ss_index'].sum() > 1:
             self._workingDataBase['ss_index_selected'] = \
@@ -1180,10 +1179,10 @@ class WaveDissectWidget(QWidget):
                 np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
         else:
             self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
-        self.PsortGuiSignals.extract_ss_peak(self)
-        self.PsortGuiSignals.extract_cs_peak(self)
-        self.PsortGuiSignals.extract_ss_waveform(self)
-        self.PsortGuiSignals.extract_cs_waveform(self)
+        signals_lib.extract_ss_peak(self._workingDataBase)
+        signals_lib.extract_cs_peak(self._workingDataBase)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
 
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
@@ -1223,10 +1222,10 @@ class WaveDissectWidget(QWidget):
             return 0
         _cs_index_bool[_cs_index_selected_int] = False
         _ss_index_bool[_cs_index_selected_int] = True
-        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+        signals_lib.resolve_ss_ss_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
         return 0
 
     def move_selected_from_ss_to_cs(self):
@@ -1240,10 +1239,10 @@ class WaveDissectWidget(QWidget):
             return 0
         _ss_index_bool[_ss_index_selected_int] = False
         _cs_index_bool[_ss_index_selected_int] = True
-        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+        signals_lib.resolve_ss_ss_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
         return 0
 
     def align_cs(self, idx):

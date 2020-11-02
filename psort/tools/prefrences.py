@@ -9,13 +9,14 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
 import numpy as np
-from psort.utils.lib import GLOBAL_DICT
+from copy import deepcopy
+from psort.utils import dictionaries
 
 class EditPrefrencesDialog(QDialog):
     def __init__(self, parent=None, workingDataBase=None):
         super(EditPrefrencesDialog, self).__init__(parent)
         if workingDataBase is None:
-            workingDataBase = GLOBAL_DICT
+            workingDataBase = deepcopy(dictionaries.GLOBAL_DICT)
         self.setWindowTitle("Edit Prefrences")
         self.layout_grand = QVBoxLayout()
         self.scrollArea = QScrollArea()
@@ -24,7 +25,7 @@ class EditPrefrencesDialog(QDialog):
         self.list_label = []
         self.list_doubleSpinBx = []
         counter_key = int(0)
-        for key in GLOBAL_DICT.keys():
+        for key in dictionaries.GLOBAL_DICT.keys():
             value = workingDataBase[key]
             if (value.dtype==np.uint32):
                 _dec = 0

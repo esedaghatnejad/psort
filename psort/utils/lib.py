@@ -32,105 +32,15 @@ import subprocess
 import pkg_resources
 installed_pkg = {pkg.key for pkg in pkg_resources.working_set}
 
+## #############################################################################
+#%% VARIABLES
 (PROJECT_FOLDER, _) = os.path.split(os.path.dirname(os.path.abspath(__file__)))
-nanLabel = -9999
-## #############################################################################
-#%% list_color
-list_color = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
-## #############################################################################
-#%% GLOBAL_VARIABLES
 GLOBAL_FONT = QtGui.QFont()
 GLOBAL_FONT.setStyleHint(QtGui.QFont.Helvetica)
 GLOBAL_FONT.setPointSize(10)
 GLOBAL_FONT.setWeight(QtGui.QFont.Normal)
 GLOBAL_PG_PEN = pg.mkPen(color='k', width=1, style=QtCore.Qt.SolidLine)
-GLOBAL_DICT = {
-    # second, default is 0.002s  or 2ms
-    'GLOBAL_WAVE_PLOT_SS_BEFORE'          : np.array([0.002], dtype=np.float32),
-    # second, default is 0.004s  or 4ms
-    'GLOBAL_WAVE_PLOT_SS_AFTER'           : np.array([0.004], dtype=np.float32),
-    # second, default is 0.002s  or 2ms
-    'GLOBAL_WAVE_PLOT_CS_BEFORE'          : np.array([0.002], dtype=np.float32),
-    # second, default is 0.004s  or 4ms
-    'GLOBAL_WAVE_PLOT_CS_AFTER'           : np.array([0.004], dtype=np.float32),
-    # second, default is 0.0003s or 0.3ms
-    'GLOBAL_WAVE_TEMPLATE_SS_BEFORE'      : np.array([0.0003],dtype=np.float32),
-    # second, default is 0.0003s or 0.3ms
-    'GLOBAL_WAVE_TEMPLATE_SS_AFTER'       : np.array([0.0003],dtype=np.float32),
-    # second, default is 0.0005s or 0.5ms
-    'GLOBAL_WAVE_TEMPLATE_CS_BEFORE'      : np.array([0.0005],dtype=np.float32),
-    # second, default is 0.0030s or 3.0ms
-    'GLOBAL_WAVE_TEMPLATE_CS_AFTER'       : np.array([0.0030],dtype=np.float32),
-    # second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_SS_BEFORE'              : np.array([0.050], dtype=np.float32),
-    # second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_SS_AFTER'               : np.array([0.050], dtype=np.float32),
-    # second, default is 0.001s  or 1ms
-    'GLOBAL_XPROB_SS_BINSIZE'             : np.array([0.001], dtype=np.float32),
-    # second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_CS_BEFORE'              : np.array([0.050], dtype=np.float32),
-    # second, default is 0.050s  or 50ms
-    'GLOBAL_XPROB_CS_AFTER'               : np.array([0.050], dtype=np.float32),
-    # second, default is 0.001s  or 1ms
-    'GLOBAL_XPROB_CS_BINSIZE'             : np.array([0.001], dtype=np.float32),
-    # Hz, default is 0.0Hz
-    'GLOBAL_IFR_PLOT_SS_MIN'              : np.array([0.0],   dtype=np.float32),
-    # Hz, default is 200.0Hz
-    'GLOBAL_IFR_PLOT_SS_MAX'              : np.array([200.0], dtype=np.float32),
-    # Integer, number of bins, default is 50
-    'GLOBAL_IFR_PLOT_SS_BINNUM'           : np.array([50],    dtype=np.uint32),
-    # Hz, default is 0.0Hz
-    'GLOBAL_IFR_PLOT_CS_MIN'              : np.array([0.0],   dtype=np.float32),
-    # Hz, default is 2.0Hz
-    'GLOBAL_IFR_PLOT_CS_MAX'              : np.array([2.0],   dtype=np.float32),
-    # Integer, number of bins, default is 25
-    'GLOBAL_IFR_PLOT_CS_BINNUM'           : np.array([25],    dtype=np.uint32),
-    # second, default is 0.0005s or 0.5ms
-    'GLOBAL_CONFLICT_CS_SS_BEFORE'        : np.array([0.0005],dtype=np.float32),
-    # second, default is 0.0005s or 0.5ms
-    'GLOBAL_CONFLICT_CS_SS_AFTER'         : np.array([0.0005],dtype=np.float32),
-    # second, default is 0.0005s or 0.5ms
-    'GLOBAL_CONFLICT_SS_SS_AROUND'        : np.array([0.0005],dtype=np.float32),
-    # second, default is 0.005s  or 5ms
-    'GLOBAL_CONFLICT_CS_CS_AROUND'        : np.array([0.005], dtype=np.float32),
-    # second, default is 0.005s  or 5ms
-    'GLOBAL_CONFLICT_CS_CSSLOW_AROUND'    : np.array([0.005], dtype=np.float32),
-    # second, default is 0.005s  or 5ms
-    'GLOBAL_CONFLICT_CSSLOW_CSSLOW_AROUND': np.array([0.005], dtype=np.float32),
-    # second, default is 0.004s  or 4ms
-    'GLOBAL_CS_ALIGN_SSINDEX_BEFORE'      : np.array([0.004], dtype=np.float32),
-    # second, default is 0.004s  or 4ms
-    'GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE'   : np.array([0.004], dtype=np.float32),
-    # second, default is 0.001s  or 1ms
-    'GLOBAL_CS_ALIGN_SSTEMPLATE_AFTER'    : np.array([0.001], dtype=np.float32),
-    # second, default is 0.004s  or 4ms
-    'GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE'   : np.array([0.004], dtype=np.float32),
-    # second, default is 0.001s  or 1ms
-    'GLOBAL_CS_ALIGN_CSTEMPLATE_AFTER'    : np.array([0.001], dtype=np.float32),
-}
-def GLOBAL_check_variables(GLOBAL_DICT):
-    # GLOBAL_WAVE_PLOT_SS_BEFORE should be more than GLOBAL_WAVE_TEMPLATE_SS_BEFORE
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0] \
-            > GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] = \
-            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
-    # GLOBAL_WAVE_PLOT_CS_BEFORE should be more than GLOBAL_WAVE_TEMPLATE_CS_BEFORE
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0] > \
-            GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] = \
-            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
-    # GLOBAL_WAVE_PLOT_SS_AFTER should be more than GLOBAL_WAVE_TEMPLATE_SS_AFTER
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0] > \
-            GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_SS_AFTER'][0] = \
-            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
-    # GLOBAL_WAVE_PLOT_CS_AFTER should be more than GLOBAL_WAVE_TEMPLATE_CS_AFTER
-    if  GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0] > \
-            GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0]:
-        GLOBAL_DICT['GLOBAL_WAVE_PLOT_CS_AFTER'][0] = \
-            GLOBAL_DICT['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
-    return 0
-GLOBAL_check_variables(GLOBAL_DICT)
+nanLabel = -9999
 ## #############################################################################
 #%% Set widget Defaults
 def set_plotWidget(plot_widget, bkg=True):

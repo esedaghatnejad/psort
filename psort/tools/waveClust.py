@@ -15,7 +15,10 @@ from PyQt5.Qt import Qt
 import os
 import pyqtgraph as pg
 import numpy as np
+from copy import deepcopy
+from psort.utils import dictionaries
 from psort.utils import lib
+from psort.utils import signals_lib
 from psort.gui.inputDialog import PsortInputDialog
 from psort.gui.checkListDialog import PsortChecklistDialog
 
@@ -29,14 +32,7 @@ class WaveClustWidget(QWidget):
     def __init__(self, parent=None):
         super(WaveClustWidget, self).__init__(parent)
         self._workingDataBase = {}
-        from psort.gui.signals import PsortGuiSignals
-        self.PsortGuiSignals = PsortGuiSignals
-
-        self.list_color = ['k', 'b', 'r', 'g', 'c', 'm', 'y',\
-                           'k', 'b', 'r', 'g', 'c', 'm', 'y',\
-                           'k', 'b', 'r', 'g', 'c', 'm', 'y',\
-                           'k', 'b', 'r', 'g', 'c', 'm', 'y']
-
+        self.list_color = deepcopy(dictionaries.list_color)
         self._localDataBase = {
             'ss_index_labels':                  np.zeros((0), dtype=np.int32),
             'cs_index_labels':                  np.zeros((0), dtype=np.int32),
@@ -87,6 +83,7 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup_label = QGridLayout()
         # Method
         self.layout_scatterPlot_popup_mode0 = QHBoxLayout()
+        self.layout_scatterPlot_popup_mode5 = QHBoxLayout()
         # Spike of Interest
         self.layout_scatterPlot_popup_mode1 = QHBoxLayout()
         # SS Label of Interest
@@ -154,12 +151,12 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_applymethod.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'apply.png')))
         self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected Method')
 
-        self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset")
+        self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset labels")
         lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
         self.pushBtn_scatterPlot_popup_reset.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'reset.png')))
         self.pushBtn_scatterPlot_popup_reset.setToolTip('<b>R</b>eset')
 
-        self.pushBtn_scatterPlot_popup_selectatt = QPushButton("Select features")
+        self.pushBtn_scatterPlot_popup_selectatt = QPushButton("Features")
         lib.setFont(self.pushBtn_scatterPlot_popup_selectatt, color="black")
         self.pushBtn_scatterPlot_popup_selectatt.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'list.png')))
         self.pushBtn_scatterPlot_popup_selectatt.setToolTip('<b>F</b>eature Selection')
@@ -176,7 +173,7 @@ class WaveClustWidget(QWidget):
         self.label_scatterPlot_popup_cs_label = QLabel("Current CS cluster: ")
         lib.setFont(self.label_scatterPlot_popup_cs_label, color="black")
 
-        self.pushBtn_scatterPlot_popup_select_clust = QPushButton("Select cluster")
+        self.pushBtn_scatterPlot_popup_select_clust = QPushButton("Select")
         lib.setFont(self.pushBtn_scatterPlot_popup_select_clust, color="black")
         self.pushBtn_scatterPlot_popup_select_clust.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'select.png')))
         self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect Cluster")
@@ -290,47 +287,61 @@ class WaveClustWidget(QWidget):
         # Add action widgets
         self.layout_scatterPlot_popup_mode0.addWidget(self.label_scatterPlot_popup_method)
         self.layout_scatterPlot_popup_mode0.addWidget(self.comboBx_scatterPlot_popup_method)
+        self.layout_scatterPlot_popup_mode0.setStretch(0,0)
+        self.layout_scatterPlot_popup_mode0.setStretch(1,1)
         self.layout_scatterPlot_popup_mode0.setSpacing(1)
         self.layout_scatterPlot_popup_mode0.setContentsMargins(1,1,1,1)
 
         self.layout_scatterPlot_popup_mode1.addWidget(self.label_scatterPlot_popup_spike_of_interest)
         self.layout_scatterPlot_popup_mode1.addWidget(self.comboBx_scatterPlot_popup_spike_mode)
+        self.layout_scatterPlot_popup_mode1.setStretch(0,0)
+        self.layout_scatterPlot_popup_mode1.setStretch(1,1)
         self.layout_scatterPlot_popup_mode1.setSpacing(1)
         self.layout_scatterPlot_popup_mode1.setContentsMargins(1,1,1,1)
 
         self.layout_scatterPlot_popup_mode2.addWidget(self.label_scatterPlot_popup_ss_label)
         self.layout_scatterPlot_popup_mode2.addWidget(self.comboBx_scatterPlot_popup_ss_label)
+        self.layout_scatterPlot_popup_mode2.setStretch(0,0)
+        self.layout_scatterPlot_popup_mode2.setStretch(1,1)
         self.layout_scatterPlot_popup_mode2.setSpacing(1)
         self.layout_scatterPlot_popup_mode2.setContentsMargins(1,1,1,1)
 
         self.layout_scatterPlot_popup_mode3.addWidget(self.label_scatterPlot_popup_cs_label)
         self.layout_scatterPlot_popup_mode3.addWidget(self.comboBx_scatterPlot_popup_cs_label)
+        self.layout_scatterPlot_popup_mode3.setStretch(0,0)
+        self.layout_scatterPlot_popup_mode3.setStretch(1,1)
         self.layout_scatterPlot_popup_mode3.setSpacing(1)
         self.layout_scatterPlot_popup_mode3.setContentsMargins(1,1,1,1)
 
         self.layout_scatterPlot_popup_mode4.addWidget(self.pushBtn_scatterPlot_popup_prev_clust)
         self.layout_scatterPlot_popup_mode4.addWidget(self.pushBtn_scatterPlot_popup_next_clust)
+        self.layout_scatterPlot_popup_mode4.addWidget(self.pushBtn_scatterPlot_popup_select_clust)
         self.layout_scatterPlot_popup_mode4.setSpacing(1)
         self.layout_scatterPlot_popup_mode4.setContentsMargins(1,1,1,1)
 
+        self.layout_scatterPlot_popup_mode5.addWidget(self.pushBtn_scatterPlot_popup_selectatt)
+        self.layout_scatterPlot_popup_mode5.addWidget(self.pushBtn_scatterPlot_popup_applymethod)
+        self.layout_scatterPlot_popup_mode5.setStretch(0,0)
+        self.layout_scatterPlot_popup_mode5.setStretch(1,1)
+        self.layout_scatterPlot_popup_mode5.setSpacing(1)
+        self.layout_scatterPlot_popup_mode5.setContentsMargins(1,1,1,1)
+
         self.layout_scatterPlot_popup_clust.addLayout(self.layout_scatterPlot_popup_mode0,             0, 0)
-        self.layout_scatterPlot_popup_clust.addWidget(self.pushBtn_scatterPlot_popup_applymethod,      0, 1)
-        self.layout_scatterPlot_popup_clust.addWidget(self.pushBtn_scatterPlot_popup_selectatt,        1, 0)
-        self.layout_scatterPlot_popup_clust.addWidget(self.pushBtn_scatterPlot_popup_reset,            1, 1)
+        self.layout_scatterPlot_popup_clust.addLayout(self.layout_scatterPlot_popup_mode5,        1, 0)
         self.layout_scatterPlot_popup_clust.setSpacing(1)
         self.layout_scatterPlot_popup_clust.setContentsMargins(1,1,1,1)
 
         self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_select,      0, 0)
         self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_delete,      0, 1)
-        self.layout_scatterPlot_popup_spike.addLayout(self.layout_scatterPlot_popup_mode1,        0, 2)
+        self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_setlabel,        0, 2)
         self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_clear,       1, 0)
         self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_move,        1, 1)
-        self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_setlabel,    1, 2)
+        self.layout_scatterPlot_popup_spike.addWidget(self.pushBtn_scatterPlot_popup_reset,    1, 2)
         self.layout_scatterPlot_popup_spike.setSpacing(1)
         self.layout_scatterPlot_popup_spike.setContentsMargins(1,1,1,1)
 
         self.layout_scatterPlot_popup_label.addLayout(self.layout_scatterPlot_popup_mode2,             0, 0)
-        self.layout_scatterPlot_popup_label.addWidget(self.pushBtn_scatterPlot_popup_select_clust,     0, 1)
+        self.layout_scatterPlot_popup_label.addLayout(self.layout_scatterPlot_popup_mode1,     0, 1)
         self.layout_scatterPlot_popup_label.addLayout(self.layout_scatterPlot_popup_mode3,             1, 0)
         self.layout_scatterPlot_popup_label.addLayout(self.layout_scatterPlot_popup_mode4,             1, 1)
         self.layout_scatterPlot_popup_label.setSpacing(1)
@@ -343,6 +354,13 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup_actionBtn.addStretch()
         self.layout_scatterPlot_popup_actionBtn.addWidget(self.line_scatterPlot_popup_v2)
         self.layout_scatterPlot_popup_actionBtn.addLayout(self.layout_scatterPlot_popup_label)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(0,0)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(1,0)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(2,0)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(3,0)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(4,1)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(5,0)
+        self.layout_scatterPlot_popup_actionBtn.setStretch(6,0)
         self.layout_scatterPlot_popup_actionBtn.setSpacing(1)
         self.layout_scatterPlot_popup_actionBtn.setContentsMargins(1,1,1,1)
 
@@ -521,13 +539,13 @@ class WaveClustWidget(QWidget):
             current_WAVE_TEMPLATE_AFTER = "GLOBAL_WAVE_TEMPLATE_CS_AFTER"
 
         self.infLine_waveform_minPca = \
-            pg.InfiniteLine(pos=-lib.GLOBAL_DICT[current_WAVE_TEMPLATE_BEFORE][0]*1000.,
+            pg.InfiniteLine(pos=-dictionaries.GLOBAL_DICT[current_WAVE_TEMPLATE_BEFORE][0]*1000.,
                         angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='minPca', labelOpts={'position':0.90})
         self.plot_popup_waveform.\
             addItem(self.infLine_waveform_minPca, ignoreBounds=False)
         self.infLine_waveform_maxPca = \
-            pg.InfiniteLine(pos=lib.GLOBAL_DICT[current_WAVE_TEMPLATE_AFTER][0]*1000.,
+            pg.InfiniteLine(pos=dictionaries.GLOBAL_DICT[current_WAVE_TEMPLATE_AFTER][0]*1000.,
                         angle=90, pen=(100,100,255,255),
                         movable=True, hoverPen='g', label='maxPca', labelOpts={'position':0.95})
         self.plot_popup_waveform.\
@@ -670,11 +688,11 @@ class WaveClustWidget(QWidget):
             self.infLine_waveform_maxPca.value()/1000.
 
         if self._localDataBase['is_ss']:
-            self.PsortGuiSignals.extract_ss_pca(self)
-            self.PsortGuiSignals.extract_ss_scatter(self)
+            signals_lib.extract_ss_pca(self._workingDataBase)
+            signals_lib.extract_ss_scatter(self._workingDataBase)
         else:
-            self.PsortGuiSignals.extract_cs_pca(self)
-            self.PsortGuiSignals.extract_cs_scatter(self)
+            signals_lib.extract_cs_pca(self._workingDataBase)
+            signals_lib.extract_cs_scatter(self._workingDataBase)
 
         self.comboBx_scatterPlot_PcaNum1_Changed()
         self.comboBx_scatterPlot_PcaNum2_Changed()
@@ -715,11 +733,11 @@ class WaveClustWidget(QWidget):
             self.infLine_waveform_maxPca.value()/1000.
 
         if self._localDataBase['is_ss']:
-            self.PsortGuiSignals.extract_ss_pca(self)
-            self.PsortGuiSignals.extract_ss_scatter(self)
+            signals_lib.extract_ss_pca(self._workingDataBase)
+            signals_lib.extract_ss_scatter(self._workingDataBase)
         else:
-            self.PsortGuiSignals.extract_cs_pca(self)
-            self.PsortGuiSignals.extract_cs_scatter(self)
+            signals_lib.extract_cs_pca(self._workingDataBase)
+            signals_lib.extract_cs_scatter(self._workingDataBase)
 
         self.comboBx_scatterPlot_PcaNum1_Changed()
         self.comboBx_scatterPlot_PcaNum2_Changed()
@@ -1205,23 +1223,23 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.update_ss_labels()
-            self.PsortGuiSignals.extract_ss_peak(self)
-            self.PsortGuiSignals.extract_ss_waveform(self)
-            self.PsortGuiSignals.extract_ss_similarity(self)
-            self.PsortGuiSignals.extract_ss_ifr(self)
-            self.PsortGuiSignals.extract_ss_time(self)
-            self.PsortGuiSignals.extract_ss_pca(self)
-            self.PsortGuiSignals.extract_ss_scatter(self)
+            signals_lib.extract_ss_peak(self._workingDataBase)
+            signals_lib.extract_ss_waveform(self._workingDataBase)
+            signals_lib.extract_ss_similarity(self._workingDataBase)
+            signals_lib.extract_ss_ifr(self._workingDataBase)
+            signals_lib.extract_ss_time(self._workingDataBase)
+            signals_lib.extract_ss_pca(self._workingDataBase)
+            signals_lib.extract_ss_scatter(self._workingDataBase)
             self.make_ss_label_list()
         else:
             self.update_cs_labels()
-            self.PsortGuiSignals.extract_cs_peak(self)
-            self.PsortGuiSignals.extract_cs_waveform(self)
-            self.PsortGuiSignals.extract_cs_similarity(self)
-            self.PsortGuiSignals.extract_cs_ifr(self)
-            self.PsortGuiSignals.extract_cs_time(self)
-            self.PsortGuiSignals.extract_cs_pca(self)
-            self.PsortGuiSignals.extract_cs_scatter(self)
+            signals_lib.extract_cs_peak(self._workingDataBase)
+            signals_lib.extract_cs_waveform(self._workingDataBase)
+            signals_lib.extract_cs_similarity(self._workingDataBase)
+            signals_lib.extract_cs_ifr(self._workingDataBase)
+            signals_lib.extract_cs_time(self._workingDataBase)
+            signals_lib.extract_cs_pca(self._workingDataBase)
+            signals_lib.extract_cs_scatter(self._workingDataBase)
             self.make_cs_label_list()
 
         # Reset and remove ROI from the plot
@@ -1275,26 +1293,26 @@ class WaveClustWidget(QWidget):
             np.zeros((self._workingDataBase["cs_index"].sum(),),
                           dtype=np.bool)
 
-        self.PsortGuiSignals.extract_ss_peak(self)
-        self.PsortGuiSignals.extract_cs_peak(self)
+        signals_lib.extract_ss_peak(self._workingDataBase)
+        signals_lib.extract_cs_peak(self._workingDataBase)
 
-        self.PsortGuiSignals.extract_ss_waveform(self)
-        self.PsortGuiSignals.extract_cs_waveform(self)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
 
-        self.PsortGuiSignals.extract_ss_similarity(self)
-        self.PsortGuiSignals.extract_cs_similarity(self)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
 
-        self.PsortGuiSignals.extract_ss_ifr(self)
-        self.PsortGuiSignals.extract_cs_ifr(self)
+        signals_lib.extract_ss_ifr(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
 
-        self.PsortGuiSignals.extract_ss_time(self)
-        self.PsortGuiSignals.extract_cs_time(self)
+        signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
 
-        self.PsortGuiSignals.extract_ss_pca(self)
-        self.PsortGuiSignals.extract_cs_pca(self)
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
 
-        self.PsortGuiSignals.extract_ss_scatter(self)
-        self.PsortGuiSignals.extract_cs_scatter(self)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
 
         self.make_ss_label_list()
         self.make_cs_label_list()
@@ -1534,10 +1552,10 @@ class WaveClustWidget(QWidget):
             return 0
         _ss_index_bool[_ss_index_selected_int] = False
         _cs_index_bool[_ss_index_selected_int] = True
-        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+        signals_lib.resolve_ss_ss_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
 
         self.update_ss_labels()
         self.update_cs_labels()
@@ -1553,10 +1571,10 @@ class WaveClustWidget(QWidget):
             return 0
         _cs_index_bool[_cs_index_selected_int] = False
         _ss_index_bool[_cs_index_selected_int] = True
-        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+        signals_lib.resolve_ss_ss_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
 
         self.update_ss_labels()
         self.update_cs_labels()
@@ -1795,10 +1813,10 @@ class WaveClustWidget(QWidget):
             if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
                 self._workingDataBase['cs_pca2_index'][0] -= 3
 
-        self.PsortGuiSignals.extract_ss_pca(self)
-        self.PsortGuiSignals.extract_cs_pca(self)
-        self.PsortGuiSignals.extract_ss_scatter(self)
-        self.PsortGuiSignals.extract_cs_scatter(self)
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.make_scatter_list()
         self.make_clust_centers()
         self.comboBx_scatterPlot_PcaNum1_Changed()

@@ -13,6 +13,7 @@ import pyqtgraph as pg
 import numpy as np
 from copy import deepcopy
 from psort.utils import lib
+from psort.utils import dictionaries
 from psort.gui.inputDialog import PsortInputDialog
 ## #############################################################################
 #%% ScatterSelectWidget
@@ -20,7 +21,7 @@ class ScatterSelectWidget(QWidget):
     def __init__(self, parent=None):
         super(ScatterSelectWidget, self).__init__(parent)
         self._workingDataBase = {}
-        self.list_color = deepcopy(lib.list_color)
+        self.list_color = deepcopy(dictionaries.list_color)
         self.input_dialog = PsortInputDialog(self)
         self.build_scatterSelect_Widget()
         self.connect_scatterSelect_signals()

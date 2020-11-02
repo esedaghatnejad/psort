@@ -17,7 +17,9 @@ import datetime
 import time
 import sys
 import decorator
+from psort.utils import dictionaries
 from psort.utils import lib
+from psort.utils import signals_lib
 from psort.utils import database
 from psort.utils.database import PsortDataBase
 from psort.gui.widgets import PsortGuiWidget
@@ -32,93 +34,6 @@ from psort.tools.waveClust import WaveClustWidget
 
 ## ################################################################################################
 ## ################################################################################################
-#%% GLOBAL VARIABLES
-_workingDataBase = {
-    'total_slot_num':         np.full( (1), 30, dtype=np.uint32),
-    'current_slot_num':       np.zeros((1), dtype=np.uint32),
-    'total_slot_isAnalyzed':  np.zeros((1), dtype=np.uint32),
-    'sample_rate':            np.zeros((1), dtype=np.uint32),
-    'ch_time':                np.zeros((0), dtype=np.float64),
-    'ch_data':                np.zeros((0), dtype=np.float64),
-    'ch_data_cs':             np.zeros((0), dtype=np.float64),
-    'ch_data_ss':             np.zeros((0), dtype=np.float64),
-    'ss_index':               np.zeros((0), dtype=np.bool),
-    'cs_index_slow':          np.zeros((0), dtype=np.bool),
-    'cs_index':               np.zeros((0), dtype=np.bool),
-    'ss_peak':                np.zeros((0), dtype=np.float32),
-    'cs_peak':                np.zeros((0), dtype=np.float32),
-    'ss_wave':                np.zeros((0, 0), dtype=np.float32),
-    'ss_wave_span':           np.zeros((0, 0), dtype=np.float32),
-    'cs_wave':                np.zeros((0, 0), dtype=np.float32),
-    'cs_wave_span':           np.zeros((0, 0), dtype=np.float32),
-    'ss_ifr':                 np.zeros((0), dtype=np.float32),
-    'ss_ifr_mean':            np.zeros((1), dtype=np.float32),
-    'ss_ifr_hist':            np.zeros((0), dtype=np.float32),
-    'ss_ifr_bins':            np.zeros((0), dtype=np.float32),
-    'cs_ifr':                 np.zeros((0), dtype=np.float32),
-    'cs_ifr_mean':            np.zeros((1), dtype=np.float32),
-    'cs_ifr_hist':            np.zeros((0), dtype=np.float32),
-    'cs_ifr_bins':            np.zeros((0), dtype=np.float32),
-    'ss_xprob':               np.zeros((0), dtype=np.float32),
-    'ss_xprob_span':          np.zeros((0), dtype=np.float32),
-    'cs_xprob':               np.zeros((0), dtype=np.float32),
-    'cs_xprob_span':          np.zeros((0), dtype=np.float32),
-    'ss_pca_variance':        np.zeros((0), dtype=np.float32),
-    'ss_pca1':                np.zeros((0), dtype=np.float32),
-    'ss_pca2':                np.zeros((0), dtype=np.float32),
-    'ss_pca3':                np.zeros((0), dtype=np.float32),
-    'ss_umap1':               np.zeros((0), dtype=np.float32),
-    'ss_umap2':               np.zeros((0), dtype=np.float32),
-    'cs_pca_variance':        np.zeros((0), dtype=np.float32),
-    'cs_pca1':                np.zeros((0), dtype=np.float32),
-    'cs_pca2':                np.zeros((0), dtype=np.float32),
-    'cs_pca3':                np.zeros((0), dtype=np.float32),
-    'cs_umap1':               np.zeros((0), dtype=np.float32),
-    'cs_umap2':               np.zeros((0), dtype=np.float32),
-    'ss_time':                np.zeros((0), dtype=np.float32),
-    'ss_time_to_prev_ss':     np.zeros((0), dtype=np.float32),
-    'ss_time_to_next_ss':     np.zeros((0), dtype=np.float32),
-    'ss_time_to_prev_cs':     np.zeros((0), dtype=np.float32),
-    'ss_time_to_next_cs':     np.zeros((0), dtype=np.float32),
-    'cs_time':                np.zeros((0), dtype=np.float32),
-    'cs_time_to_prev_ss':     np.zeros((0), dtype=np.float32),
-    'cs_time_to_next_ss':     np.zeros((0), dtype=np.float32),
-    'cs_time_to_prev_cs':     np.zeros((0), dtype=np.float32),
-    'cs_time_to_next_cs':     np.zeros((0), dtype=np.float32),
-    'ss_similarity_to_ss':    np.zeros((0), dtype=np.float32),
-    'ss_similarity_to_cs':    np.zeros((0), dtype=np.float32),
-    'cs_similarity_to_cs':    np.zeros((0), dtype=np.float32),
-    'cs_similarity_to_ss':    np.zeros((0), dtype=np.float32),
-    'ss_scatter_mat':         np.zeros((0, 0), dtype=np.float32),
-    'ss_scatter_list':        np.array(['comboBx_list'],   dtype=np.unicode),
-    'ss_scatter1':            np.zeros((0), dtype=np.float32),
-    'ss_scatter2':            np.zeros((0), dtype=np.float32),
-    'cs_scatter_mat':         np.zeros((0, 0), dtype=np.float32),
-    'cs_scatter_list':        np.array(['comboBx_list'],   dtype=np.unicode),
-    'cs_scatter1':            np.zeros((0), dtype=np.float32),
-    'cs_scatter2':            np.zeros((0), dtype=np.float32),
-    'umap_enable':            np.array([False], dtype=np.bool),
-    'popUp_ROI_x':            np.zeros((0), dtype=np.float32),
-    'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
-    'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
-    'flag_index_detection':   np.array([True], dtype=np.bool),
-    'flag_tools_prefrences':   np.array([False],dtype=np.bool),
-    'ss_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
-    'cs_index_slow_undoRedo': np.zeros((0,0), dtype=np.bool),
-    'cs_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
-    'index_undoRedo':         np.zeros((1), dtype=np.int),
-    'length_undoRedo':        np.zeros((1), dtype=np.int),
-    'batch_size_undoRedo':    np.full( (1), 20, dtype=np.uint32),
-}
-
-for key in database._singleSlotDataBase.keys():
-    _workingDataBase[key] = deepcopy(database._singleSlotDataBase[key])
-
-_fileDataBase = {
-    'load_file_fullPath': np.array([''], dtype=np.unicode),
-    'save_file_fullPath': np.array([''], dtype=np.unicode),
-    'isCommonAverage':    np.zeros((1), dtype=np.bool),
-}
 
 flag_color_toggle = True
 @decorator.decorator
@@ -146,13 +61,12 @@ def showWaitCursor(func, *args, **kwargs):
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
         super(PsortGuiSignals, self).__init__(parent)
-        self.list_color = deepcopy(lib.list_color)
         self.input_dialog = PsortInputDialog(self)
         self.psortDataBase = PsortDataBase()
         self.loadData = lib.LoadData()
         self.saveData = lib.SaveData()
-        self._fileDataBase = deepcopy(_fileDataBase)
-        self._workingDataBase = deepcopy(_workingDataBase)
+        self._fileDataBase = deepcopy(dictionaries._fileDataBase)
+        self._workingDataBase = deepcopy(dictionaries._workingDataBase)
         self.init_plots()
         self.connect_menubar_signals()
         self.connect_toolbar_signals()
@@ -177,32 +91,32 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase['isAnalyzed'][0]:
             self.update_guiWidgets_from_guiDataBase()
         self.update_guiDataBase_from_guiWidgets()
-        self.filter_data()
+        signals_lib.filter_data(self._workingDataBase)
         if self._workingDataBase['flag_index_detection'][0]:
-            self.detect_ss_index()
-            self.detect_cs_index_slow()
-            self.align_cs()
+            signals_lib.detect_ss_index(self._workingDataBase)
+            signals_lib.detect_cs_index_slow(self._workingDataBase)
+            signals_lib.align_cs(self._workingDataBase)
             self.undoRedo_add()
         else:
             self._workingDataBase['flag_index_detection'][0] = True
-        self.reset_cs_ROI()
-        self.reset_ss_ROI()
-        self.extract_ss_peak()
-        self.extract_cs_peak()
-        self.extract_ss_waveform()
-        self.extract_cs_waveform()
-        self.extract_ss_similarity()
-        self.extract_cs_similarity()
-        self.extract_ss_ifr()
-        self.extract_cs_ifr()
-        self.extract_ss_time()
-        self.extract_cs_time()
-        self.extract_ss_xprob()
-        self.extract_cs_xprob()
-        self.extract_ss_pca()
-        self.extract_cs_pca()
-        self.extract_ss_scatter()
-        self.extract_cs_scatter()
+        signals_lib.reset_cs_ROI(self._workingDataBase)
+        signals_lib.reset_ss_ROI(self._workingDataBase)
+        signals_lib.extract_ss_peak(self._workingDataBase)
+        signals_lib.extract_cs_peak(self._workingDataBase)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_ss_ifr(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
+        signals_lib.extract_ss_xprob(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=False)
@@ -223,7 +137,7 @@ class PsortGuiSignals(PsortGuiWidget):
 ## ################################################################################################
 #%% INIT FUNCTIONS
     def init_workingDataBase(self):
-        self._workingDataBase = deepcopy(_workingDataBase)
+        self._workingDataBase = deepcopy(dictionaries._workingDataBase)
         self.txtedit_toolbar_slotNumCurrent.valueChanged.\
             disconnect(self.onToolbar_slotNumCurrent_ValueChanged)
         self.txtedit_toolbar_slotNumCurrent.setValue(1)
@@ -782,7 +696,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase[key][0] = np.cast[np.uint32](value)
             else:
                 self._workingDataBase[key][0] = np.cast[np.float32](value)
-        lib.GLOBAL_check_variables(self._workingDataBase)
+        dictionaries.GLOBAL_check_variables(self._workingDataBase)
         self._workingDataBase['flag_tools_prefrences'][0] = True
         self.onInfLineSsWaveMinPca_positionChangeFinished()
         self.onInfLineSsWaveMaxPca_positionChangeFinished()
@@ -817,10 +731,10 @@ class PsortGuiSignals(PsortGuiWidget):
                 self._workingDataBase['cs_pca1_index'][0] -= 3
             if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
                 self._workingDataBase['cs_pca2_index'][0] -= 3
-        self.extract_ss_pca()
-        self.extract_cs_pca()
-        self.extract_ss_scatter()
-        self.extract_cs_scatter()
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_ss_pca()
@@ -910,8 +824,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['ss_pca_bound_max'][0] = \
             self.infLine_SsWave_maxPca.value()/1000.
         if not(self._workingDataBase['flag_tools_prefrences'][0]):
-            self.extract_ss_pca()
-            self.extract_ss_scatter()
+            signals_lib.extract_ss_pca(self._workingDataBase)
+            signals_lib.extract_ss_scatter(self._workingDataBase)
             self.update_SSPcaNum_comboBx()
             self.plot_ss_pca()
         return 0
@@ -941,8 +855,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['ss_pca_bound_max'][0] = \
             self.infLine_SsWave_maxPca.value()/1000.
         if not(self._workingDataBase['flag_tools_prefrences'][0]):
-            self.extract_ss_pca()
-            self.extract_ss_scatter()
+            signals_lib.extract_ss_pca(self._workingDataBase)
+            signals_lib.extract_ss_scatter(self._workingDataBase)
             self.update_SSPcaNum_comboBx()
             self.plot_ss_pca()
         return 0
@@ -972,8 +886,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
         if not(self._workingDataBase['flag_tools_prefrences'][0]):
-            self.extract_cs_pca()
-            self.extract_cs_scatter()
+            signals_lib.extract_cs_pca(self._workingDataBase)
+            signals_lib.extract_cs_scatter(self._workingDataBase)
             self.update_CSPcaNum_comboBx()
             self.plot_cs_pca()
         return 0
@@ -1003,8 +917,8 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase['cs_pca_bound_max'][0] = \
             self.infLine_CsWave_maxPca.value()/1000.
         if not(self._workingDataBase['flag_tools_prefrences'][0]):
-            self.extract_cs_pca()
-            self.extract_cs_scatter()
+            signals_lib.extract_cs_pca(self._workingDataBase)
+            signals_lib.extract_cs_scatter(self._workingDataBase)
             self.update_CSPcaNum_comboBx()
             self.plot_cs_pca()
         return 0
@@ -1132,7 +1046,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onRawSignal_SsAutoThresh_Clicked(self):
         if self._workingDataBase['ch_data_ss'].size < 1:
-            self.filter_data()
+            signals_lib.filter_data(self._workingDataBase)
         _ss_index = lib.find_peaks(
                 self._workingDataBase['ch_data_ss'],
                 threshold=0.0,
@@ -1158,7 +1072,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onRawSignal_CsAutoThresh_Clicked(self):
         if self._workingDataBase['ch_data_cs'].size < 1:
-            self.filter_data()
+            signals_lib.filter_data(self._workingDataBase)
         _cs_index = lib.find_peaks(
                 self._workingDataBase['ch_data_cs'],
                 threshold=0.0,
@@ -1194,7 +1108,7 @@ class PsortGuiSignals(PsortGuiWidget):
             doubleSpinBx_params['value'] = 2.
             doubleSpinBx_params['dec'] = 0
             doubleSpinBx_params['step'] = 1.
-            doubleSpinBx_params['max'] = len(self.list_color)
+            doubleSpinBx_params['max'] = 10
             doubleSpinBx_params['min'] = 2.
             doubleSpinBx_params['okDefault'] = True
             self.input_dialog = PsortInputDialog(self, \
@@ -1218,7 +1132,7 @@ class PsortGuiSignals(PsortGuiWidget):
             doubleSpinBx_params['value'] = 2.
             doubleSpinBx_params['dec'] = 0
             doubleSpinBx_params['step'] = 1.
-            doubleSpinBx_params['max'] = len(self.list_color)
+            doubleSpinBx_params['max'] = 10
             doubleSpinBx_params['min'] = 2.
             doubleSpinBx_params['okDefault'] = True
             self.input_dialog = PsortInputDialog(self, \
@@ -1253,11 +1167,11 @@ class PsortGuiSignals(PsortGuiWidget):
             self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.setChecked(False)
         self._workingDataBase['ssLearnTemp_mode'][0] = \
             self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
-        self.extract_ss_template()
-        self.extract_ss_similarity()
-        self.extract_cs_similarity()
-        self.extract_ss_scatter()
-        self.extract_cs_scatter()
+        signals_lib.extract_ss_template(self._workingDataBase)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
@@ -1271,11 +1185,11 @@ class PsortGuiSignals(PsortGuiWidget):
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(False)
         self._workingDataBase['csLearnTemp_mode'][0] = \
             self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
-        self.extract_cs_template()
-        self.extract_ss_similarity()
-        self.extract_cs_similarity()
-        self.extract_ss_scatter()
-        self.extract_cs_scatter()
+        signals_lib.extract_cs_template(self._workingDataBase)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
@@ -1284,7 +1198,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     # @showWaitCursor
     def onSsPanel_deselect_Clicked(self):
-        self.reset_ss_ROI(forced_reset = True)
+        signals_lib.reset_ss_ROI(self._workingDataBase, forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_waveform()
         self.plot_ss_pca()
@@ -1292,7 +1206,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     # @showWaitCursor
     def onCsPanel_deselect_Clicked(self):
-        self.reset_cs_ROI(forced_reset = True)
+        signals_lib.reset_cs_ROI(self._workingDataBase, forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_waveform()
         self.plot_cs_pca()
@@ -1305,16 +1219,16 @@ class PsortGuiSignals(PsortGuiWidget):
         _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
         _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
         self._workingDataBase['ss_index'][_ss_index_selected_int] = False
-        self.reset_ss_ROI(forced_reset = True)
-        self.extract_ss_peak()
-        self.extract_ss_waveform()
-        self.extract_ss_similarity()
-        self.extract_ss_ifr()
-        self.extract_ss_time()
-        self.extract_ss_xprob()
-        self.extract_cs_xprob()
-        self.extract_ss_pca()
-        self.extract_ss_scatter()
+        signals_lib.reset_ss_ROI(self._workingDataBase, forced_reset = True)
+        signals_lib.extract_ss_peak(self._workingDataBase)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_ss_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_ss_xprob(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
@@ -1338,15 +1252,15 @@ class PsortGuiSignals(PsortGuiWidget):
         _cs_index_slow_selected_int = \
             _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
         self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
-        self.reset_cs_ROI(forced_reset = True)
-        self.extract_cs_peak()
-        self.extract_cs_waveform()
-        self.extract_cs_similarity()
-        self.extract_cs_ifr()
-        self.extract_cs_time()
-        self.extract_cs_xprob()
-        self.extract_cs_pca()
-        self.extract_cs_scatter()
+        signals_lib.reset_cs_ROI(self._workingDataBase, forced_reset = True)
+        signals_lib.extract_cs_peak(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
@@ -1365,16 +1279,16 @@ class PsortGuiSignals(PsortGuiWidget):
         _ss_index_selected_int = _ss_index_int[\
                     np.logical_not(self._workingDataBase['ss_index_selected'])]
         self._workingDataBase['ss_index'][_ss_index_selected_int] = False
-        self.reset_ss_ROI(forced_reset = True)
-        self.extract_ss_peak()
-        self.extract_ss_waveform()
-        self.extract_ss_similarity()
-        self.extract_ss_ifr()
-        self.extract_ss_time()
-        self.extract_ss_xprob()
-        self.extract_cs_xprob()
-        self.extract_ss_pca()
-        self.extract_ss_scatter()
+        signals_lib.reset_ss_ROI(self._workingDataBase, forced_reset = True)
+        signals_lib.extract_ss_peak(self._workingDataBase)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_ss_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_ss_xprob(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
@@ -1398,15 +1312,15 @@ class PsortGuiSignals(PsortGuiWidget):
         _cs_index_slow_selected_int = _cs_index_slow_int[\
                     np.logical_not(self._workingDataBase['cs_index_selected'])]
         self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
-        self.reset_cs_ROI(forced_reset = True)
-        self.extract_cs_peak()
-        self.extract_cs_waveform()
-        self.extract_cs_similarity()
-        self.extract_cs_ifr()
-        self.extract_cs_time()
-        self.extract_cs_xprob()
-        self.extract_cs_pca()
-        self.extract_cs_scatter()
+        signals_lib.reset_cs_ROI(self._workingDataBase, forced_reset = True)
+        signals_lib.extract_cs_peak(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
@@ -1421,7 +1335,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def onSsPanel_moveToCs_Clicked(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
-        self.move_selected_from_ss_to_cs()
+        signals_lib.move_selected_from_ss_to_cs(self._workingDataBase)
         self.undoRedo_updatePlots()
         self.undoRedo_add()
         return 0
@@ -1430,7 +1344,7 @@ class PsortGuiSignals(PsortGuiWidget):
     def onCsPanel_moveToSs_Clicked(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
-        self.move_selected_from_cs_to_ss()
+        signals_lib.move_selected_from_cs_to_ss(self._workingDataBase)
         self.undoRedo_updatePlots()
         self.undoRedo_add()
         return 0
@@ -1590,7 +1504,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.transfer_data_from_psortDataBase_to_guiSignals()
         if not(file_ext=='.psort'):
             self.update_guiDataBase_from_guiWidgets()
-            self.filter_data()
+            signals_lib.filter_data(self._workingDataBase)
             self.onRawSignal_SsAutoThresh_Clicked()
             self.onRawSignal_CsAutoThresh_Clicked()
             self.undoRedo_reset()
@@ -1976,24 +1890,24 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def undoRedo_updatePlots(self):
-        self.reset_ss_ROI(forced_reset = True)
-        self.reset_cs_ROI(forced_reset = True)
-        self.extract_ss_peak()
-        self.extract_cs_peak()
-        self.extract_ss_waveform()
-        self.extract_cs_waveform()
-        self.extract_ss_similarity()
-        self.extract_cs_similarity()
-        self.extract_ss_ifr()
-        self.extract_cs_ifr()
-        self.extract_ss_time()
-        self.extract_cs_time()
-        self.extract_ss_xprob()
-        self.extract_cs_xprob()
-        self.extract_ss_pca()
-        self.extract_cs_pca()
-        self.extract_ss_scatter()
-        self.extract_cs_scatter()
+        signals_lib.reset_ss_ROI(self._workingDataBase, forced_reset = True)
+        signals_lib.reset_cs_ROI(self._workingDataBase, forced_reset = True)
+        signals_lib.extract_ss_peak(self._workingDataBase)
+        signals_lib.extract_cs_peak(self._workingDataBase)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
+        signals_lib.extract_ss_similarity(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_ss_ifr(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
+        signals_lib.extract_ss_xprob(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_ss_pca(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
@@ -2324,7 +2238,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.transfer_data_from_psortDataBase_to_guiSignals()
         self.update_guiWidgets_from_guiDataBase()
         self.update_guiDataBase_from_guiWidgets()
-        self.filter_data()
+        signals_lib.filter_data(self._workingDataBase)
         self.onRawSignal_SsAutoThresh_Clicked()
         self.onRawSignal_CsAutoThresh_Clicked()
         self.undoRedo_reset()
@@ -2418,930 +2332,6 @@ class PsortGuiSignals(PsortGuiWidget):
 
 ## ################################################################################################
 ## ################################################################################################
-#%% DATA MANAGEMENT
-    # @showWaitCursor
-    def filter_data(self):
-        self._workingDataBase['ch_data_ss'] = \
-            lib.bandpass_filter(
-                self._workingDataBase['ch_data'],
-                sample_rate=self._workingDataBase['sample_rate'][0],
-                lo_cutoff_freq=self._workingDataBase['ss_min_cutoff_freq'][0],
-                hi_cutoff_freq=self._workingDataBase['ss_max_cutoff_freq'][0])
-        self._workingDataBase['ch_data_cs'] = \
-            lib.bandpass_filter(
-                self._workingDataBase['ch_data'],
-                sample_rate=self._workingDataBase['sample_rate'][0],
-                lo_cutoff_freq=self._workingDataBase['cs_min_cutoff_freq'][0],
-                hi_cutoff_freq=self._workingDataBase['cs_max_cutoff_freq'][0])
-        return 0
-    # @showWaitCursor
-    def detect_ss_index(self):
-        self._workingDataBase['ss_index'] = \
-            lib.find_peaks(
-                self._workingDataBase['ch_data_ss'],
-                threshold=self._workingDataBase['ss_threshold'][0],
-                peakType=self._workingDataBase['ssPeak_mode'][0])
-        self.resolve_ss_ss_conflicts()
-        return 0
-    # @showWaitCursor
-    def detect_cs_index_slow(self):
-        self._workingDataBase['cs_index_slow'] = \
-            lib.find_peaks(
-                self._workingDataBase['ch_data_cs'],
-                threshold=self._workingDataBase['cs_threshold'][0],
-                peakType=self._workingDataBase['csPeak_mode'][0])
-        self.resolve_cs_slow_cs_slow_conflicts()
-        return 0
-    # @showWaitCursor
-    def align_cs(self):
-        if self._workingDataBase['csAlign_mode'] == np.array(['ss_index'], dtype=np.unicode):
-            self.align_cs_wrt_ss_index()
-        elif self._workingDataBase['csAlign_mode'] == np.array(['ss_temp'], dtype=np.unicode):
-            self.align_cs_wrt_ss_temp()
-        elif self._workingDataBase['csAlign_mode'] == np.array(['cs_temp'], dtype=np.unicode):
-            self.align_cs_wrt_cs_temp()
-        self.resolve_cs_cs_conflicts()
-        self.resolve_cs_cs_slow_conflicts()
-        self.resolve_cs_ss_conflicts()
-        return 0
-
-    def align_cs_wrt_ss_index(self):
-        win_look_before = self._workingDataBase['GLOBAL_CS_ALIGN_SSINDEX_BEFORE'][0]
-        window_len_before = int(win_look_before * self._workingDataBase['sample_rate'][0])
-        _cs_index_slow = self._workingDataBase['cs_index_slow']
-        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
-        self._workingDataBase['cs_index'] = \
-            np.zeros((_cs_index_slow.size), dtype=np.bool)
-        _cs_index = self._workingDataBase['cs_index']
-        _ss_index = self._workingDataBase['ss_index']
-        for counter_cs in range(_cs_index_slow_int.size):
-            _cs_slow_index = _cs_index_slow_int[counter_cs]
-            # if there is not enough data window before the potential CS, then skip it
-            if _cs_slow_index < window_len_before:
-                _cs_index_slow[_cs_slow_index] = False
-                continue
-            search_win_inds = np.arange(_cs_slow_index-window_len_before, _cs_slow_index, 1)
-            ss_search_win_bool = _ss_index[search_win_inds]
-            ss_search_win_int  = np.where(ss_search_win_bool)[0]
-            # if there is no SS in window before the potential CS, then skip it
-            if ss_search_win_int.size < 1:
-                _cs_index_slow[_cs_slow_index] = False
-                continue
-            # convert the SS to CS which has happened closer to the CS_SLOW
-            cs_ind_search_win = np.max(ss_search_win_int)
-            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
-            _cs_index[cs_ind] = True
-            _ss_index[cs_ind] = False
-        return 0
-
-    def align_cs_wrt_ss_temp(self):
-        win_look_before  = self._workingDataBase['GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE'][0]
-        win_look_after = self._workingDataBase['GLOBAL_CS_ALIGN_SSTEMPLATE_AFTER'][0]
-        win_ss_template_before = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
-        win_ss_template_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
-        window_len_before = int( (win_look_before+win_ss_template_before) \
-            * self._workingDataBase['sample_rate'][0] )
-        window_len_after = int( (win_look_after+win_ss_template_after) \
-            * self._workingDataBase['sample_rate'][0] )
-        window_len_ss_temp = int( win_ss_template_after \
-                                * self._workingDataBase['sample_rate'][0])
-        _cs_index_slow = self._workingDataBase['cs_index_slow']
-        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
-        self._workingDataBase['cs_index'] = \
-            np.zeros((_cs_index_slow.size), dtype=np.bool)
-        _cs_index = self._workingDataBase['cs_index']
-        _data_ss  = self._workingDataBase['ch_data_ss']
-        _ss_temp = self._workingDataBase['ss_wave_template']
-        for counter_cs in range(_cs_index_slow_int.size):
-            _cs_slow_index = _cs_index_slow_int[counter_cs]
-            # if there is not enough data window before the potential CS, then skip it
-            if _cs_slow_index < window_len_before:
-                _cs_index_slow[_cs_slow_index] = False
-                continue
-            # if there is not enough data window after the potential CS, then skip it
-            if _cs_slow_index > (_data_ss.size - window_len_after):
-                _cs_index_slow[_cs_slow_index] = False
-                continue
-            search_win_inds = np.arange(_cs_slow_index-window_len_before, \
-                                        _cs_slow_index+window_len_after, 1)
-            ss_data_search_win = _data_ss[search_win_inds]
-            corr = np.correlate(ss_data_search_win, _ss_temp, 'full')
-            cs_ind_search_win = np.argmax(corr) - window_len_ss_temp + 2
-            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
-            _cs_index[cs_ind] = True
-        return 0
-
-    def align_cs_wrt_cs_temp(self):
-        win_look_before  = self._workingDataBase['GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE'][0]
-        win_look_after = self._workingDataBase['GLOBAL_CS_ALIGN_CSTEMPLATE_AFTER'][0]
-        win_cs_template_before = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
-        win_cs_template_after = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
-        window_len_before = int( (win_look_before+win_cs_template_before) \
-            * self._workingDataBase['sample_rate'][0] )
-        window_len_after = int( (win_look_after+win_cs_template_after) \
-            * self._workingDataBase['sample_rate'][0] )
-        window_len_cs_temp = int( win_cs_template_after \
-                                * self._workingDataBase['sample_rate'][0])
-        _cs_index_slow = self._workingDataBase['cs_index_slow']
-        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
-        self._workingDataBase['cs_index'] = \
-            np.zeros((_cs_index_slow.size), dtype=np.bool)
-        _cs_index = self._workingDataBase['cs_index']
-        _data_ss  = self._workingDataBase['ch_data_ss']
-        _cs_temp = self._workingDataBase['cs_wave_template']
-        for counter_cs in range(_cs_index_slow_int.size):
-            _cs_slow_index = _cs_index_slow_int[counter_cs]
-            # if there is not enough data window before the potential CS, then skip it
-            if _cs_slow_index < window_len_before:
-                _cs_index_slow[_cs_slow_index] = False
-                continue
-            # if there is not enough data window after the potential CS, then skip it
-            if _cs_slow_index > (_data_ss.size - window_len_after):
-                _cs_index_slow[_cs_slow_index] = False
-                continue
-            search_win_inds = np.arange(_cs_slow_index-window_len_before, \
-                                        _cs_slow_index+window_len_after, 1)
-            ss_data_search_win = _data_ss[search_win_inds]
-            corr = np.correlate(ss_data_search_win, _cs_temp, 'full')
-            cs_ind_search_win = np.argmax(corr) - window_len_cs_temp + 2
-            cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
-            _cs_index[cs_ind] = True
-        return 0
-
-    def resolve_ss_ss_conflicts(self):
-        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_SS_SS_AROUND'][0]
-        if self._workingDataBase['ssPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            _peakType = 'min'
-        elif self._workingDataBase['ssPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            _peakType = 'max'
-        # search .5ms before and .5ms after the SS and select the dominant peak
-        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
-        _data_ss  = self._workingDataBase['ch_data_ss']
-        _ss_index = self._workingDataBase['ss_index']
-        _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
-        for counter_ss in range(_ss_index_int.size):
-            _ss_index_local = _ss_index_int[counter_ss]
-            # if there is not enough data window before the potential SS, then skip it
-            if _ss_index_local < window_len:
-                _ss_index[_ss_index_local] = False
-                continue
-            # if there is not enough data window after the potential SS, then skip it
-            if _ss_index_local > (_ss_index.size - window_len):
-                _ss_index[_ss_index_local] = False
-                continue
-            search_win_inds = np.arange(_ss_index_local-window_len, \
-                                        _ss_index_local+window_len, 1)
-            ss_search_win_bool = _ss_index[search_win_inds]
-            ss_search_win_int  = np.where(ss_search_win_bool)[0]
-            ss_search_win_data = _data_ss[search_win_inds]
-            # if there is just one SS in window, then all is OK
-            if ss_search_win_int.size < 2:
-                continue
-            if ss_search_win_int.size > 1:
-                if _peakType == 'min':
-                    valid_ind = np.argmin(ss_search_win_data)
-                elif _peakType == 'max':
-                    valid_ind = np.argmax(ss_search_win_data)
-                ss_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
-                ss_search_win_bool[valid_ind] = True
-                _ss_index[search_win_inds] = deepcopy(ss_search_win_bool)
-        return 0
-
-    def resolve_cs_slow_cs_slow_conflicts(self):
-        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CSSLOW_CSSLOW_AROUND'][0]
-        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            _peakType = 'max'
-        elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            _peakType = 'min'
-        # search 5ms before and 5ms after the CS_SLOW and select the dominant peak
-        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
-        _data_cs  = self._workingDataBase['ch_data_cs']
-        _cs_index_slow = self._workingDataBase['cs_index_slow']
-        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
-        for counter_cs in range(_cs_index_slow_int.size):
-            _cs_index_slow_local = _cs_index_slow_int[counter_cs]
-            # if there is not enough data window before the potential CS, then skip it
-            if _cs_index_slow_local < window_len:
-                _cs_index_slow[_cs_index_slow_local] = False
-                continue
-            # if there is not enough data window after the potential CS, then skip it
-            if _cs_index_slow_local > (_cs_index_slow.size - window_len):
-                _cs_index_slow[_cs_index_slow_local] = False
-                continue
-            search_win_inds = np.arange(_cs_index_slow_local-window_len, \
-                                        _cs_index_slow_local+window_len, 1)
-            cs_search_win_bool = _cs_index_slow[search_win_inds]
-            cs_search_win_int  = np.where(cs_search_win_bool)[0]
-            cs_search_win_data = _data_cs[search_win_inds]
-            # if there is just one CS in window, then all is OK
-            if cs_search_win_int.size < 2:
-                continue
-            if cs_search_win_int.size > 1:
-                if _peakType == 'min':
-                    valid_ind = np.argmin(cs_search_win_data)
-                elif _peakType == 'max':
-                    valid_ind = np.argmax(cs_search_win_data)
-                cs_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
-                cs_search_win_bool[valid_ind] = True
-                _cs_index_slow[search_win_inds] = deepcopy(cs_search_win_bool)
-        return 0
-
-    def resolve_cs_cs_conflicts(self):
-        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CS_CS_AROUND'][0]
-        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
-        _cs_index = self._workingDataBase['cs_index']
-        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
-        for counter_cs in range(_cs_index_int.size):
-            _cs_index_local = _cs_index_int[counter_cs]
-            # if there is not enough data window before the potential CS, then skip it
-            if _cs_index_local < window_len:
-                _cs_index[_cs_index_local] = False
-                continue
-            # if there is not enough data window after the potential CS, then skip it
-            if _cs_index_local > (_cs_index.size - window_len):
-                _cs_index[_cs_index_local] = False
-                continue
-            search_win_inds = np.arange(_cs_index_local-window_len, \
-                                        _cs_index_local+window_len, 1)
-            cs_search_win_bool = _cs_index[search_win_inds]
-            cs_search_win_int  = np.where(cs_search_win_bool)[0]
-            # if there is just one CS in window, then all is OK
-            if cs_search_win_int.size < 2:
-                continue
-            if cs_search_win_int.size > 1:
-                # just accept the first index and reject the rest
-                cs_search_win_int = cs_search_win_int + _cs_index_local - window_len
-                valid_ind = cs_search_win_int[0]
-                _cs_index[cs_search_win_int] = False
-                _cs_index[valid_ind] = True
-        return 0
-
-    def resolve_cs_cs_slow_conflicts(self):
-        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CS_CSSLOW_AROUND'][0]
-        if self._workingDataBase['csPeak_mode'] == np.array(['max'], dtype=np.unicode):
-            _peakType = 'max'
-        elif self._workingDataBase['csPeak_mode'] == np.array(['min'], dtype=np.unicode):
-            _peakType = 'min'
-        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
-        _data_cs  = self._workingDataBase['ch_data_cs']
-        _cs_index = self._workingDataBase['cs_index']
-        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
-        self._workingDataBase['cs_index_slow'] = np.zeros((_cs_index.size),dtype=np.bool)
-        _cs_index_slow = self._workingDataBase['cs_index_slow']
-        for counter_cs in range(_cs_index_int.size):
-            _cs_index_local = _cs_index_int[counter_cs]
-            # if there is not enough data window after the potential CS, then skip it
-            if _cs_index_local > (_cs_index.size - window_len):
-                _cs_index[_cs_index_local] = False
-                continue
-            search_win_inds = np.arange(_cs_index_local, \
-                                        _cs_index_local+window_len, 1)
-            cs_search_win_data = _data_cs[search_win_inds]
-            if _peakType == 'max':
-                _cs_index_slow_local = np.argmax(cs_search_win_data)
-            elif _peakType == 'min':
-                _cs_index_slow_local = np.argmin(cs_search_win_data)
-            _cs_index_slow_local = _cs_index_slow_local + _cs_index_local
-            _cs_index_slow[_cs_index_slow_local] = True
-        return 0
-
-    def resolve_cs_ss_conflicts(self):
-        win_look_before  = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_BEFORE'][0]
-        win_look_after   = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_AFTER'][0]
-        window_len_back = int(win_look_before * self._workingDataBase['sample_rate'][0])
-        window_len_front = int(win_look_after * self._workingDataBase['sample_rate'][0])
-        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
-        _ss_index = self._workingDataBase['ss_index']
-        for counter_cs in range(_cs_index_int.size):
-            _cs_index_local = _cs_index_int[counter_cs]
-            search_win_inds = np.arange(_cs_index_local-window_len_back, \
-                                        _cs_index_local+window_len_front, 1)
-            ss_search_win_bool = _ss_index[search_win_inds]
-            ss_search_win_int  = np.where(ss_search_win_bool)[0]
-            if ss_search_win_int.size > 0:
-                _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
-                _ss_index[_ss_ind_invalid] = False
-        return 0
-    # @showWaitCursor
-    def move_selected_from_ss_to_cs(self):
-        _cs_index_bool = self._workingDataBase['cs_index']
-        _ss_index_bool = self._workingDataBase['ss_index']
-        _ss_index_int = np.where(_ss_index_bool)[0]
-        _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
-        if _ss_index_selected_int.size < 1:
-            return 0
-        _ss_index_bool[_ss_index_selected_int] = False
-        _cs_index_bool[_ss_index_selected_int] = True
-        self.resolve_ss_ss_conflicts()
-        self.resolve_cs_cs_conflicts()
-        self.resolve_cs_cs_slow_conflicts()
-        self.resolve_cs_ss_conflicts()
-        return 0
-    # @showWaitCursor
-    def move_selected_from_cs_to_ss(self):
-        _cs_index_bool = self._workingDataBase['cs_index']
-        _ss_index_bool = self._workingDataBase['ss_index']
-        _cs_index_int = np.where(_cs_index_bool)[0]
-        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
-        if _cs_index_selected_int.size < 1:
-            return 0
-        _cs_index_bool[_cs_index_selected_int] = False
-        _ss_index_bool[_cs_index_selected_int] = True
-        self.resolve_ss_ss_conflicts()
-        self.resolve_cs_cs_conflicts()
-        self.resolve_cs_cs_slow_conflicts()
-        self.resolve_cs_ss_conflicts()
-        return 0
-    # @showWaitCursor
-    def extract_ss_peak(self):
-        self._workingDataBase['ss_peak'] = \
-            self._workingDataBase['ch_data_ss'][self._workingDataBase['ss_index']]
-        return 0
-    # @showWaitCursor
-    def extract_cs_peak(self):
-        self._workingDataBase['cs_peak'] = \
-            self._workingDataBase['ch_data_cs'][self._workingDataBase['cs_index_slow']]
-        return 0
-    # @showWaitCursor
-    def extract_ss_waveform(self):
-        if self._workingDataBase['ss_index'].sum() > 0:
-            self._workingDataBase['ss_wave'], self._workingDataBase['ss_wave_span'] = \
-                lib.extract_waveform(
-                    self._workingDataBase['ch_data_ss'],
-                    self._workingDataBase['ss_index'],
-                    sample_rate=self._workingDataBase['sample_rate'][0],
-                    win_len_before=self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0],
-                    win_len_after=self._workingDataBase['GLOBAL_WAVE_PLOT_SS_AFTER'][0])
-        else:
-            self._workingDataBase['ss_wave'] = np.zeros((0,0), dtype=np.float32)
-            self._workingDataBase['ss_wave_span'] = np.zeros((0,0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_cs_waveform(self):
-        if self._workingDataBase['cs_index'].sum() > 0:
-            self._workingDataBase['cs_wave'], self._workingDataBase['cs_wave_span'] = \
-                lib.extract_waveform(
-                    self._workingDataBase['ch_data_ss'],
-                    self._workingDataBase['cs_index'],
-                    sample_rate=self._workingDataBase['sample_rate'][0],
-                    win_len_before=self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0],
-                    win_len_after=self._workingDataBase['GLOBAL_WAVE_PLOT_CS_AFTER'][0])
-        else:
-            self._workingDataBase['cs_wave'] = np.zeros((0,0), dtype=np.float32)
-            self._workingDataBase['cs_wave_span'] = np.zeros((0,0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_ss_ifr(self):
-        if self._workingDataBase['ss_index'].sum() > 1:
-            self._workingDataBase['ss_ifr_mean'][0] = \
-                (float(self._workingDataBase['ss_index'].sum())) \
-                / ( float(self._workingDataBase['ch_data'].size) \
-                / float(self._workingDataBase['sample_rate'][0]) )
-            self._workingDataBase['ss_ifr'] = \
-                lib.instant_firing_rate_from_index(
-                    self._workingDataBase['ss_index'],
-                    sample_rate=self._workingDataBase['sample_rate'][0])
-            self._workingDataBase['ss_ifr'] = np.append(self._workingDataBase['ss_ifr'],
-                                                        self._workingDataBase['ss_ifr_mean'])
-            self._workingDataBase['ss_ifr_bins'] = \
-                np.linspace(self._workingDataBase['GLOBAL_IFR_PLOT_SS_MIN'][0],
-                            self._workingDataBase['GLOBAL_IFR_PLOT_SS_MAX'][0],
-                            self._workingDataBase['GLOBAL_IFR_PLOT_SS_BINNUM'][0],
-                            endpoint=True, dtype=np.float32)
-            self._workingDataBase['ss_ifr_hist'], _ = \
-                np.histogram(
-                    self._workingDataBase['ss_ifr'],
-                    bins=self._workingDataBase['ss_ifr_bins'])
-        else:
-            self._workingDataBase['ss_ifr'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_ifr_bins'] = np.arange(2)
-            self._workingDataBase['ss_ifr_hist'] = np.zeros((1), dtype=np.float32)
-            self._workingDataBase['ss_ifr_mean'][0] = 0.
-        return 0
-    # @showWaitCursor
-    def extract_cs_ifr(self):
-        if self._workingDataBase['cs_index'].sum() > 1:
-            self._workingDataBase['cs_ifr_mean'][0] = \
-                (float(self._workingDataBase['cs_index'].sum())) \
-                / ( float(self._workingDataBase['ch_data'].size) \
-                / float(self._workingDataBase['sample_rate'][0]) )
-            self._workingDataBase['cs_ifr'] = \
-                lib.instant_firing_rate_from_index(
-                    self._workingDataBase['cs_index'],
-                    sample_rate=self._workingDataBase['sample_rate'][0])
-            self._workingDataBase['cs_ifr'] = np.append(self._workingDataBase['cs_ifr'],
-                                                        self._workingDataBase['cs_ifr_mean'])
-            self._workingDataBase['cs_ifr_bins'] = \
-                np.linspace(self._workingDataBase['GLOBAL_IFR_PLOT_CS_MIN'][0],
-                            self._workingDataBase['GLOBAL_IFR_PLOT_CS_MAX'][0],
-                            self._workingDataBase['GLOBAL_IFR_PLOT_CS_BINNUM'][0],
-                            endpoint=True, dtype=np.float32)
-            self._workingDataBase['cs_ifr_hist'], _ = \
-                np.histogram(
-                    self._workingDataBase['cs_ifr'],
-                    bins=self._workingDataBase['cs_ifr_bins'])
-        else:
-            self._workingDataBase['cs_ifr'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_ifr_bins'] = np.arange(2)
-            self._workingDataBase['cs_ifr_hist'] = np.zeros((1), dtype=np.float32)
-            self._workingDataBase['cs_ifr_mean'][0] = 0.
-        return 0
-    # @showWaitCursor
-    def extract_ss_xprob(self):
-        if self._workingDataBase['ss_index'].sum() > 1:
-            self._workingDataBase['ss_xprob'], self._workingDataBase['ss_xprob_span'] = \
-                lib.cross_probability(
-                    self._workingDataBase['ss_index'],
-                    self._workingDataBase['ss_index'],
-                    sample_rate=self._workingDataBase['sample_rate'][0],
-                    bin_size=self._workingDataBase['GLOBAL_XPROB_SS_BINSIZE'][0],
-                    win_len_before=self._workingDataBase['GLOBAL_XPROB_SS_BEFORE'][0],
-                    win_len_after=self._workingDataBase['GLOBAL_XPROB_SS_AFTER'][0])
-            _win_len_before_int = np.round(\
-                                    float(self._workingDataBase['GLOBAL_XPROB_SS_BEFORE'][0]) \
-                                    / float(self._workingDataBase['GLOBAL_XPROB_SS_BINSIZE'][0])
-                                    ).astype(int)
-            self._workingDataBase['ss_xprob'][_win_len_before_int] = np.NaN
-        else:
-            self._workingDataBase['ss_xprob'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_xprob_span'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_cs_xprob(self):
-        if (self._workingDataBase['cs_index'].sum() > 1):
-            self._workingDataBase['cs_xprob'], self._workingDataBase['cs_xprob_span'] = \
-                lib.cross_probability(
-                    self._workingDataBase['cs_index'],
-                    self._workingDataBase['ss_index'],
-                    sample_rate=self._workingDataBase['sample_rate'][0],
-                    bin_size=self._workingDataBase['GLOBAL_XPROB_CS_BINSIZE'][0],
-                    win_len_before=self._workingDataBase['GLOBAL_XPROB_CS_BEFORE'][0],
-                    win_len_after=self._workingDataBase['GLOBAL_XPROB_CS_AFTER'][0])
-        else:
-            self._workingDataBase['cs_xprob'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_xprob_span'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_ss_pca(self):
-        """
-        -> check the minPca and maxPca and make sure they are less than 1s
-        -> by default ss_wave is a nSpike-by-181 matrix
-        -> slice the ss_wave using minPca and maxPca
-        -> make sure the DataBase values has been updated
-        """
-        if self._workingDataBase['ss_pca_bound_min'][0] > 1:
-            self._workingDataBase['ss_pca_bound_min'][0] = \
-                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
-            self.infLine_SsWave_minPca.setValue(
-                self._workingDataBase['ss_pca_bound_min'][0] * 1000.)
-        if self._workingDataBase['ss_pca_bound_max'][0] > 1:
-            self._workingDataBase['ss_pca_bound_max'][0] = \
-                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]
-            self.infLine_SsWave_maxPca.setValue(
-                self._workingDataBase['ss_pca_bound_max'][0] * 1000.)
-
-        _minPca = \
-            int( ( self._workingDataBase['ss_pca_bound_min'][0]\
-            + self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] )\
-            * self._workingDataBase['sample_rate'][0] )
-        _maxPca = \
-            int( ( self._workingDataBase['ss_pca_bound_max'][0]\
-            + self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0] )\
-            * self._workingDataBase['sample_rate'][0] )
-        if ((_maxPca-_minPca)<4):
-            _maxPca += 2
-            _minPca -= 2
-        if (self._workingDataBase['ss_index'].sum() > 1):
-            ss_pca_mat_, ss_pca_variance_ = lib.extract_pca(
-                    self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)].T)
-            self._workingDataBase['ss_pca1'] = deepcopy(ss_pca_mat_[0,:])
-            self._workingDataBase['ss_pca2'] = deepcopy(ss_pca_mat_[1,:])
-            if (self._workingDataBase['ss_index'].sum() == 2):
-                self._workingDataBase['ss_pca3'] = np.zeros((2), np.float32)
-                ss_pca_variance_ = np.append(ss_pca_variance_, [0.0])
-            else:
-                self._workingDataBase['ss_pca3'] = deepcopy(ss_pca_mat_[2,:])
-            self._workingDataBase['ss_pca_variance'] = deepcopy(ss_pca_variance_[0:3])
-            if self._workingDataBase['umap_enable'][0]:
-                """ the default n_neighbors for UMAP algorithm is 15 and based on that we will not use
-                    UMAP when we have few datapoints. This will prevent the divergence of UMAP
-                    and program crashing due to that. """
-                if (self._workingDataBase['ss_index'].sum() > 15):
-                    ss_embedding_ = lib.umap(self._workingDataBase['ss_wave'][:,_minPca:(_maxPca+1)])
-                    self._workingDataBase['ss_umap1'] = deepcopy(ss_embedding_[:, 0])
-                    self._workingDataBase['ss_umap2'] = deepcopy(ss_embedding_[:, 1])
-                else:
-                    self._workingDataBase['ss_umap1'] = np.random.rand(self._workingDataBase['ss_index'].sum())
-                    self._workingDataBase['ss_umap2'] = np.random.rand(self._workingDataBase['ss_index'].sum())
-            else:
-                self._workingDataBase['ss_umap1'] = np.zeros((ss_pca_mat_.shape[1]), dtype=np.float32)
-                self._workingDataBase['ss_umap2'] = np.zeros((ss_pca_mat_.shape[1]), dtype=np.float32)
-        else:
-            self._workingDataBase['ss_pca1']  = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_pca2']  = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_pca3']  = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_pca_variance'] = np.zeros((3), dtype=np.float32)
-            self._workingDataBase['ss_umap1'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_umap2'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_cs_pca(self):
-        """
-        -> check the minPca and maxPca and make sure they are less than 1s
-        -> by default cs_wave is a nSpike-by-181 matrix
-        -> slice the cs_wave using minPca and maxPca
-        -> make sure the DataBase values has been updated
-        """
-        if self._workingDataBase['cs_pca_bound_min'][0] > 1:
-            self._workingDataBase['cs_pca_bound_min'][0] = \
-                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]
-            self.infLine_CsWave_minPca.setValue(
-                self._workingDataBase['cs_pca_bound_min'][0] * 1000.)
-        if self._workingDataBase['cs_pca_bound_max'][0] > 1:
-            self._workingDataBase['cs_pca_bound_max'][0] = \
-                self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]
-            self.infLine_CsWave_maxPca.setValue(
-                self._workingDataBase['cs_pca_bound_max'][0] * 1000.)
-
-        _minPca = \
-            int( ( self._workingDataBase['cs_pca_bound_min'][0]\
-            + self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] )\
-            * self._workingDataBase['sample_rate'][0] )
-        _maxPca = \
-            int( ( self._workingDataBase['cs_pca_bound_max'][0]\
-            + self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0] )\
-            * self._workingDataBase['sample_rate'][0] )
-        if ((_maxPca-_minPca)<4):
-            _maxPca += 2
-            _minPca -= 2
-        if (self._workingDataBase['cs_index'].sum() > 1):
-            cs_pca_mat_, cs_pca_variance_ = lib.extract_pca(
-                    self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)].T)
-            self._workingDataBase['cs_pca1'] = deepcopy(cs_pca_mat_[0,:])
-            self._workingDataBase['cs_pca2'] = deepcopy(cs_pca_mat_[1,:])
-            if (self._workingDataBase['cs_index'].sum() == 2):
-                self._workingDataBase['cs_pca3'] = np.zeros((2), np.float32)
-                cs_pca_variance_ = np.append(cs_pca_variance_, [0.0])
-            else:
-                self._workingDataBase['cs_pca3'] = deepcopy(cs_pca_mat_[2,:])
-            self._workingDataBase['cs_pca_variance'] = deepcopy(cs_pca_variance_[0:3])
-            if self._workingDataBase['umap_enable'][0]:
-                """ the default n_neighbors for UMAP algorithm is 15 and based on that we will not use
-                    UMAP when we have few datapoints. This will prevent the divergence of UMAP
-                    and program crashing due to that. """
-                if (self._workingDataBase['cs_index'].sum() > 15):
-                    cs_embedding_ = lib.umap(self._workingDataBase['cs_wave'][:,_minPca:(_maxPca+1)])
-                    self._workingDataBase['cs_umap1'] = deepcopy(cs_embedding_[:,0])
-                    self._workingDataBase['cs_umap2'] = deepcopy(cs_embedding_[:,1])
-                else:
-                    self._workingDataBase['cs_umap1'] = np.random.rand(self._workingDataBase['cs_index'].sum())
-                    self._workingDataBase['cs_umap2'] = np.random.rand(self._workingDataBase['cs_index'].sum())
-            else:
-                self._workingDataBase['cs_umap1'] = np.zeros((cs_pca_mat_.shape[1]), dtype=np.float32)
-                self._workingDataBase['cs_umap2'] = np.zeros((cs_pca_mat_.shape[1]), dtype=np.float32)
-        else:
-            self._workingDataBase['cs_pca1']  = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_pca2']  = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_pca3']  = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_pca_variance'] = np.zeros((3), dtype=np.float32)
-            self._workingDataBase['cs_umap1'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_umap2'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_ss_template(self):
-        if (self._workingDataBase['ss_index'].sum() > 0) and (self._workingDataBase['ssLearnTemp_mode'][0]):
-            _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                                -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                                +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _window = np.arange(_ind_begin, _ind_end, 1)
-            self._workingDataBase['ss_wave_template'] = \
-                np.mean(self._workingDataBase['ss_wave'][:,_window],axis=0)
-            self._workingDataBase['ss_wave_span_template'] = \
-                np.mean(self._workingDataBase['ss_wave_span'][:,_window],axis=0)
-        else:
-            self._workingDataBase['ss_wave_template'] = np.zeros((0),dtype=np.float32)
-            self._workingDataBase['ss_wave_span_template'] = np.zeros((0),dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_cs_template(self):
-        if (self._workingDataBase['cs_index'].sum() > 0) and (self._workingDataBase['csLearnTemp_mode'][0]):
-            _ind_begin = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                                -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _ind_end = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                                +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
-                                * self._workingDataBase['sample_rate'][0])
-            _window = np.arange(_ind_begin, _ind_end, 1)
-            self._workingDataBase['cs_wave_template'] = \
-                np.mean(self._workingDataBase['cs_wave'][:,_window],axis=0)
-            self._workingDataBase['cs_wave_span_template'] = \
-                np.mean(self._workingDataBase['cs_wave_span'][:,_window],axis=0)
-        else:
-            self._workingDataBase['cs_wave_template'] = np.zeros((0),dtype=np.float32)
-            self._workingDataBase['cs_wave_span_template'] = np.zeros((0),dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_ss_similarity(self):
-        _ind_begin_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_end_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        if self._workingDataBase['ss_wave_template'].size>1:
-            _min_range_ss_ss = np.min([(_ind_end_ss_ss - _ind_begin_ss_ss), \
-                                     self._workingDataBase['ss_wave_template'].size])
-            _ind_end_ss_ss = _ind_begin_ss_ss + _min_range_ss_ss
-        _window_ss_ss = np.arange(_ind_begin_ss_ss, _ind_end_ss_ss, 1)
-        _ind_begin_ss_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_end_ss_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_begin_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_end_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _min_range_len = np.min([(_ind_end_ss_cs - _ind_begin_ss_cs), \
-                                 (_ind_end_cs_cs - _ind_begin_cs_cs)])
-        if self._workingDataBase['cs_wave_template'].size>1:
-            _min_range_len = np.min([_min_range_len, \
-                                     self._workingDataBase['cs_wave_template'].size])
-        _ind_end_ss_cs = _ind_begin_ss_cs + _min_range_len
-        _ind_end_cs_cs = _ind_begin_cs_cs + _min_range_len
-        _window_ss_cs = np.arange(_ind_begin_ss_cs, _ind_end_ss_cs, 1)
-        _window_cs_cs = np.arange(_ind_begin_cs_cs, _ind_end_cs_cs, 1)
-        if self._workingDataBase['ss_index'].sum() > 1:
-            # extract_ss_similarity to ss
-            ss_wave = self._workingDataBase['ss_wave'][:,_window_ss_ss]
-            if self._workingDataBase['ss_wave_template'].size>1:
-                ss_wave_template = self._workingDataBase['ss_wave_template'][0:_min_range_ss_ss]
-                self._workingDataBase['ss_similarity_to_ss'] = \
-                    np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
-            else:
-                ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window_ss_ss],axis=0)
-                self._workingDataBase['ss_similarity_to_ss'] = \
-                    np.array([np.corrcoef(ss_wave[counter,:], ss_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
-            # extract_ss_similarity to cs
-            ss_wave = self._workingDataBase['ss_wave'][:,_window_ss_cs]
-            if self._workingDataBase['cs_wave_template'].size>1:
-                cs_wave_template = self._workingDataBase['cs_wave_template'][0:_min_range_len]
-                self._workingDataBase['ss_similarity_to_cs'] = \
-                    np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
-            elif (self._workingDataBase['cs_index'].sum() > 1):
-                cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window_cs_cs],axis=0)
-                self._workingDataBase['ss_similarity_to_cs'] = \
-                    np.array([np.corrcoef(ss_wave[counter,:], cs_wave_template)[0,1] for counter in range(ss_wave.shape[0])], dtype=np.float32)
-            else:
-                self._workingDataBase['ss_similarity_to_cs'] = \
-                    np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.float32)
-        else:
-            self._workingDataBase['ss_similarity_to_ss'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_cs_similarity(self):
-        _ind_begin_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_BEFORE'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_end_cs_cs = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_CS_AFTER'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        if self._workingDataBase['cs_wave_template'].size>1:
-            _min_range_cs_cs = np.min([(_ind_end_cs_cs - _ind_begin_cs_cs), \
-                                     self._workingDataBase['cs_wave_template'].size])
-            _ind_end_cs_cs = _ind_begin_cs_cs + _min_range_cs_cs
-        _window_cs_cs = np.arange(_ind_begin_cs_cs, _ind_end_cs_cs, 1)
-        _ind_begin_cs_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_end_cs_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE'][0]\
-                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_begin_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                            -self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _ind_end_ss_ss = int((self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE'][0]\
-                            +self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_AFTER'][0]) \
-                            * self._workingDataBase['sample_rate'][0])
-        _min_range_len = np.min([(_ind_end_cs_ss - _ind_begin_cs_ss), \
-                                 (_ind_end_ss_ss - _ind_begin_ss_ss)])
-        if self._workingDataBase['ss_wave_template'].size>1:
-            _min_range_len = np.min([_min_range_len, \
-                                     self._workingDataBase['ss_wave_template'].size])
-        _ind_end_cs_ss = _ind_begin_cs_ss + _min_range_len
-        _ind_end_ss_ss = _ind_begin_ss_ss + _min_range_len
-        _window_cs_ss = np.arange(_ind_begin_cs_ss, _ind_end_cs_ss, 1)
-        _window_ss_ss = np.arange(_ind_begin_ss_ss, _ind_end_ss_ss, 1)
-        if self._workingDataBase['cs_index'].sum() > 1:
-            # extract_cs_similarity to cs
-            cs_wave = self._workingDataBase['cs_wave'][:,_window_cs_cs]
-            if self._workingDataBase['cs_wave_template'].size>1:
-                cs_wave_template = self._workingDataBase['cs_wave_template'][0:_min_range_cs_cs]
-                self._workingDataBase['cs_similarity_to_cs'] = \
-                    np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
-            else:
-                cs_wave_template = np.mean(self._workingDataBase['cs_wave'][:,_window_cs_cs],axis=0)
-                self._workingDataBase['cs_similarity_to_cs'] = \
-                    np.array([np.corrcoef(cs_wave[counter,:], cs_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
-            # extract_cs_similarity to ss
-            cs_wave = self._workingDataBase['cs_wave'][:,_window_cs_ss]
-            if self._workingDataBase['ss_wave_template'].size>1:
-                ss_wave_template = self._workingDataBase['ss_wave_template'][0:_min_range_len]
-                self._workingDataBase['cs_similarity_to_ss'] = \
-                    np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
-            elif (self._workingDataBase['ss_index'].sum() > 1):
-                ss_wave_template = np.mean(self._workingDataBase['ss_wave'][:,_window_ss_ss],axis=0)
-                self._workingDataBase['cs_similarity_to_ss'] = \
-                    np.array([np.corrcoef(cs_wave[counter,:], ss_wave_template)[0,1] for counter in range(cs_wave.shape[0])], dtype=np.float32)
-            else:
-                self._workingDataBase['cs_similarity_to_ss'] = \
-                    np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.float32)
-        else:
-            self._workingDataBase['cs_similarity_to_cs'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_similarity_to_ss'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_ss_time(self):
-        if self._workingDataBase['ss_index'].sum() > 1:
-            scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
-            self._workingDataBase['ss_time'] = self._workingDataBase['ch_time'][self._workingDataBase['ss_index']]
-
-            ss_time_to_prev_ss = lib.distance_from_prev_element(
-                self._workingDataBase['ss_index'], self._workingDataBase['ss_index'])
-            self._workingDataBase['ss_time_to_prev_ss'] = \
-                ss_time_to_prev_ss[self._workingDataBase['ss_index']] / scale_factor
-
-            ss_time_to_next_ss = lib.distance_to_next_element(
-                self._workingDataBase['ss_index'], self._workingDataBase['ss_index'])
-            self._workingDataBase['ss_time_to_next_ss'] = \
-                ss_time_to_next_ss[self._workingDataBase['ss_index']] / scale_factor
-
-            if self._workingDataBase['cs_index'].sum() > 1:
-                ss_time_to_prev_cs = lib.distance_from_prev_element(
-                    self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
-                self._workingDataBase['ss_time_to_prev_cs'] = \
-                    ss_time_to_prev_cs[self._workingDataBase['ss_index']] / scale_factor
-
-                ss_time_to_next_cs = lib.distance_to_next_element(
-                    self._workingDataBase['ss_index'], self._workingDataBase['cs_index'])
-                self._workingDataBase['ss_time_to_next_cs'] = \
-                    ss_time_to_next_cs[self._workingDataBase['ss_index']] / scale_factor
-            else:
-                self._workingDataBase['ss_time_to_prev_cs'] = \
-                    np.zeros((self._workingDataBase['ss_index'].sum()), np.float32)
-                self._workingDataBase['ss_time_to_next_cs'] = \
-                    np.zeros((self._workingDataBase['ss_index'].sum()), np.float32)
-        else:
-            self._workingDataBase['ss_time'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_time_to_prev_ss'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_time_to_next_ss'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_time_to_prev_cs'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_time_to_next_cs'] = np.zeros((0), dtype=np.float32)
-        return 0
-    # @showWaitCursor
-    def extract_cs_time(self):
-        if self._workingDataBase['cs_index'].sum() > 1:
-            scale_factor = float(self._workingDataBase['sample_rate'][0]) / 1000.
-            self._workingDataBase['cs_time'] = self._workingDataBase['ch_time'][self._workingDataBase['cs_index']]
-
-            cs_time_to_prev_cs = lib.distance_from_prev_element(
-                self._workingDataBase['cs_index'], self._workingDataBase['cs_index'])
-            self._workingDataBase['cs_time_to_prev_cs'] = \
-                cs_time_to_prev_cs[self._workingDataBase['cs_index']] / scale_factor
-
-            cs_time_to_next_cs = lib.distance_to_next_element(
-                self._workingDataBase['cs_index'], self._workingDataBase['cs_index'])
-            self._workingDataBase['cs_time_to_next_cs'] = \
-                cs_time_to_next_cs[self._workingDataBase['cs_index']] / scale_factor
-
-            if self._workingDataBase['ss_index'].sum() > 1:
-                cs_time_to_prev_ss = lib.distance_from_prev_element(
-                    self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
-                self._workingDataBase['cs_time_to_prev_ss'] = \
-                    cs_time_to_prev_ss[self._workingDataBase['cs_index']] / scale_factor
-
-                cs_time_to_next_ss = lib.distance_to_next_element(
-                    self._workingDataBase['cs_index'], self._workingDataBase['ss_index'])
-                self._workingDataBase['cs_time_to_next_ss'] = \
-                    cs_time_to_next_ss[self._workingDataBase['cs_index']] / scale_factor
-            else:
-                self._workingDataBase['cs_time_to_prev_ss'] = \
-                    np.zeros((self._workingDataBase['cs_index'].sum()), np.float32)
-                self._workingDataBase['cs_time_to_next_ss'] = \
-                    np.zeros((self._workingDataBase['cs_index'].sum()), np.float32)
-        else:
-            self._workingDataBase['cs_time'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_time_to_prev_cs'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_time_to_next_cs'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_time_to_prev_ss'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_time_to_next_ss'] = np.zeros((0), dtype=np.float32)
-        return 0
-
-    def reset_ss_ROI(self, forced_reset = False):
-        is_reset_necessary = not(self._workingDataBase['ss_index'].sum() \
-                                == self._workingDataBase['ss_index_selected'].size)
-        if is_reset_necessary or forced_reset:
-            self._workingDataBase['ss_pca1_ROI'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_pca2_ROI'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_wave_ROI'] = np.zeros((0), dtype=np.float32)
-            if self._workingDataBase['ss_index'].sum() > 1:
-                self._workingDataBase['ss_index_selected'] = \
-                    np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
-            else:
-                self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
-        return 0
-
-    def reset_cs_ROI(self, forced_reset = False):
-        is_reset_necessary = not(self._workingDataBase['cs_index'].sum() \
-                                == self._workingDataBase['cs_index_selected'].size)
-        if is_reset_necessary or forced_reset:
-            self._workingDataBase['cs_pca1_ROI'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_pca2_ROI'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_wave_span_ROI'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_wave_ROI'] = np.zeros((0), dtype=np.float32)
-            if self._workingDataBase['cs_index'].sum() > 1:
-                self._workingDataBase['cs_index_selected'] = \
-                    np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
-            else:
-                self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
-        return 0
-
-    def extract_ss_scatter(self):
-        if (self._workingDataBase['ss_index'].sum() > 1):
-            comboBx_Items = []
-            ss_scatter_mat_ = deepcopy(self._workingDataBase['ss_pca1'].reshape(-1,1))
-            comboBx_Items.append('pca1')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_pca2'].reshape(-1,1)))
-            comboBx_Items.append('pca2')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_pca3'].reshape(-1,1)))
-            comboBx_Items.append('pca3')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_umap1'].reshape(-1,1)))
-            comboBx_Items.append('umap1')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_umap2'].reshape(-1,1)))
-            comboBx_Items.append('umap2')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_peak'].reshape(-1,1)))
-            comboBx_Items.append('peak')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_similarity_to_ss'].reshape(-1,1)))
-            comboBx_Items.append('similarity_ss')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_similarity_to_cs'].reshape(-1,1)))
-            comboBx_Items.append('similarity_cs')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_ifr'].reshape(-1,1)))
-            comboBx_Items.append('ifr')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_time_to_prev_ss'].reshape(-1,1)))
-            comboBx_Items.append('t_prev_ss')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_time_to_next_ss'].reshape(-1,1)))
-            comboBx_Items.append('t_next_ss')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_time_to_prev_cs'].reshape(-1,1)))
-            comboBx_Items.append('t_prev_cs')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_time_to_next_cs'].reshape(-1,1)))
-            comboBx_Items.append('t_next_cs')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, self._workingDataBase['ss_time'].reshape(-1,1)))
-            comboBx_Items.append('time')
-            ss_scatter_mat_ = np.hstack((ss_scatter_mat_, np.random.rand(self._workingDataBase['ss_pca1'].size).reshape(-1,1)))
-            comboBx_Items.append('rand num')
-            num_D = len(comboBx_Items)
-            self._workingDataBase['ss_scatter_mat'] = ss_scatter_mat_
-            self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            if not(self._workingDataBase['umap_enable'][0]):
-                if (3 <= self._workingDataBase['ss_pca1_index'][0] <= 4):
-                    self._workingDataBase['ss_pca1_index'][0] -= 3
-                if (3 <= self._workingDataBase['ss_pca2_index'][0] <= 4):
-                    self._workingDataBase['ss_pca2_index'][0] -= 3
-            # ss_pca1_index
-            if (self._workingDataBase['ss_pca1_index'][0] < num_D):
-                self._workingDataBase['ss_scatter1'] = self._workingDataBase\
-                    ['ss_scatter_mat'][:,self._workingDataBase['ss_pca1_index'][0]]
-            else:
-                self._workingDataBase['ss_scatter1'] = self._workingDataBase['ss_scatter_mat'][:,0]
-                self._workingDataBase['ss_pca1_index'][0] = 0
-            # ss_pca2_index
-            if (self._workingDataBase['ss_pca2_index'][0] < num_D):
-                self._workingDataBase['ss_scatter2'] = self._workingDataBase\
-                    ['ss_scatter_mat'][:,self._workingDataBase['ss_pca2_index'][0]]
-            else:
-                self._workingDataBase['ss_scatter2'] = self._workingDataBase['ss_scatter_mat'][:,1]
-                self._workingDataBase['ss_pca2_index'][0] = 1
-        else:
-            comboBx_Items = []
-            ss_scatter_mat_ = np.zeros((0,2), dtype=np.float32)
-            comboBx_Items.append('pca1')
-            comboBx_Items.append('pca2')
-            self._workingDataBase['ss_scatter_mat'] = ss_scatter_mat_
-            self._workingDataBase['ss_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self._workingDataBase['ss_scatter1'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['ss_scatter2'] = np.zeros((0), dtype=np.float32)
-            # ss_pca1_index
-            self._workingDataBase['ss_pca1_index'][0] = 0
-            # ss_pca2_index
-            self._workingDataBase['ss_pca2_index'][0] = 1
 
     def update_SSPcaNum_comboBx(self):
         if (self._workingDataBase['ss_index'].sum() > 1):
@@ -3377,75 +2367,6 @@ class PsortGuiSignals(PsortGuiWidget):
             # ss_pca2_index
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum2.setCurrentIndex(1)
         return 0
-
-    def extract_cs_scatter(self):
-        if (self._workingDataBase['cs_index'].sum() > 1):
-            comboBx_Items = []
-            cs_scatter_mat_ = deepcopy(self._workingDataBase['cs_pca1'].reshape(-1,1))
-            comboBx_Items.append('pca1')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_pca2'].reshape(-1,1)))
-            comboBx_Items.append('pca2')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_pca3'].reshape(-1,1)))
-            comboBx_Items.append('pca3')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_umap1'].reshape(-1,1)))
-            comboBx_Items.append('umap1')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_umap2'].reshape(-1,1)))
-            comboBx_Items.append('umap2')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_peak'].reshape(-1,1)))
-            comboBx_Items.append('peak')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_similarity_to_ss'].reshape(-1,1)))
-            comboBx_Items.append('similarity_ss')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_similarity_to_cs'].reshape(-1,1)))
-            comboBx_Items.append('similarity_cs')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_ifr'].reshape(-1,1)))
-            comboBx_Items.append('ifr')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_time_to_prev_ss'].reshape(-1,1)))
-            comboBx_Items.append('t_prev_ss')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_time_to_next_ss'].reshape(-1,1)))
-            comboBx_Items.append('t_next_ss')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_time_to_prev_cs'].reshape(-1,1)))
-            comboBx_Items.append('t_prev_cs')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_time_to_next_cs'].reshape(-1,1)))
-            comboBx_Items.append('t_next_cs')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, self._workingDataBase['cs_time'].reshape(-1,1)))
-            comboBx_Items.append('time')
-            cs_scatter_mat_ = np.hstack((cs_scatter_mat_, np.random.rand(self._workingDataBase['cs_pca1'].size).reshape(-1,1)))
-            comboBx_Items.append('rand num')
-            num_D = len(comboBx_Items)
-            self._workingDataBase['cs_scatter_mat'] = cs_scatter_mat_
-            self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            if not(self._workingDataBase['umap_enable'][0]):
-                if (3 <= self._workingDataBase['cs_pca1_index'][0] <= 4):
-                    self._workingDataBase['cs_pca1_index'][0] -= 3
-                if (3 <= self._workingDataBase['cs_pca2_index'][0] <= 4):
-                    self._workingDataBase['cs_pca2_index'][0] -= 3
-            # cs_pca1_index
-            if (self._workingDataBase['cs_pca1_index'][0] < num_D):
-                self._workingDataBase['cs_scatter1'] = self._workingDataBase\
-                    ['cs_scatter_mat'][:,self._workingDataBase['cs_pca1_index'][0]]
-            else:
-                self._workingDataBase['cs_scatter1'] = self._workingDataBase['cs_scatter_mat'][:,0]
-                self._workingDataBase['cs_pca1_index'][0] = 0
-            # cs_pca2_index
-            if (self._workingDataBase['cs_pca2_index'][0] < num_D):
-                self._workingDataBase['cs_scatter2'] = self._workingDataBase\
-                    ['cs_scatter_mat'][:,self._workingDataBase['cs_pca2_index'][0]]
-            else:
-                self._workingDataBase['cs_scatter2'] = self._workingDataBase['cs_scatter_mat'][:,1]
-                self._workingDataBase['cs_pca2_index'][0] = 1
-        else:
-            comboBx_Items = []
-            cs_scatter_mat_ = np.zeros((0,2), dtype=np.float32)
-            comboBx_Items.append('pca1')
-            comboBx_Items.append('pca2')
-            self._workingDataBase['cs_scatter_mat'] = cs_scatter_mat_
-            self._workingDataBase['cs_scatter_list'] = np.array(comboBx_Items,   dtype=np.unicode)
-            self._workingDataBase['cs_scatter1'] = np.zeros((0), dtype=np.float32)
-            self._workingDataBase['cs_scatter2'] = np.zeros((0), dtype=np.float32)
-            # cs_pca1_index
-            self._workingDataBase['cs_pca1_index'][0] = 0
-            # cs_pca2_index
-            self._workingDataBase['cs_pca2_index'][0] = 1
 
     def update_CSPcaNum_comboBx(self):
         if (self._workingDataBase['cs_index'].sum() > 1):
@@ -3508,7 +2429,7 @@ class PsortGuiSignals(PsortGuiWidget):
         # if the SLOT is already analyzed then transfer the data over,
         # otherwise, do not transfer and use the current values for the new slot
         if self._workingDataBase['isAnalyzed'][0]:
-            for key in database._singleSlotDataBase.keys():
+            for key in dictionaries._singleSlotDataBase.keys():
                 self._workingDataBase[key] = psortDataBase_currentSlot[key]
             self._workingDataBase['flag_index_detection'][0] = False
         else:

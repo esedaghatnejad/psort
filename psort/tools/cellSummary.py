@@ -14,6 +14,7 @@ from copy import deepcopy
 import sys # We need sys so that we can pass argv to QApplication
 import os
 from psort.utils import lib
+from psort.utils import signals_lib
 ## #############################################################################
 #%% CellSummaryDataBase
 _workingDataBase = {
@@ -53,8 +54,6 @@ class CellSummarySignals(CellSummaryWidget):
         super(CellSummarySignals, self).__init__(parent)
         self.init_plot()
         self._workingDataBase = deepcopy(_workingDataBase)
-        from psort.gui.signals import PsortGuiSignals
-        self.PsortGuiSignals = PsortGuiSignals
         if psort_grandDataBase is None:
             isDataLoaded = self.load_grandDataBase()
         else:
@@ -230,12 +229,12 @@ class CellSummarySignals(CellSummaryWidget):
             self._workingDataBase['ch_data'][self._workingDataBase['ss_index']]
         self._workingDataBase['cs_peak'] = \
             self._workingDataBase['ch_data'][self._workingDataBase['cs_index']]
-        self.PsortGuiSignals.extract_ss_waveform(self)
-        self.PsortGuiSignals.extract_cs_waveform(self)
-        self.PsortGuiSignals.extract_ss_ifr(self)
-        self.PsortGuiSignals.extract_cs_ifr(self)
-        self.PsortGuiSignals.extract_ss_xprob(self)
-        self.PsortGuiSignals.extract_cs_xprob(self)
+        signals_lib.extract_ss_waveform(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
+        signals_lib.extract_ss_ifr(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_ss_xprob(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
         self._workingDataBase['duration'] = \
                     float( self._workingDataBase['ch_data'].size ) \
                     / float( self._workingDataBase['sample_rate'][0] )
