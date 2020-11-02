@@ -14,6 +14,7 @@ import numpy as np
 from copy import deepcopy
 import os
 import datetime
+import time
 import sys
 import decorator
 from psort.utils import lib
@@ -119,13 +120,25 @@ _fileDataBase = {
     'isCommonAverage':    np.zeros((1), dtype=np.bool),
 }
 
+flag_color_toggle = True
 @decorator.decorator
 def showWaitCursor(func, *args, **kwargs):
     QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+    QtWidgets.QApplication.processEvents()
     try:
         return func(*args, **kwargs)
     finally:
         QtWidgets.QApplication.restoreOverrideCursor()
+        currentDT = datetime.datetime.now()
+        args[0].txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
+                + ' Analyzed Slot# ' + str(args[0].txtedit_toolbar_slotNumCurrent.value()))
+        global flag_color_toggle
+        if flag_color_toggle:
+            lib.setFont(args[0].txtlabel_statusBar, color='green')
+            flag_color_toggle = False
+        else:
+            lib.setFont(args[0].txtlabel_statusBar, color='black')
+            flag_color_toggle = True
 
 ## ################################################################################################
 ## ################################################################################################
@@ -204,9 +217,6 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         self.plot_cs_pca()
         self._workingDataBase['isAnalyzed'][0] = True
-        currentDT = datetime.datetime.now()
-        self.txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
-                + ' Analyzed Slot# ' + str(self.txtedit_toolbar_slotNumCurrent.value()))
         return 0
 
 ## ################################################################################################
@@ -1520,7 +1530,7 @@ class PsortGuiSignals(PsortGuiWidget):
             message = str(
                   'Total data duration is: {:.0f}s.\n'\
                 + 'Current number of slots is: {:.0f}.\n'\
-                + 'Do you want to change the slot boundaries,\n'\
+                + 'Do you want to change the slot boundaries?\n'\
                 ).format(total_duration, total_slot_num)
             _reply = QMessageBox.question(
                                 self, 'Reset slot boundaries', message,
@@ -1926,6 +1936,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_enable()
         return 0
 
+    @showWaitCursor
     def undoRedo_undo(self):
         # if index_undoRedo is 0 then there is no more UNDO left
         if (self._workingDataBase['index_undoRedo'][0] <= 0):
@@ -1944,6 +1955,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_updatePlots()
         return 0
 
+    @showWaitCursor
     def undoRedo_redo(self):
         # if index_undoRedo is length_undoRedo-1 then there is no more REDO left
         if (self._workingDataBase['index_undoRedo'][0] >= \
@@ -2021,7 +2033,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(False)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onScatterSelect_Ok_Clicked(self):
         self.scatterSelect_task_completed()
         self.scatterSelect_showWidget(False)
@@ -2190,7 +2202,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.waveDissect_showWidget(False)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onWaveDissect_Ok_Clicked(self):
         self.WaveDissectWidget.popUp_task_completed()
         self.waveDissect_showWidget(False)
@@ -2269,10 +2281,13 @@ class PsortGuiSignals(PsortGuiWidget):
         self.slotBoundary_showWidget(False)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onSlotBoundary_Ok_Clicked(self):
         restart_mode = self.SlotBoundaryWidget._workingDataBase['restart_mode'][0]
         index_slot_edges = deepcopy(self.SlotBoundaryWidget._workingDataBase['index_slot_edges'])
+        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
+        self.transfer_data_from_guiSignals_to_psortDataBase()
+        self.psortDataBase.changeCurrentSlot_to(slot_num - 1)
         self.psortDataBase.reassign_slot_boundaries(index_slot_edges, restart_mode)
         self.restart_session()
         self.slotBoundary_showWidget(False)

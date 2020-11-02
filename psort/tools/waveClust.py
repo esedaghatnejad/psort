@@ -18,6 +18,9 @@ import numpy as np
 from psort.utils import lib
 from psort.gui.inputDialog import PsortInputDialog
 from psort.gui.checkListDialog import PsortChecklistDialog
+
+nanLabel = lib.nanLabel
+
 # import warnings
 # warnings.simplefilter('error', RuntimeWarning)
 ## #############################################################################
@@ -35,8 +38,8 @@ class WaveClustWidget(QWidget):
                            'k', 'b', 'r', 'g', 'c', 'm', 'y']
 
         self._localDataBase = {
-            "ss_labels":                        np.zeros((1), dtype=np.int32),
-            "cs_labels":                        np.zeros((1), dtype=np.int32),
+            'ss_index_labels':                  np.zeros((0), dtype=np.int32),
+            'cs_index_labels':                  np.zeros((0), dtype=np.int32),
             "ss_centers":                       np.zeros((1,2), dtype=np.float32),
             "ss_clust_num":                     np.ones((1), dtype=np.uint32),
             "cs_centers":                       np.zeros((1,2), dtype=np.float32),
@@ -149,7 +152,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_applymethod = QPushButton("Apply")
         lib.setFont(self.pushBtn_scatterPlot_popup_applymethod, color="black")
         self.pushBtn_scatterPlot_popup_applymethod.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'apply.png')))
-        self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected method')
+        self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected Method')
 
         self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset")
         lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
@@ -159,7 +162,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_selectatt = QPushButton("Select features")
         lib.setFont(self.pushBtn_scatterPlot_popup_selectatt, color="black")
         self.pushBtn_scatterPlot_popup_selectatt.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'list.png')))
-        self.pushBtn_scatterPlot_popup_selectatt.setToolTip('<b>F</b>eature selection')
+        self.pushBtn_scatterPlot_popup_selectatt.setToolTip('<b>F</b>eature Selection')
 
         self.comboBx_scatterPlot_popup_ss_label = QComboBox()
         self.comboBx_scatterPlot_popup_ss_label.addItems(['0'])
@@ -176,7 +179,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_select_clust = QPushButton("Select cluster")
         lib.setFont(self.pushBtn_scatterPlot_popup_select_clust, color="black")
         self.pushBtn_scatterPlot_popup_select_clust.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'select.png')))
-        self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect cluster")
+        self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect Cluster")
 
         self.pushBtn_scatterPlot_popup_prev_clust = QPushButton("Prev")
         lib.setFont(self.pushBtn_scatterPlot_popup_prev_clust, color="black")
@@ -614,7 +617,9 @@ class WaveClustWidget(QWidget):
         self.infLine_waveform_minPca.setValue(_minPca)
         self.infLine_waveform_maxPca.setValue(_maxPca)
 
-        self.set_clusters()
+        self.update_ss_labels()
+        self.update_cs_labels()
+
         self.reset_plots()
         self.make_att_list()
         self.make_ss_label_list()
@@ -722,20 +727,22 @@ class WaveClustWidget(QWidget):
     def pushBtn_scatterPlot_popup_applymethod_Clicked(self):
         if self._localDataBase['is_ss']:
             current_scatter_mat_key = "ss_scatter_mat"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             current_ch_data_key = "ch_data_ss"
             _current_features_key = "ss_features"
             _current_label_selected_key = "ss_label_selected"
             current_index_selected_key = "ss_index_selected"
             current_wave_key = "ss_wave"
+            current_index_key = "ss_index"
         else:
             current_scatter_mat_key = "cs_scatter_mat"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             current_ch_data_key = "ch_data_cs"
             _current_features_key = "cs_features"
             _current_label_selected_key = "cs_label_selected"
             current_index_selected_key = "cs_index_selected"
             current_wave_key = "cs_wave"
+            current_index_key = "cs_index"
 
         _data = self._workingDataBase[current_scatter_mat_key][:,self._localDataBase[_current_features_key]]
 
@@ -757,21 +764,24 @@ class WaveClustWidget(QWidget):
         elif self.comboBx_scatterPlot_popup_method.currentText() == "ISO-Split":
             # ISO-SPLIT
             labels = lib.isosplit(_data)
-            self._localDataBase[_current_labels_key] = labels
+            _index_int = np.where(self._workingDataBase[current_index_key])[0]
+            self._localDataBase[_current_index_labels_key][_index_int] = labels
             self.make_clust_centers()
         elif self.comboBx_scatterPlot_popup_method.currentText() == "HDBScan":
             # HDBSCAN
             labels = lib.HDBSCAN(_data)
-            if len(np.unique(labels)) <= len(self.list_color):
-                self._localDataBase[_current_labels_key] = labels
-                self.make_clust_centers()
+            _index_int = np.where(self._workingDataBase[current_index_key])[0]
+            self._localDataBase[_current_index_labels_key][_index_int] = labels
+            self.make_clust_centers()
         elif self.comboBx_scatterPlot_popup_method.currentText() == "Isolation-score":
             # ISOLATION SCORE
+            _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+            _labels = self._localDataBase[_current_index_labels_key][_idx]
             labels_unique, counts = \
-                np.unique(self._localDataBase[_current_labels_key],
+                np.unique(_labels,
                           return_counts = True)
             iso_score = lib.isolation_score(_data,
-                                                  self._localDataBase[_current_labels_key],
+                                                  _labels,
                                                   nknn = 6)
             for counter_cluster, lbl in enumerate(labels_unique):
                 self.pltText_scatter_list[counter_cluster].\
@@ -790,9 +800,13 @@ class WaveClustWidget(QWidget):
                 message=message, doubleSpinBx_params=doubleSpinBx_params)
             if not(self.input_dialog_outlier.exec_()):
                 return 0
+
+            _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+            _labels = self._localDataBase[_current_index_labels_key][_idx]
+
             quant = self.input_dialog_outlier.doubleSpinBx.value()/100.
             loi = self._localDataBase[_current_label_selected_key]
-            ind_loi = self._localDataBase[_current_labels_key] == loi
+            ind_loi = _labels == loi
             if sum(ind_loi) == 1:
                 return 0
             elif sum(ind_loi) < 20:
@@ -830,21 +844,25 @@ class WaveClustWidget(QWidget):
     def pushBtn_scatterPlot_popup_reset_Clicked(self):
 
         if self._localDataBase['is_ss']:
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
+            current_index_key = "ss_index"
             current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
             _current_centers_key = "ss_centers"
             _current_clust_num_key = "ss_clust_num"
         else:
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
+            current_index_key = "cs_index"
             current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
             _current_centers_key = "cs_centers"
             _current_clust_num_key = "cs_clust_num"
 
 
-        self._localDataBase[_current_labels_key] = np.zeros_like(
-            self._workingDataBase[current_scatter1_key], dtype = np.int32)
+        self._localDataBase[_current_index_labels_key] = np.zeros_like(
+            self._workingDataBase[current_index_key], dtype = np.int32)
+        self._localDataBase[_current_index_labels_key][self._workingDataBase[current_index_key] == False] = nanLabel
+
         self._localDataBase[_current_centers_key][0,0] = np.mean(self._workingDataBase[current_scatter1_key])
         self._localDataBase[_current_centers_key][0,1] = np.mean(self._workingDataBase[current_scatter2_key])
         self._localDataBase[_current_clust_num_key][0] = 1
@@ -901,13 +919,15 @@ class WaveClustWidget(QWidget):
         if self._localDataBase['is_ss']:
             current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
-            _current_labels_key = "ss_labels"
+            current_index_key = "ss_index"
+            _current_index_labels_key = "ss_index_labels"
             current_scatter_mat_key = "ss_scatter_mat"
             _current_features_key = "ss_features"
         else:
             current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
-            _current_labels_key = "cs_labels"
+            current_index_key = "cs_index"
+            _current_index_labels_key = "cs_index_labels"
             current_scatter_mat_key = "cs_scatter_mat"
             _current_features_key = "cs_features"
 
@@ -939,7 +959,8 @@ class WaveClustWidget(QWidget):
                 init_val=init_val_ND,
                 covariance_type='full')
 
-        self._localDataBase[_current_labels_key] = labels
+        _index_int = np.where(self._workingDataBase[current_index_key])[0]
+        self._localDataBase[_current_index_labels_key][_index_int] = labels
         self.make_clust_centers()
 
         # Re-plot
@@ -965,7 +986,7 @@ class WaveClustWidget(QWidget):
             current_wave_key = "ss_wave"
             current_index_selected_key = "ss_index_selected"
             current_wave_span_key = "ss_wave_span"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             _current_label_selected_key = "ss_label_selected"
         else:
             current_scatter1_key = "cs_scatter1"
@@ -973,10 +994,14 @@ class WaveClustWidget(QWidget):
             current_wave_key = "cs_wave"
             current_index_selected_key = "cs_index_selected"
             current_wave_span_key = "cs_wave_span"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             _current_label_selected_key = "cs_label_selected"
 
         if len(self._workingDataBase['popUp_ROI_x']) > 1: # if any region of interest is chosen
+
+            _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+            _labels = self._localDataBase[_current_index_labels_key][_idx]
+
             # Scatter plot active
             if self.which_plot_active == 0:
                 self._workingDataBase['ss_pca1_ROI'] = \
@@ -1006,7 +1031,7 @@ class WaveClustWidget(QWidget):
                 self._workingDataBase[current_index_selected_key] = \
                     np.zeros((self._workingDataBase[current_wave_key].shape[0]),dtype=np.bool)
                 for counter in range(self._workingDataBase[current_wave_key].shape[0]):
-                    if not self._localDataBase[_current_labels_key][counter] == \
+                    if not _labels[counter] == \
                      self._localDataBase[_current_label_selected_key]:
                          continue
                     _wave_single = self._workingDataBase[current_wave_key][counter,:]
@@ -1101,22 +1126,12 @@ class WaveClustWidget(QWidget):
     def comboBx_scatterPlot_PcaNum1_Changed(self):
         if self._localDataBase['is_ss']:
             current_scatter1_key = "ss_scatter1"
-            current_scatter2_key = "ss_scatter2"
             current_scatter_mat_key = "ss_scatter_mat"
             current_pca1_index_key = "ss_pca1_index"
-            current_wave_key = "ss_wave"
-            current_index_selected_key = "ss_index_selected"
-            current_wave_span_key = "ss_wave_span"
-            _current_labels_key = "ss_labels"
         else:
             current_scatter1_key = "cs_scatter1"
-            current_scatter2_key = "cs_scatter2"
             current_scatter_mat_key = "cs_scatter_mat"
             current_pca1_index_key = "cs_pca1_index"
-            current_wave_key = "cs_wave"
-            current_index_selected_key = "cs_index_selected"
-            current_wave_span_key = "cs_wave_span"
-            _current_labels_key = "cs_labels"
 
         if (self.comboBx_popup_scatterPlot_PcaNum1.count() >= 2) and \
             (self._workingDataBase[current_scatter_mat_key].size > 0):
@@ -1135,23 +1150,13 @@ class WaveClustWidget(QWidget):
 
     def comboBx_scatterPlot_PcaNum2_Changed(self):
         if self._localDataBase['is_ss']:
-            current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
             current_scatter_mat_key = "ss_scatter_mat"
             current_pca2_index_key = "ss_pca2_index"
-            current_wave_key = "ss_wave"
-            current_index_selected_key = "ss_index_selected"
-            current_wave_span_key = "ss_wave_span"
-            _current_labels_key = "ss_labels"
         else:
-            current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
             current_scatter_mat_key = "cs_scatter_mat"
             current_pca2_index_key = "cs_pca2_index"
-            current_wave_key = "cs_wave"
-            current_index_selected_key = "cs_index_selected"
-            current_wave_span_key = "cs_wave_span"
-            _current_labels_key = "cs_labels"
 
         if (self.comboBx_popup_scatterPlot_PcaNum2.count() >= 2) and \
             (self._workingDataBase[current_scatter_mat_key].size > 0):
@@ -1168,19 +1173,16 @@ class WaveClustWidget(QWidget):
         self.make_att_list()
         self.plot_scatter_popUp()
 
-    # 'D' - delete the selected waveforms of the type currently of interest
+# 'D' - delete the selected waveforms of the type currently of interest
     # Then select the waveform closest in time to the deleted waveform
     def pushBtn_scatterPlot_popup_delete_Clicked(self):
 
         if self._localDataBase['is_ss']:
             current_index_selected_key = "ss_index_selected"
             current_index_key = "ss_index"
-            _current_labels_key = "ss_labels"
         else:
             current_index_selected_key = "cs_index_selected"
             current_index_key = "cs_index"
-            _current_labels_key = "cs_labels"
-
 
         # Check to see if any of CS or SS waveforms is selected
         if self._workingDataBase[current_index_selected_key].sum() < 1:
@@ -1190,9 +1192,6 @@ class WaveClustWidget(QWidget):
         _index_selected_int = _index_int[self._workingDataBase[current_index_selected_key]]
         self._workingDataBase[current_index_key][_index_selected_int] = False
 
-        self._localDataBase[_current_labels_key] = \
-            self._localDataBase[_current_labels_key][np.logical_not(self._workingDataBase[current_index_selected_key])]
-
         if not self._localDataBase['is_ss']:
             _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
             _cs_index_slow_selected_int = \
@@ -1201,27 +1200,26 @@ class WaveClustWidget(QWidget):
 
         # Reset and remove selections
         self._workingDataBase[current_index_selected_key] = \
-            np.zeros_like(self._localDataBase[_current_labels_key],
+            np.zeros((self._workingDataBase[current_index_key].sum(),),
                           dtype=np.bool)
 
         if self._localDataBase['is_ss']:
+            self.update_ss_labels()
             self.PsortGuiSignals.extract_ss_peak(self)
             self.PsortGuiSignals.extract_ss_waveform(self)
             self.PsortGuiSignals.extract_ss_similarity(self)
             self.PsortGuiSignals.extract_ss_ifr(self)
             self.PsortGuiSignals.extract_ss_time(self)
-            self.PsortGuiSignals.extract_ss_xprob(self)
-            self.PsortGuiSignals.extract_cs_xprob(self)
             self.PsortGuiSignals.extract_ss_pca(self)
             self.PsortGuiSignals.extract_ss_scatter(self)
             self.make_ss_label_list()
         else:
+            self.update_cs_labels()
             self.PsortGuiSignals.extract_cs_peak(self)
             self.PsortGuiSignals.extract_cs_waveform(self)
             self.PsortGuiSignals.extract_cs_similarity(self)
             self.PsortGuiSignals.extract_cs_ifr(self)
             self.PsortGuiSignals.extract_cs_time(self)
-            self.PsortGuiSignals.extract_cs_xprob(self)
             self.PsortGuiSignals.extract_cs_pca(self)
             self.PsortGuiSignals.extract_cs_scatter(self)
             self.make_cs_label_list()
@@ -1242,6 +1240,9 @@ class WaveClustWidget(QWidget):
         self.reset_plots()
         self.make_scatter_list()
         self.make_clust_centers()
+        self.extract_template()
+        self.extract_ss_xprob()
+        self.extract_cs_xprob()
         self.plot_scatter_popUp()
         self.plot_waveform_popUp()
         self.plot_peakhist_popUp()
@@ -1263,20 +1264,8 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.move_selected_from_ss_to_cs()
-            self._localDataBase["ss_labels"] = \
-            np.zeros((self._workingDataBase["ss_index"].sum(),),
-                          dtype=np.int32)
-            self._localDataBase["cs_labels"] = \
-            np.zeros((self._workingDataBase["cs_index"].sum(),),
-                          dtype=np.int32)
         else:
             self.move_selected_from_cs_to_ss()
-            self._localDataBase["ss_labels"] = \
-            np.zeros((self._workingDataBase["ss_index"].sum(),),
-                          dtype=np.int32)
-            self._localDataBase["cs_labels"] = \
-            np.zeros((self._workingDataBase["cs_index"].sum(),),
-                          dtype=np.int32)
 
         # Reset and remove selections
         self._workingDataBase["ss_index_selected"] = \
@@ -1300,9 +1289,6 @@ class WaveClustWidget(QWidget):
 
         self.PsortGuiSignals.extract_ss_time(self)
         self.PsortGuiSignals.extract_cs_time(self)
-
-        self.PsortGuiSignals.extract_ss_xprob(self)
-        self.PsortGuiSignals.extract_cs_xprob(self)
 
         self.PsortGuiSignals.extract_ss_pca(self)
         self.PsortGuiSignals.extract_cs_pca(self)
@@ -1329,6 +1315,9 @@ class WaveClustWidget(QWidget):
         self.reset_plots()
         self.make_scatter_list()
         self.make_clust_centers()
+        self.extract_template()
+        self.extract_ss_xprob()
+        self.extract_cs_xprob()
         self.plot_scatter_popUp()
         self.plot_waveform_popUp()
         self.plot_peakhist_popUp()
@@ -1343,8 +1332,11 @@ class WaveClustWidget(QWidget):
 
         ind_combo = self.comboBx_scatterPlot_popup_ss_label.currentIndex()
 
-        _labels = np.unique(self._localDataBase['ss_labels'])
-        self._localDataBase['ss_label_selected'][0] = int(_labels[ind_combo])
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase['ss_index_labels']))
+        _labels = self._localDataBase['ss_index_labels'][_idx]
+
+        _labels_unique = np.unique(_labels)
+        self._localDataBase['ss_label_selected'][0] = int(_labels_unique[ind_combo])
 
         # Re-compute
         self.extract_ss_xprob()
@@ -1363,8 +1355,11 @@ class WaveClustWidget(QWidget):
 
         ind_combo = self.comboBx_scatterPlot_popup_cs_label.currentIndex()
 
-        _labels = np.unique(self._localDataBase['cs_labels'])
-        self._localDataBase['cs_label_selected'][0] = int(_labels[ind_combo])
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase['cs_index_labels']))
+        _labels = self._localDataBase['cs_index_labels'][_idx]
+
+        _labels_unique = np.unique(_labels)
+        self._localDataBase['cs_label_selected'][0] = int(_labels_unique[ind_combo])
 
         # Re-compute
         self.extract_ss_xprob()
@@ -1384,13 +1379,13 @@ class WaveClustWidget(QWidget):
             current_index_key = "ss_index"
             current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
         else:
             current_index_selected_key = "cs_index_selected"
             current_index_key = "cs_index"
             current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
 
         if (self._workingDataBase[current_index_selected_key].sum() < 1):
             return 0
@@ -1415,7 +1410,9 @@ class WaveClustWidget(QWidget):
 
         _label = int(self.input_dialog.doubleSpinBx.value())
 
-        self._localDataBase[_current_labels_key][self._workingDataBase[current_index_selected_key]] = _label
+        _index_int = np.where(self._workingDataBase[current_index_key])[0]
+        _index_selected_int = _index_int[self._workingDataBase[current_index_selected_key]]
+        self._localDataBase[_current_index_labels_key][_index_selected_int] = _label
 
         self.make_clust_centers()
 
@@ -1454,16 +1451,22 @@ class WaveClustWidget(QWidget):
         if self._localDataBase['is_ss']:
             current_index_selected_key = "ss_index_selected"
             current_index_key = "ss_index"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             _current_label_selected_key = "ss_label_selected"
         else:
             current_index_selected_key = "cs_index_selected"
             current_index_key = "cs_index"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             _current_label_selected_key = "cs_label_selected"
 
+        if self._workingDataBase[current_index_key].sum() < 1:
+            return 0
+
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+        _labels = self._localDataBase[_current_index_labels_key][_idx]
+
         self._workingDataBase[current_index_selected_key] = \
-            (self._localDataBase[_current_labels_key] == \
+            (_labels == \
              self._localDataBase[_current_label_selected_key][0])
 
         self.plot_scatter_popUp()
@@ -1522,30 +1525,7 @@ class WaveClustWidget(QWidget):
         self.comboBx_scatterPlot_popup_spike_mode_Changed()
         return 0
 
-    def move_selected_from_cs_to_ss(self):
-        if self._workingDataBase['cs_index_selected'].sum() < 1:
-            return 0
-        _cs_index_bool = self._workingDataBase['cs_index']
-        _ss_index_bool = self._workingDataBase['ss_index']
-        _cs_index_int = np.where(_cs_index_bool)[0]
-        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
-        if _cs_index_selected_int.size < 1:
-            return 0
-        _cs_index_bool[_cs_index_selected_int] = False
-        _ss_index_bool[_cs_index_selected_int] = True
-
-        self._workingDataBase['cs_index'] = _cs_index_bool
-        self._workingDataBase['ss_index'] = _ss_index_bool
-
-        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
-        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
-        return 0
-
     def move_selected_from_ss_to_cs(self):
-        if self._workingDataBase['ss_index_selected'].sum() < 1:
-            return 0
         _cs_index_bool = self._workingDataBase['cs_index']
         _ss_index_bool = self._workingDataBase['ss_index']
         _ss_index_int = np.where(_ss_index_bool)[0]
@@ -1554,14 +1534,33 @@ class WaveClustWidget(QWidget):
             return 0
         _ss_index_bool[_ss_index_selected_int] = False
         _cs_index_bool[_ss_index_selected_int] = True
-
-        self._workingDataBase['cs_index'] = _cs_index_bool
-        self._workingDataBase['ss_index'] = _ss_index_bool
-
         self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
         self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
         self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
         self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+
+        self.update_ss_labels()
+        self.update_cs_labels()
+
+        return 0
+
+    def move_selected_from_cs_to_ss(self):
+        _cs_index_bool = self._workingDataBase['cs_index']
+        _ss_index_bool = self._workingDataBase['ss_index']
+        _cs_index_int = np.where(_cs_index_bool)[0]
+        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
+        if _cs_index_selected_int.size < 1:
+            return 0
+        _cs_index_bool[_cs_index_selected_int] = False
+        _ss_index_bool[_cs_index_selected_int] = True
+        self.PsortGuiSignals.resolve_ss_ss_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_cs_slow_conflicts(self)
+        self.PsortGuiSignals.resolve_cs_ss_conflicts(self)
+
+        self.update_ss_labels()
+        self.update_cs_labels()
+
         return 0
 
 ## ################################################################################################
@@ -1573,21 +1572,26 @@ class WaveClustWidget(QWidget):
     def make_ss_label_list(self):
         self.comboBx_scatterPlot_popup_ss_label.clear()
 
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase['ss_index_labels']))
+        _labels = self._localDataBase['ss_index_labels'][_idx]
+
         self.comboBx_scatterPlot_popup_ss_label.\
             addItems([str(lbl) for lbl in \
-                      np.unique(self._localDataBase['ss_labels'])])
+                      np.unique(_labels)])
         return 0
 
     def make_cs_label_list(self):
         self.comboBx_scatterPlot_popup_cs_label.clear()
 
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase['cs_index_labels']))
+        _labels = self._localDataBase['cs_index_labels'][_idx]
+
         self.comboBx_scatterPlot_popup_cs_label.\
             addItems([str(lbl) for lbl in \
-                      np.unique(self._localDataBase['cs_labels'])])
+                      np.unique(_labels)])
         return 0
 
     def make_att_list(self):
-        # if self._localDataBase["ss_features"].sum() < 3:
         self._localDataBase["ss_features"] = np.zeros_like(
             self._workingDataBase['ss_scatter_list'],dtype=np.bool)
         if self._workingDataBase['ss_pca1_index'] == self._workingDataBase['ss_pca2_index']:
@@ -1597,7 +1601,6 @@ class WaveClustWidget(QWidget):
             self._localDataBase["ss_features"][self._workingDataBase['ss_pca1_index']] = True
             self._localDataBase["ss_features"][self._workingDataBase['ss_pca2_index']] = True
 
-        # if self._localDataBase["cs_features"].sum() < 3:
         self._localDataBase["cs_features"] = np.zeros_like(
             self._workingDataBase['cs_scatter_list'],dtype=np.bool)
         if self._workingDataBase['cs_pca1_index'] == self._workingDataBase['cs_pca2_index']:
@@ -1612,7 +1615,7 @@ class WaveClustWidget(QWidget):
         if self._localDataBase['is_ss']:
             current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             current_peak_key = "ss_peak"
             current_ch_data_key = "ch_data_ss"
             _current_centers_key = "ss_centers"
@@ -1622,7 +1625,7 @@ class WaveClustWidget(QWidget):
         else:
             current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             current_peak_key = "cs_peak"
             current_ch_data_key = "ch_data_cs"
             _current_centers_key = "cs_centers"
@@ -1630,28 +1633,82 @@ class WaveClustWidget(QWidget):
             _current_peak_centers_key = "cs_peak_centers"
             _current_clust_FRs_key = "cs_clust_FRs"
 
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+        _labels = self._localDataBase[_current_index_labels_key][_idx]
+
+        _labels_unique = np.unique(_labels)
+
         num = np.shape(self._workingDataBase[current_scatter1_key])[0]
         _data = np.zeros((num, 2))
         _data[:,0] = self._workingDataBase[current_scatter1_key]
         _data[:,1] = self._workingDataBase[current_scatter2_key]
-        _centers = np.array([_data[self._localDataBase[_current_labels_key] == i,:].mean(axis = 0) \
-                                    for i in np.unique(self._localDataBase[_current_labels_key])])
-        _clust_num = len(np.unique(self._localDataBase[_current_labels_key]))
+        _centers = np.array([_data[_labels == i,:].mean(axis = 0) \
+                                    for i in _labels_unique])
+        _clust_num = len(_labels_unique)
 
         self._localDataBase[_current_centers_key] = _centers
         self._localDataBase[_current_clust_num_key][0] = _clust_num
 
         self._localDataBase[_current_clust_FRs_key] = \
-            np.array([round((self._localDataBase[_current_labels_key] == i).sum() / \
+            np.array([round((_labels == i).sum() / \
                             float(self._workingDataBase[current_ch_data_key].size) * \
                                 float(self._workingDataBase['sample_rate'][0]),2) \
-                      for i in np.unique(self._localDataBase[_current_labels_key])])
+                      for i in _labels_unique])
 
         _data_peak = self._workingDataBase[current_peak_key]
         self._localDataBase[_current_peak_centers_key] = \
-            np.array([_data_peak[self._localDataBase[_current_labels_key] == i].mean(axis = 0) \
-                      for i in np.unique(self._localDataBase[_current_labels_key])])
+            np.array([_data_peak[_labels == i].mean(axis = 0) \
+                      for i in _labels_unique])
 
+    def update_ss_labels(self):
+
+        if not (np.shape(self._workingDataBase['ss_index']) == \
+                np.shape(self._localDataBase['ss_index_labels'])):
+            self._localDataBase['ss_index_labels'] = \
+                     np.zeros_like(self._workingDataBase['ss_index'], dtype = np.int32)
+            self._localDataBase['ss_index_labels'][self._workingDataBase['ss_index'] == False] = nanLabel
+
+        else:
+            _ind_nanLabel = lib.isNanLabel(self._localDataBase['ss_index_labels'])
+            _ind_remove = np.logical_and(self._workingDataBase['ss_index'] == False,
+                                         _ind_nanLabel == False)
+            _ind_add = np.logical_and(self._workingDataBase['ss_index'] == True,
+                                      _ind_nanLabel == True)
+
+            if np.all(_ind_nanLabel):
+                _label_max = -1
+            else:
+                _label_max = max(self._localDataBase['ss_index_labels'])
+
+            self._localDataBase['ss_index_labels'][_ind_remove] = nanLabel
+            self._localDataBase['ss_index_labels'][_ind_add] = _label_max + 1
+
+        return 0
+
+    def update_cs_labels(self):
+
+        if not (np.shape(self._workingDataBase['cs_index']) == \
+                np.shape(self._localDataBase['cs_index_labels'])):
+            self._localDataBase['cs_index_labels'] = \
+                     np.zeros_like(self._workingDataBase['cs_index'], dtype = np.int32)
+            self._localDataBase['cs_index_labels'][self._workingDataBase['cs_index'] == False] = nanLabel
+
+        else:
+            _ind_nanLabel = lib.isNanLabel(self._localDataBase['cs_index_labels'])
+            _ind_remove = np.logical_and(self._workingDataBase['cs_index'] == False,
+                                         _ind_nanLabel == False)
+            _ind_add = np.logical_and(self._workingDataBase['cs_index'] == True,
+                                      _ind_nanLabel == True)
+
+            if np.all(_ind_nanLabel):
+                _label_max = -1
+            else:
+                _label_max = max(self._localDataBase['cs_index_labels'])
+
+            self._localDataBase['cs_index_labels'][_ind_remove] = nanLabel
+            self._localDataBase['cs_index_labels'][_ind_add] = _label_max + 1
+
+        return 0
 
     def make_scatter_list(self):
         if self._localDataBase['is_ss']:
@@ -1715,19 +1772,6 @@ class WaveClustWidget(QWidget):
             self.comboBx_popup_scatterPlot_PcaNum1.setCurrentIndex(0)
             # pca2_index
             self.comboBx_popup_scatterPlot_PcaNum2.setCurrentIndex(1)
-        return 0
-
-    def set_clusters(self):
-        num_ss = np.shape(self._workingDataBase['ss_scatter1'])
-        num_cs = np.shape(self._workingDataBase['cs_scatter1'])
-
-        if not (self._localDataBase['ss_labels'].shape == num_ss and \
-                self._localDataBase['cs_labels'].shape == num_cs):
-
-            self._localDataBase['ss_labels'] = np.zeros(num_ss, dtype = np.int32)
-            self._localDataBase['cs_labels'] = np.zeros(num_cs, dtype = np.int32)
-
-        self.make_clust_centers()
         return 0
 
     def UMAP_update(self, isUMAP):
@@ -1815,17 +1859,18 @@ class WaveClustWidget(QWidget):
         return 0
 
     def extract_ss_xprob(self):
+        if self._workingDataBase['ss_index'].sum() > 1:
+            _idx = np.logical_not(lib.isNanLabel(self._localDataBase['ss_index_labels']))
+            _labels = self._localDataBase['ss_index_labels'][_idx]
 
-        _ss_index_bool = self._workingDataBase['ss_index']
-        _ss_index_label = np.zeros_like(self._workingDataBase['ss_index'],dtype=np.bool)
-        _ss_index_int = np.where(_ss_index_bool)[0]
-        _ss_index_selected_int = \
-            _ss_index_int[self._localDataBase['ss_labels'] == self._localDataBase['ss_label_selected']]
-        if _ss_index_selected_int.size < 1:
-            return 0
-        _ss_index_label[_ss_index_selected_int] = True
+            _ss_index_bool = self._workingDataBase['ss_index']
+            _ss_index_label = np.zeros_like(self._workingDataBase['ss_index'],dtype=np.bool)
+            _ss_index_int = np.where(_ss_index_bool)[0]
+            _ss_index_selected_int = \
+                _ss_index_int[_labels == self._localDataBase['ss_label_selected']]
 
-        if _ss_index_bool.sum() > 1:
+            _ss_index_label[_ss_index_selected_int] = True
+
             self._workingDataBase['ss_xprob'], self._workingDataBase['ss_xprob_span'] = \
                 lib.cross_probability(
                     _ss_index_label,
@@ -1845,32 +1890,32 @@ class WaveClustWidget(QWidget):
         return 0
 
     def extract_cs_xprob(self):
+        if (self._workingDataBase['cs_index'].sum() > 1 and
+            self._workingDataBase['ss_index'].sum() > 1):
 
-        _cs_index_bool = self._workingDataBase['cs_index']
-        _ss_index_bool = self._workingDataBase['ss_index']
+            _cs_index_bool = self._workingDataBase['cs_index']
+            _ss_index_bool = self._workingDataBase['ss_index']
 
-        _ss_index_label = np.zeros_like(self._workingDataBase['ss_index'],dtype=np.bool)
-        _cs_index_label = np.zeros_like(self._workingDataBase['cs_index'],dtype=np.bool)
+            _ss_idx = np.logical_not(lib.isNanLabel(self._localDataBase['ss_index_labels']))
+            _ss_labels = self._localDataBase['ss_index_labels'][_ss_idx]
 
-        _ss_index_int = np.where(_ss_index_bool)[0]
-        _ss_index_selected_int = \
-            _ss_index_int[self._localDataBase['ss_labels'] == self._localDataBase['ss_label_selected']]
+            _cs_idx = np.logical_not(lib.isNanLabel(self._localDataBase['cs_index_labels']))
+            _cs_labels = self._localDataBase['cs_index_labels'][_cs_idx]
 
-        _cs_index_int = np.where(_cs_index_bool)[0]
-        _cs_index_selected_int = \
-            _cs_index_int[self._localDataBase['cs_labels'] == self._localDataBase['cs_label_selected']]
+            _ss_index_label = np.zeros_like(self._workingDataBase['ss_index'],dtype=np.bool)
+            _cs_index_label = np.zeros_like(self._workingDataBase['cs_index'],dtype=np.bool)
 
-        if _ss_index_selected_int.size < 1:
-            return 0
+            _ss_index_int = np.where(_ss_index_bool)[0]
+            _ss_index_selected_int = \
+                _ss_index_int[_ss_labels == self._localDataBase['ss_label_selected']]
 
-        if _cs_index_selected_int.size < 1:
-            return 0
+            _cs_index_int = np.where(_cs_index_bool)[0]
+            _cs_index_selected_int = \
+                _cs_index_int[_cs_labels == self._localDataBase['cs_label_selected']]
 
-        _ss_index_label[_ss_index_selected_int] = True
-        _cs_index_label[_cs_index_selected_int] = True
+            _ss_index_label[_ss_index_selected_int] = True
+            _cs_index_label[_cs_index_selected_int] = True
 
-
-        if (self._workingDataBase['cs_index'].sum() > 1):
             self._workingDataBase['cs_xprob'], self._workingDataBase['cs_xprob_span'] = \
                 lib.cross_probability(
                     _cs_index_label,
@@ -1892,7 +1937,7 @@ class WaveClustWidget(QWidget):
             current_GLOBAL_WAVE_TEMPLATE_AFTER_key = 'GLOBAL_WAVE_TEMPLATE_SS_AFTER'
             current_wave_key = "ss_wave"
             current_wave_span_key = "ss_wave_span"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             _current_wave_template_clusters_key = 'ss_wave_template_clusters'
             _current_wave_span_template_clusters_key = 'ss_wave_span_template_clusters'
             _current_label_selected_key = "ss_label_selected"
@@ -1903,12 +1948,15 @@ class WaveClustWidget(QWidget):
             current_GLOBAL_WAVE_TEMPLATE_AFTER_key = 'GLOBAL_WAVE_TEMPLATE_CS_AFTER'
             current_wave_key = "cs_wave"
             current_wave_span_key = "cs_wave_span"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             _current_wave_template_clusters_key = 'cs_wave_template_clusters'
             _current_wave_span_template_clusters_key = 'cs_wave_span_template_clusters'
             _current_label_selected_key = "cs_label_selected"
 
         if (self._workingDataBase[current_index_key].sum() > 0):
+            _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+            _labels = self._localDataBase[_current_index_labels_key][_idx]
+
             _ind_begin = int((self._workingDataBase[current_GLOBAL_WAVE_PLOT_BEFORE_key][0]\
                                 -self._workingDataBase[current_GLOBAL_WAVE_TEMPLATE_BEFORE_key][0]) \
                                 * self._workingDataBase['sample_rate'][0])
@@ -1917,7 +1965,7 @@ class WaveClustWidget(QWidget):
                                 * self._workingDataBase['sample_rate'][0])
             _window = np.arange(_ind_begin, _ind_end, 1)
 
-            index_cluster = (self._localDataBase[_current_labels_key] == self._localDataBase[_current_label_selected_key])
+            index_cluster = (_labels == self._localDataBase[_current_label_selected_key])
 
             _wave = self._workingDataBase[current_wave_key][index_cluster,:]
             _wave_span = self._workingDataBase[current_wave_span_key][index_cluster,:]
@@ -1938,17 +1986,20 @@ class WaveClustWidget(QWidget):
             current_index_selected_key = "ss_index_selected"
             current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             _current_centers_key = "ss_centers"
         else:
             current_index_selected_key = "cs_index_selected"
             current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             _current_centers_key = "cs_centers"
 
-        for counter_cluster, lbl in enumerate(np.unique(self._localDataBase[_current_labels_key])):
-            index_cluster = (self._localDataBase[_current_labels_key] == lbl)
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+        _labels = self._localDataBase[_current_index_labels_key][_idx]
+
+        for counter_cluster, lbl in enumerate(np.unique(_labels)):
+            index_cluster = (_labels == lbl)
 
             self.pltText_scatter_list[counter_cluster].\
                 setPos(self._localDataBase[_current_centers_key][counter_cluster,0],
@@ -1977,12 +2028,12 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             current_peak_key = "ss_peak"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             _current_peak_centers_key = "ss_peak_centers"
             _current_clust_FRs_key = "ss_clust_FRs"
         else:
             current_peak_key = "cs_peak"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             _current_peak_centers_key = "cs_peak_centers"
             _current_clust_FRs_key = "cs_clust_FRs"
 
@@ -1990,13 +2041,16 @@ class WaveClustWidget(QWidget):
         if _data.size < 1:
             return 0
 
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+        _labels = self._localDataBase[_current_index_labels_key][_idx]
+
         opt_bin_edges = np.histogram_bin_edges(_data,\
                                                bins = 'auto')
         bin_dist = opt_bin_edges[1] - opt_bin_edges[0]
 
-        for counter_cluster,lbl in enumerate(np.unique(self._localDataBase[_current_labels_key])):
+        for counter_cluster,lbl in enumerate(np.unique(_labels)):
 
-            index_cluster = (self._localDataBase[_current_labels_key] == lbl)
+            index_cluster = (_labels == lbl)
             _data_hist = _data[index_cluster]
             num_bin = max(int(np.rint((_data_hist.max()-_data_hist.min())\
                               /bin_dist).item()),1)
@@ -2025,7 +2079,7 @@ class WaveClustWidget(QWidget):
             current_index_key = "ss_index"
             current_wave_key = "ss_wave"
             current_wave_span_key = "ss_wave_span"
-            _current_labels_key = "ss_labels"
+            _current_index_labels_key = "ss_index_labels"
             _current_label_selected_key = "ss_label_selected"
             _current_wave_template_clusters_key = "ss_wave_template_clusters"
             _current_wave_span_template_clusters_key = "ss_wave_span_template_clusters"
@@ -2034,20 +2088,23 @@ class WaveClustWidget(QWidget):
             current_index_key = "cs_index"
             current_wave_key = "cs_wave"
             current_wave_span_key = "cs_wave_span"
-            _current_labels_key = "cs_labels"
+            _current_index_labels_key = "cs_index_labels"
             _current_label_selected_key = "cs_label_selected"
             _current_wave_template_clusters_key = "cs_wave_template_clusters"
             _current_wave_span_template_clusters_key = "cs_wave_span_template_clusters"
 
+        _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
+        _labels = self._localDataBase[_current_index_labels_key][_idx]
+
         _index_label = \
-                (self._localDataBase[_current_labels_key] == self._localDataBase[_current_label_selected_key][0])
+                (_labels == self._localDataBase[_current_label_selected_key][0])
 
         _wave_lbl = self._workingDataBase[current_wave_key][_index_label, :]
         _wave_span_lbl = self._workingDataBase[current_wave_span_key][_index_label, :]
 
-        nan_array = np.full((_wave_lbl.shape[0]), np.NaN).reshape(-1, 1)
-        waveform = np.append(_wave_lbl, nan_array, axis=1)
-        wave_span = np.append(_wave_span_lbl, nan_array, axis=1)
+        nanLabel_array = np.full((_wave_lbl.shape[0]), np.NaN).reshape(-1, 1)
+        waveform = np.append(_wave_lbl, nanLabel_array, axis=1)
+        wave_span = np.append(_wave_span_lbl, nanLabel_array, axis=1)
         self.pltData_waveform_popUpPlot.\
             setData(
                 wave_span.ravel()*1000.,
@@ -2057,12 +2114,12 @@ class WaveClustWidget(QWidget):
         _index_selected = np.logical_and(
             self._workingDataBase[current_index_selected_key],_index_label)
 
-        nan_array = np.full((self._workingDataBase\
+        nanLabel_array = np.full((self._workingDataBase\
                     [current_wave_key][_index_selected, :].shape[0]), np.NaN).reshape(-1, 1)
         _waveform_selected = np.append(\
-            self._workingDataBase[current_wave_key][_index_selected, :], nan_array, axis=1)
+            self._workingDataBase[current_wave_key][_index_selected, :], nanLabel_array, axis=1)
         _wave_span_selected = np.append(\
-            self._workingDataBase[current_wave_span_key][_index_selected, :], nan_array, axis=1)
+            self._workingDataBase[current_wave_span_key][_index_selected, :], nanLabel_array, axis=1)
         self.pltData_waveform_popUpPlot_selected.\
             setData(
                 _wave_span_selected.ravel()*1000.,

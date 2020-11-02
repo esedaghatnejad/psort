@@ -29,6 +29,7 @@ class WaveDissectWidget(QWidget):
         self.connect_rawPlot_popup_signals()
         self.init_rawPlot_popup_var()
         self.init_rawPlot_popup_plot()
+
         return None
 ## #############################################################################
 #%% build_rawPlot_popup_Widget
@@ -342,6 +343,11 @@ class WaveDissectWidget(QWidget):
             plot(np.zeros((0)), np.zeros((0)), name="csIndexSelected", pen=None,
                 symbol='o', symbolSize=6, symbolBrush=None, \
                 symbolPen=pg.mkPen(color=(255,200,0,255), width=5) )
+        self.pltData_rawSignal_indexSelectedView_popUpPlot =\
+            self.plot_popup_rawPlot.\
+            plot(np.zeros((0)), np.zeros((0)), name="indexSelectedView", pen=None,
+                symbol='o', symbolSize=6, symbolBrush=None, \
+                symbolPen=pg.mkPen(color='g', width=5) )
             #infLine - copy; did not delete below for ease of documenting
         self.infLine_rawSignal_SsThresh_popUpPlot = \
             pg.InfiniteLine(pos=-100., angle=0, pen=(100,100,255,255),
@@ -396,7 +402,11 @@ class WaveDissectWidget(QWidget):
             self.plot_popup_sidePlot1.\
             plot(np.zeros((0)), np.zeros((0)), name="ssWaveTemplate", \
                 pen=pg.mkPen(color=(0, 100, 255, 200), width=3, style=QtCore.Qt.SolidLine))
-            # Viewbox
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot =\
+            self.plot_popup_sidePlot1.\
+            plot(np.zeros((0)), np.zeros((0)), name="ssWaveSelectedView", \
+                pen=pg.mkPen(color='g', width=2, style=QtCore.Qt.SolidLine))
+        # Viewbox
         self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot = self.plot_popup_sidePlot1.getViewBox()
         self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.autoRange()
         # popUp SS plot ROI
@@ -436,7 +446,11 @@ class WaveDissectWidget(QWidget):
             self.plot_popup_sidePlot2.\
             plot(np.zeros((0)), np.zeros((0)), name="csWaveTemplate", \
                 pen=pg.mkPen(color=(255, 100, 0, 200), width=4, style=QtCore.Qt.SolidLine))
-            # Viewbox
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot =\
+            self.plot_popup_sidePlot2.\
+            plot(np.zeros((0)), np.zeros((0)), name="csWaveSelectedView", \
+                pen=pg.mkPen(color='g', width=2, style=QtCore.Qt.SolidLine))
+        # Viewbox
         self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot = self.plot_popup_sidePlot2.getViewBox()
         self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.autoRange()
 
@@ -503,11 +517,17 @@ class WaveDissectWidget(QWidget):
             connect(self.pushBtn_rawPlot_popup_prev_window_Clicked)
         self.pushBtn_rawPlot_popup_next_window.clicked.\
             connect(self.pushBtn_rawPlot_popup_next_window_Clicked)
+        self.comboBx_rawPlot_popup_spike_of_interest.currentTextChanged.\
+            connect(self.comboBx_rawPlot_popup_spike_of_interest_currentIndexChanged)
         return 0
 
 #%% SIGNAL
 
     def pushBtn_waveDissect_Clicked(self):
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx = np.array([-1])
         self.popUp_rawPlot()
         # Set X axis zoom level range and initial setting
         x_range_max = (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 # (max. - min. time) / 2 ms
@@ -526,11 +546,16 @@ class WaveDissectWidget(QWidget):
         self.slider_rawPlot_popup_y_zoom_level.setValue(self.y_zoom_level)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setRange(y_range_min, y_range_max.astype(int))
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.y_zoom_level)
+
         return 0
 
     # 'S' - Select the waveforms in ROI
     def pushBtn_rawPlot_popup_select_Clicked(self):
         if len(self._workingDataBase['popUp_ROI_x']) > 1: # if any region of interest is chosen
+            self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+            self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+            self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+            self.view_selectedWaveform_idx[0] = -1
             # Raw plot active
             if self.which_plot_active == 0:
                 wave_span_ROI = \
@@ -629,6 +654,7 @@ class WaveDissectWidget(QWidget):
 
     # 'C' - Clear the ROI
     def pushBtn_rawPlot_popup_clear_Clicked(self):
+
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
         self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
@@ -651,6 +677,10 @@ class WaveDissectWidget(QWidget):
     # 'D' - delete the selected waveforms of the type currently of interest
     # Then select the waveform closest in time to the deleted waveform
     def pushBtn_rawPlot_popup_delete_Clicked(self):
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
         which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
         current_index_key = "%s_index" % which_waveform_current.lower()
@@ -724,6 +754,10 @@ class WaveDissectWidget(QWidget):
     # 'M' - Move the selected waveforms of the type currently of interest to a different type
     # Then select the waveform closest in time to the moved waveform
     def pushBtn_rawPlot_popup_move_Clicked(self):
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
         which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
         current_index_key = "%s_index" % which_waveform_current.lower()
@@ -805,8 +839,10 @@ class WaveDissectWidget(QWidget):
                 self._workingDataBase[current_index_selected_key][-1] = True
             else:
                 return 0
-        # If more than one waveform is selected...
-        else:
+
+
+        # If only one waveform is selected...
+        elif sum(self._workingDataBase[current_index_selected_key]) == 1:
             _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
             # If trying to select the previous waveform but one one of selected waveforms is the first waveform,
             # select the first waveform. Otherwise, select the waveform previous to the last of selected waveforms
@@ -816,15 +852,36 @@ class WaveDissectWidget(QWidget):
                 next_waveform_index = _selected_waveform_index[0]-1
 
             # De-selecting currently selected waveforms
-            for waveform_index in _selected_waveform_index:
-                self._workingDataBase[current_index_selected_key][waveform_index] = False
+            self._workingDataBase[current_index_selected_key][_selected_waveform_index] = False
 
             # Select the new waveform
             self._workingDataBase[current_index_selected_key][next_waveform_index] = True
 
-        # If zoom hold on, zoom into the new type
+            # If zoom hold on, zoom into the new type
             if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
                 self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+
+        # If more than one waveform is selected, toggle the view among the waveforms selected
+        else:
+            _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
+            which_waveform_index_currentView = np.where(_selected_waveform_index == self.view_selectedWaveform_idx[0])[0]
+            # If no waveform is currently being viewed, select the last among the ones selected to view
+            if self.view_selectedWaveform_idx[0] == -1:
+                self.view_selectedWaveform_idx[0] = _selected_waveform_index[-1]
+                self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
+                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                    self.pushBtn_rawPlot_popup_zoom_in_Clicked() # zoom into a waveform of interest among the ones currently selected
+            # If the waveform currently being viewed is the first among the ones selected, do nothing
+            elif which_waveform_index_currentView == 0:
+                return 0
+            # Else, view the previous waveform forward in time among the ones selected waveforms
+            else:
+                which_waveform_index_currentView -= 1
+                self.view_selectedWaveform_idx[0] = _selected_waveform_index[which_waveform_index_currentView]
+                self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
+                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                    self.pushBtn_rawPlot_popup_zoom_in_Clicked() # zoom into a waveform of interest among the ones currently selected
+
 
         # Update the selected waveform index plot
         if which_waveform_current == "SS":
@@ -847,8 +904,8 @@ class WaveDissectWidget(QWidget):
                 self._workingDataBase[current_index_selected_key][0] = True
             else:
                 return 0
-        # If more than one waveform is selected...
-        else:
+        # If only one waveform is selected...
+        elif sum(self._workingDataBase[current_index_selected_key]) == 1:
             _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
             # If trying to select the upcoming waveform but one one of selected waveforms is the last waveform,
             # select the last waveform. Otherwise, select the waveform after the last of selected waveforms
@@ -859,15 +916,38 @@ class WaveDissectWidget(QWidget):
                 next_waveform_index = _selected_waveform_index[-1]+1
 
             # De-selecting currently selected waveforms
-            for waveform_index in _selected_waveform_index:
-                self._workingDataBase[current_index_selected_key][waveform_index] = False
+            self._workingDataBase[current_index_selected_key][_selected_waveform_index] = False
 
             # Select the new waveform
             self._workingDataBase[current_index_selected_key][next_waveform_index] = True
 
-        # If zoom hold on, zoom into the new type
-        if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
-            self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+            # If zoom hold on, zoom into the new type
+            if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                self.pushBtn_rawPlot_popup_zoom_in_Clicked()
+
+        # If more than one waveform is selected, toggle the view among the waveforms selected
+        else:
+            _selected_waveform_index = np.where(self._workingDataBase[current_index_selected_key])[0]
+            which_waveform_index_currentView = np.where(_selected_waveform_index == self.view_selectedWaveform_idx[0])[0]
+            # If no waveform is currently being viewed, select the first among the ones selected to view
+            if self.view_selectedWaveform_idx[0] == -1:
+                self.view_selectedWaveform_idx[0] = _selected_waveform_index[0]
+                self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
+                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                    self.pushBtn_rawPlot_popup_zoom_in_Clicked() # zoom into a waveform of interest among the ones currently selected
+            # If the waveform currently being viewed is the last among the ones selected, do nothing
+            elif which_waveform_index_currentView == (len(_selected_waveform_index) - 1):
+                return 0
+            # Else, view the next waveform forward in time among the ones selected waveforms
+            else:
+                which_waveform_index_currentView += 1
+                self.view_selectedWaveform_idx[0] = _selected_waveform_index[which_waveform_index_currentView]
+                self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
+
+                if self.checkBx_rawPlot_popup_zoom_hold.isChecked() == True:
+                    self.pushBtn_rawPlot_popup_zoom_in_Clicked() # zoom into a waveform of interest among the ones currently selected
+
+
 
         # Update the selected waveform index plot
         if which_waveform_current == "SS":
@@ -899,8 +979,14 @@ class WaveDissectWidget(QWidget):
         # Check to see if at least one waveform is selected
         if any(self._workingDataBase[current_index_selected_key]):
             _index_int = np.where(self._workingDataBase[current_index_key])[0] # all indices of raw data with boolean True for detected spikes
-            _index_selected_int = \
-                _index_int[self._workingDataBase[current_index_selected_key]] # raw indices of selected CS among the one detected
+            # If there is a waveform of interest among the ones selected,
+            if self.view_selectedWaveform_idx[0] != -1:
+                 _index_selected_int = \
+                    _index_int[self.view_selectedWaveform_idx]
+            # If there is no waveform of interest among the ones selected, zoom into all those selected
+            else:
+                _index_selected_int = \
+                    _index_int[self._workingDataBase[current_index_selected_key]] # raw indices of selected waveforms among the ones detected
             time_point = self._workingDataBase['ch_time']
             min_XRange = time_point[_index_selected_int[0]] - self.slider_rawPlot_popup_x_zoom_level.value()/2/1000
             max_XRange = time_point[_index_selected_int[-1]] + self.slider_rawPlot_popup_x_zoom_level.value()/2/1000
@@ -948,12 +1034,16 @@ class WaveDissectWidget(QWidget):
         self.slider_rawPlot_popup_y_zoom_level.setValue(self.y_zoom_level)
         return 0
 
-    # 'Up Arrow' or 'Down Arrow' or 'W'
+    # 'Up Arrow' or 'Down Arrow' or 'W' or 'S'
     # Given a selected waveform (A) of the type 'which_waveform_current',
     # Select the waveform of different type closest in time to A.
     # Unselect any previously selected waveform of different type
     # If none selected, only change the type of interest
     def pushBtn_rawPlot_popup_find_other_spike_Clicked(self):
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
         which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
         current_index_key = "%s_index" % which_waveform_current.lower()
@@ -1033,11 +1123,27 @@ class WaveDissectWidget(QWidget):
     # '1' - Change the spike of interest to CS
     def comboBx_rawPlot_popup_spike_of_interest_CS_shortcut(self):
         self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('CS')
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
+        self.plot_rawSignal_CsIndexSelected_popUp()
+        self.plot_cs_waveform_popUp()
+        self.plot_rawSignal_SsIndexSelected_popUp()
+        self.plot_ss_waveform_popUp()
         return 0
 
     # '2' - Change the spike of interest to SS
     def comboBx_rawPlot_popup_spike_of_interest_SS_shortcut(self):
         self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText('SS')
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
+        self.plot_rawSignal_CsIndexSelected_popUp()
+        self.plot_cs_waveform_popUp()
+        self.plot_rawSignal_SsIndexSelected_popUp()
+        self.plot_ss_waveform_popUp()
         return 0
 
     def add_spike(self, selected_time_point):
@@ -1096,6 +1202,8 @@ class WaveDissectWidget(QWidget):
             setData(np.zeros((0)), np.zeros((0)) )
 
         # Re-plot
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
         self.plot_rawSignal_CsIndex_popUp()
         self.plot_rawSignal_CsIndexSelected_popUp()
         self.plot_cs_waveform_popUp()
@@ -1257,6 +1365,17 @@ class WaveDissectWidget(QWidget):
         _ss_index[ss_ind] = True
         return 0
 
+    def comboBx_rawPlot_popup_spike_of_interest_currentIndexChanged(self):
+        self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
+        self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
+        self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
+        self.view_selectedWaveform_idx[0] = -1
+        # Re-plot to update the selected spikes
+        self.plot_rawSignal_CsIndexSelected_popUp()
+        self.plot_cs_waveform_popUp()
+        self.plot_rawSignal_SsIndexSelected_popUp()
+        self.plot_ss_waveform_popUp()
+        return 0
 ## ################################################################################################
 ## ################################################################################################
     # Instead of the copy of the functions, better to pass into a function which plot to be plotted
@@ -1269,6 +1388,7 @@ class WaveDissectWidget(QWidget):
         self.plot_rawSignal_CsIndex_popUp()
         self.plot_rawSignal_SsIndexSelected_popUp()
         self.plot_rawSignal_CsIndexSelected_popUp()
+        self.plot_rawSignal_indexSelectedView_popUp()
         if not(just_update_selected):
             self.plot_rawSignal_waveforms_popUp()
         self.plot_ss_waveform_popUp()
@@ -1312,7 +1432,6 @@ class WaveDissectWidget(QWidget):
         return 0
 
     def plot_rawSignal_CsIndexSelected_popUp(self):
-        # import pdb; pdb.set_trace()
         _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
         _cs_index_selected_int = \
             _cs_index_int[self._workingDataBase['cs_index_selected']]
@@ -1323,6 +1442,30 @@ class WaveDissectWidget(QWidget):
             setData(
                 self._workingDataBase['ch_time'][_cs_index_selected_int],
                 self._workingDataBase['ch_data_cs'][_cs_index_slow_selected_int])
+        return 0
+
+    def plot_rawSignal_indexSelectedView_popUp(self):
+        if self.view_selectedWaveform_idx[0] != -1:
+            which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
+            current_index_key = "%s_index" % which_waveform_current.lower()
+            current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
+            _index_int = np.where(self._workingDataBase[current_index_key])[0]
+            _index_selected_int = \
+                    _index_int[self.view_selectedWaveform_idx]
+            if which_waveform_current.lower() == 'cs':
+                _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+                _cs_index_slow_selected_int = \
+                _cs_index_slow_int[self.view_selectedWaveform_idx]
+                self.pltData_rawSignal_indexSelectedView_popUpPlot.\
+                    setData(
+                        self._workingDataBase['ch_time'][_index_selected_int],
+                        self._workingDataBase['ch_data_cs'][_cs_index_slow_selected_int])
+            else:
+                self.pltData_rawSignal_indexSelectedView_popUpPlot.\
+                    setData(
+                        self._workingDataBase['ch_time'][_index_selected_int],
+                        self._workingDataBase['ch_data_ss'][_index_selected_int])
+
         return 0
 
     def plot_ss_waveform_popUp(self):
@@ -1346,7 +1489,20 @@ class WaveDissectWidget(QWidget):
                 ss_wave_span_selected.ravel()*1000.,
                 ss_waveform_selected.ravel(),
                 connect="finite")
-
+        #
+        if self.view_selectedWaveform_idx[0] != -1:
+            nan_array = np.full((self._workingDataBase\
+                        ['ss_wave'][self.view_selectedWaveform_idx, :].shape[0]), np.NaN).reshape(-1, 1)
+            ss_waveform_selected = np.append(\
+                self._workingDataBase['ss_wave'][self.view_selectedWaveform_idx, :], nan_array, axis=1)
+            ss_wave_span_selected = np.append(\
+                self._workingDataBase['ss_wave_span'][self.view_selectedWaveform_idx, :], nan_array, axis=1)
+            self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.\
+                setData(
+                    ss_wave_span_selected.ravel()*1000.,
+                    ss_waveform_selected.ravel(),
+                    connect="finite")
+        #
         self.pltData_SsWaveTemplate_rawSignal_sidePlot1_popUpPlot.\
             setData(
                 self._workingDataBase['ss_wave_span_template']*1000.,
@@ -1376,6 +1532,19 @@ class WaveDissectWidget(QWidget):
                 cs_wave_span_selected.ravel()*1000.,
                 cs_waveform_selected.ravel(),
                 connect="finite")
+        if self.view_selectedWaveform_idx[0] != -1:
+            nan_array = np.full((self._workingDataBase\
+                        ['cs_wave'][self.view_selectedWaveform_idx, :].shape[0]), np.NaN).reshape(-1, 1)
+            cs_waveform_selected = np.append(\
+                self._workingDataBase['cs_wave'][self.view_selectedWaveform_idx, :], nan_array, axis=1)
+            cs_wave_span_selected = np.append(\
+                self._workingDataBase['cs_wave_span'][self.view_selectedWaveform_idx, :], nan_array, axis=1)
+            self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.\
+                setData(
+                    cs_wave_span_selected.ravel()*1000.,
+                    cs_waveform_selected.ravel(),
+                    connect="finite")
+
         self.pltData_CsWaveTemplate_rawSignal_sidePlot2_popUpPlot.\
             setData(
                 self._workingDataBase['cs_wave_span_template']*1000.,

@@ -33,6 +33,7 @@ import pkg_resources
 installed_pkg = {pkg.key for pkg in pkg_resources.working_set}
 
 (PROJECT_FOLDER, _) = os.path.split(os.path.dirname(os.path.abspath(__file__)))
+nanLabel = -9999
 ## #############################################################################
 #%% list_color
 list_color = ['b', 'r', 'g', 'c', 'm', 'y', 'k', 'w']
@@ -851,6 +852,7 @@ else:
             lbls_rm = lbls_sorted[10:-1]
             for i in lbls_rm:
                 labels[labels == i] = -1
+            labels = np.unique(labels, return_inverse = True)[1] - 1
         return labels
 
 missing = {'isosplit5'} - installed_pkg
@@ -866,3 +868,6 @@ else:
             return np.zeros((0)), np.zeros((0))
         labels = isosplit5(input_data.T) - 1
         return labels
+
+def isNanLabel(_data):
+    return _data == nanLabel
