@@ -68,11 +68,14 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup = QVBoxLayout()
         self.layout_scatterPlot_popup_Btn = QHBoxLayout()
         self.layout_scatterPlot_popup_actionBtn = QHBoxLayout()
+
         self.layout_scatterPlot_popup_belowMainBtn_vdivider = QSplitter(Qt.Vertical)
         self.layout_scatterPlot_popup_belowMainBtn_vdivider.setChildrenCollapsible(False)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1 = QSplitter(Qt.Vertical)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1.setChildrenCollapsible(False)
+
         self.layout_scatterPlot_popup_belowMainBtn_hdivider = QSplitter(Qt.Horizontal)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider.setChildrenCollapsible(False)
-
         self.layout_scatterPlot_popup_belowMainBtn_hdivider1 = QSplitter(Qt.Horizontal)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider1.setChildrenCollapsible(False)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider2 = QSplitter(Qt.Horizontal)
@@ -150,6 +153,7 @@ class WaveClustWidget(QWidget):
         lib.setFont(self.pushBtn_scatterPlot_popup_applymethod, color="black")
         self.pushBtn_scatterPlot_popup_applymethod.setIcon(QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, 'icons', 'apply.png')))
         self.pushBtn_scatterPlot_popup_applymethod.setToolTip('<b>A</b>pply Selected Method')
+        self.pushBtn_scatterPlot_popup_applymethod.setCheckable(True)
 
         self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset labels")
         lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
@@ -229,12 +233,17 @@ class WaveClustWidget(QWidget):
         self.plot_popup_scatter.setTitle(None)
         self.plot_popup_peakhist.setTitle(
             "Y: # Number | X: Peak (uv)", color='k', size='12')
-        self.plot_popup_waveform.setTitle(
-            "Y: Waveform(uV) | X: Time(ms)", color='k', size='12')
+        if self._localDataBase["is_ss"]:
+            self.plot_popup_waveform.setTitle(
+                "Y: Waveform [SS#](uV) | X: Time(ms)", color='k', size='12')
+        else:
+            self.plot_popup_waveform.setTitle(
+                "Y: Waveform [CS#](uV) | X: Time(ms)", color='k', size='12')
+
         self.plot_popup_ssxprob.setTitle(
-            "Y: SSxSS_XProb(1) | X: Time(ms)", color='k', size='12')
+            "Y: [SS#]x[SS#]_XProb(1) | X: Time(ms)", color='k', size='12')
         self.plot_popup_csxprob.setTitle(
-            "Y: CSxSS_XProb(1) | X: Time(ms)", color='k', size='12')
+            "Y: [CS#]x[SS#]_XProb(1) | X: Time(ms)", color='k', size='12')
 
         # Scatter Plot
         self.widget_popup_scatterPlot = QWidget()
@@ -364,20 +373,27 @@ class WaveClustWidget(QWidget):
         self.layout_scatterPlot_popup_actionBtn.setSpacing(1)
         self.layout_scatterPlot_popup_actionBtn.setContentsMargins(1,1,1,1)
 
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider1.addWidget(self.plot_popup_waveform)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider1.addWidget(self.plot_popup_ssxprob)
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider2.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider1)
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider2.addWidget(self.plot_popup_csxprob)
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider.addWidget(self.widget_popup_scatterPlot)
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider.addWidget(self.plot_popup_peakhist)
-        self.layout_scatterPlot_popup_belowMainBtn_vdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider)
-        self.layout_scatterPlot_popup_belowMainBtn_vdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider2)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider1.addWidget(self.plot_popup_csxprob)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider.addWidget(self.plot_popup_waveform)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider1)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1.addWidget(self.widget_popup_scatterPlot)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1.addWidget(self.plot_popup_peakhist)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_vdivider1)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider.addWidget(self.layout_scatterPlot_popup_belowMainBtn_vdivider)
+
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider.setStretchFactor(0, 2)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider.setStretchFactor(1, 1)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1.setStretchFactor(0, 2)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1.setStretchFactor(1, 1)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider.setStretchFactor(0, 2)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider.setStretchFactor(1, 1)
 
         self.layout_scatterPlot_popup.addLayout(self.layout_scatterPlot_popup_Btn)
         self.layout_scatterPlot_popup.addWidget(self.line_scatterPlot_popup_h0)
         self.layout_scatterPlot_popup.addLayout(self.layout_scatterPlot_popup_actionBtn)
         self.layout_scatterPlot_popup.addWidget(self.line_scatterPlot_popup_h1)
-        self.layout_scatterPlot_popup.addWidget(self.layout_scatterPlot_popup_belowMainBtn_vdivider)
+        self.layout_scatterPlot_popup.addWidget(self.layout_scatterPlot_popup_belowMainBtn_hdivider)
 
         self.layout_scatterPlot_popup.setStretch(0,0)
         self.layout_scatterPlot_popup.setStretch(1,0)
@@ -466,6 +482,20 @@ class WaveClustWidget(QWidget):
             plot(np.zeros((0)), np.zeros((0)), name="ROI2", \
                 pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine),
                 symbol=None, symbolSize=None, symbolBrush=None, symbolPen=None)
+
+        # Adding crosshair
+        # cross hair
+        self.infLine_popUpPlot_vLine = \
+            pg.InfiniteLine(pos=0., angle=90, pen=(0,0,0,0),
+                        movable=False, hoverPen='g')
+        self.infLine_popUpPlot_hLine = \
+            pg.InfiniteLine(pos=0., angle=0, pen=(0,0,0,0),
+                        movable=False, hoverPen='g')
+
+        self.plot_popup_scatter.\
+            addItem(self.infLine_popUpPlot_vLine, ignoreBounds=True)
+        self.plot_popup_scatter.\
+            addItem(self.infLine_popUpPlot_hLine, ignoreBounds=True)
 
         # Viewbox
         self.viewBox_scatter_popUpPlot = self.plot_popup_scatter.getViewBox()
@@ -593,9 +623,9 @@ class WaveClustWidget(QWidget):
             connect(self.pushBtn_scatterPlot_popup_delete_Clicked)
         self.pushBtn_scatterPlot_popup_move.clicked.\
             connect(self.pushBtn_scatterPlot_popup_move_Clicked)
-        self.comboBx_scatterPlot_popup_ss_label.currentIndexChanged.\
+        self.comboBx_scatterPlot_popup_ss_label.activated.\
             connect(self.comboBx_scatterPlot_popup_ss_label_Changed)
-        self.comboBx_scatterPlot_popup_cs_label.currentIndexChanged.\
+        self.comboBx_scatterPlot_popup_cs_label.activated.\
             connect(self.comboBx_scatterPlot_popup_cs_label_Changed)
         self.pushBtn_scatterPlot_popup_setlabel.clicked.\
             connect(self.pushBtn_scatterPlot_popup_setlabel_Clicked)
@@ -762,6 +792,12 @@ class WaveClustWidget(QWidget):
             current_wave_key = "cs_wave"
             current_index_key = "cs_index"
 
+        if not(self.pushBtn_scatterPlot_popup_applymethod.isChecked()):
+            self.infLine_popUpPlot_vLine.setValue(0.)
+            self.infLine_popUpPlot_hLine.setValue(0.)
+            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
+
         _data = self._workingDataBase[current_scatter_mat_key][:,self._localDataBase[_current_features_key]]
 
 
@@ -781,18 +817,33 @@ class WaveClustWidget(QWidget):
                 return 0
         elif self.comboBx_scatterPlot_popup_method.currentText() == "ISO-Split":
             # ISO-SPLIT
+            self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+            self.infLine_popUpPlot_vLine.setValue(0.)
+            self.infLine_popUpPlot_hLine.setValue(0.)
+            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             labels = lib.isosplit(_data)
             _index_int = np.where(self._workingDataBase[current_index_key])[0]
             self._localDataBase[_current_index_labels_key][_index_int] = labels
             self.make_clust_centers()
         elif self.comboBx_scatterPlot_popup_method.currentText() == "HDBScan":
             # HDBSCAN
+            self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+            self.infLine_popUpPlot_vLine.setValue(0.)
+            self.infLine_popUpPlot_hLine.setValue(0.)
+            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             labels = lib.HDBSCAN(_data)
             _index_int = np.where(self._workingDataBase[current_index_key])[0]
             self._localDataBase[_current_index_labels_key][_index_int] = labels
             self.make_clust_centers()
         elif self.comboBx_scatterPlot_popup_method.currentText() == "Isolation-score":
             # ISOLATION SCORE
+            self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+            self.infLine_popUpPlot_vLine.setValue(0.)
+            self.infLine_popUpPlot_hLine.setValue(0.)
+            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
             _labels = self._localDataBase[_current_index_labels_key][_idx]
             labels_unique, counts = \
@@ -807,6 +858,11 @@ class WaveClustWidget(QWidget):
             return 0
         elif self.comboBx_scatterPlot_popup_method.currentText() == "Outlier":
             # Outlier Detection
+            self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+            self.infLine_popUpPlot_vLine.setValue(0.)
+            self.infLine_popUpPlot_hLine.setValue(0.)
+            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             message = 'Specify the quantile threshold in percent.'
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = 99.
@@ -846,6 +902,11 @@ class WaveClustWidget(QWidget):
             self.plot_csxprob_popUp()
             return 0
 
+        if self._localDataBase['is_ss']:
+            self.make_ss_label_list()
+        else:
+            self.make_cs_label_list()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -853,10 +914,6 @@ class WaveClustWidget(QWidget):
         self.plot_peakhist_popUp()
         self.plot_ssxprob_popUp()
         self.plot_csxprob_popUp()
-        if self._localDataBase['is_ss']:
-            self.make_ss_label_list()
-        else:
-            self.make_cs_label_list()
         return 0
 
     def pushBtn_scatterPlot_popup_reset_Clicked(self):
@@ -885,6 +942,11 @@ class WaveClustWidget(QWidget):
         self._localDataBase[_current_centers_key][0,1] = np.mean(self._workingDataBase[current_scatter2_key])
         self._localDataBase[_current_clust_num_key][0] = 1
 
+        if self._localDataBase['is_ss']:
+            self.make_ss_label_list()
+        else:
+            self.make_cs_label_list()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -892,10 +954,6 @@ class WaveClustWidget(QWidget):
         self.plot_peakhist_popUp()
         self.plot_ssxprob_popUp()
         self.plot_csxprob_popUp()
-        if self._localDataBase['is_ss']:
-            self.make_ss_label_list()
-        else:
-            self.make_cs_label_list()
 
         return 0
 
@@ -981,6 +1039,11 @@ class WaveClustWidget(QWidget):
         self._localDataBase[_current_index_labels_key][_index_int] = labels
         self.make_clust_centers()
 
+        if self._localDataBase['is_ss']:
+            self.make_ss_label_list()
+        else:
+            self.make_cs_label_list()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -988,10 +1051,7 @@ class WaveClustWidget(QWidget):
         self.plot_peakhist_popUp()
         self.plot_ssxprob_popUp()
         self.plot_csxprob_popUp()
-        if self._localDataBase['is_ss']:
-            self.make_ss_label_list()
-        else:
-            self.make_cs_label_list()
+
         self._localDataBase['flag_gmm'][0] = False
 
         return 0
@@ -1080,6 +1140,9 @@ class WaveClustWidget(QWidget):
             setData(np.zeros((0)), np.zeros((0)) )
         self.pltData_waveform_popUpPlot_ROI2.\
             setData(np.zeros((0)), np.zeros((0)) )
+
+        self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+        self.infLine_popUpPlot_vLine.setValue(0.)
         return 0
 
     def comboBx_scatterPlot_popup_spike_mode_Changed(self):
@@ -1451,6 +1514,11 @@ class WaveClustWidget(QWidget):
             np.zeros_like(self._workingDataBase[current_index_selected_key],
                           dtype=np.bool)
 
+        if self._localDataBase['is_ss']:
+            self.make_ss_label_list()
+        else:
+            self.make_cs_label_list()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -1458,10 +1526,6 @@ class WaveClustWidget(QWidget):
         self.plot_peakhist_popUp()
         self.plot_ssxprob_popUp()
         self.plot_csxprob_popUp()
-        if self._localDataBase['is_ss']:
-            self.make_ss_label_list()
-        else:
-            self.make_cs_label_list()
 
         return 0
 
@@ -1507,8 +1571,10 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.comboBx_scatterPlot_popup_ss_label.setCurrentIndex(ind_prev)
+            self.comboBx_scatterPlot_popup_ss_label_Changed()
         else:
             self.comboBx_scatterPlot_popup_cs_label.setCurrentIndex(ind_prev)
+            self.comboBx_scatterPlot_popup_cs_label_Changed()
         return 0
 
     # 'Right arrow' - select the next waveform forward in time
@@ -1527,8 +1593,10 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.comboBx_scatterPlot_popup_ss_label.setCurrentIndex(ind_next)
+            self.comboBx_scatterPlot_popup_ss_label_Changed()
         else:
             self.comboBx_scatterPlot_popup_cs_label.setCurrentIndex(ind_next)
+            self.comboBx_scatterPlot_popup_cs_label_Changed()
         return 0
 
     # Up - Change the spike of interest to CS
@@ -1590,23 +1658,39 @@ class WaveClustWidget(QWidget):
     def make_ss_label_list(self):
         self.comboBx_scatterPlot_popup_ss_label.clear()
 
+        if self._workingDataBase["ss_index"].sum() < 1:
+            self._localDataBase['ss_label_selected'][0] = nanLabel
+            self.extract_template()
+            return 0
+
         _idx = np.logical_not(lib.isNanLabel(self._localDataBase['ss_index_labels']))
         _labels = self._localDataBase['ss_index_labels'][_idx]
+        _labels_unique = np.unique(_labels)
 
         self.comboBx_scatterPlot_popup_ss_label.\
             addItems([str(lbl) for lbl in \
-                      np.unique(_labels)])
+                      _labels_unique])
+        self._localDataBase['ss_label_selected'][0] = int(_labels_unique[0])
+        self.extract_template()
         return 0
 
     def make_cs_label_list(self):
         self.comboBx_scatterPlot_popup_cs_label.clear()
 
+        if self._workingDataBase["cs_index"].sum() < 1:
+            self._localDataBase['cs_label_selected'][0] = nanLabel
+            self.extract_template()
+            return 0
+
         _idx = np.logical_not(lib.isNanLabel(self._localDataBase['cs_index_labels']))
         _labels = self._localDataBase['cs_index_labels'][_idx]
+        _labels_unique = np.unique(_labels)
 
         self.comboBx_scatterPlot_popup_cs_label.\
             addItems([str(lbl) for lbl in \
-                      np.unique(_labels)])
+                      _labels_unique])
+        self._localDataBase['cs_label_selected'][0] = int(_labels_unique[0])
+        self.extract_template()
         return 0
 
     def make_att_list(self):
@@ -2066,29 +2150,40 @@ class WaveClustWidget(QWidget):
                                                bins = 'auto')
         bin_dist = opt_bin_edges[1] - opt_bin_edges[0]
 
-        for counter_cluster,lbl in enumerate(np.unique(_labels)):
+        _labels_unique, _count = np.unique(_labels, return_counts=True)
+        _count_sort_ind = np.argsort(-_count)
+        _labels_unique_sorted = _labels_unique[_count_sort_ind]
+
+        for counter_cluster,lbl in enumerate(_labels_unique_sorted):
 
             index_cluster = (_labels == lbl)
+            index_plot = _count_sort_ind[counter_cluster]
             _data_hist = _data[index_cluster]
             num_bin = max(int(np.rint((_data_hist.max()-_data_hist.min())\
                               /bin_dist).item()),1)
             peak_hist, peak_bin_edges = \
                 np.histogram(_data_hist,bins = num_bin)
 
+            if counter_cluster == 0:
+                peak_max = np.max(peak_hist)
+                text_pos = 1.1*peak_max
+            else:
+                text_pos = max(np.max(peak_hist), .3*peak_max)
+
             # set text
-            self.pltText_peakhist_list[counter_cluster].\
-                setPlainText('FR: '+str(self._localDataBase[_current_clust_FRs_key][counter_cluster])+' Hz')
-            self.pltText_peakhist_list[counter_cluster].\
-                setPos(self._localDataBase[_current_peak_centers_key][counter_cluster], 1.1*np.max(peak_hist))
-            self.pltText_peakhist_list[counter_cluster].show()
+            self.pltText_peakhist_list[index_plot].\
+                setPlainText('FR '+str(lbl)+': '+str(self._localDataBase[_current_clust_FRs_key][index_plot])+' Hz')
+            self.pltText_peakhist_list[index_plot].\
+                setPos(self._localDataBase[_current_peak_centers_key][index_plot], text_pos)
+            self.pltText_peakhist_list[index_plot].show()
 
             # set data
-            self.pltData_peakhist_list[counter_cluster].\
+            self.pltData_peakhist_list[index_plot].\
                 setData(peak_bin_edges.ravel(),
                         peak_hist.ravel())
 
-        self.viewBox_peakhist_popUpPlot.autoRange()
         self.viewBox_peakhist_popUpPlot.setLimits(yMin=0., minYRange=0.)
+        self.viewBox_peakhist_popUpPlot.autoRange()
         return 0
 
     def plot_waveform_popUp(self):
@@ -2101,6 +2196,7 @@ class WaveClustWidget(QWidget):
             _current_label_selected_key = "ss_label_selected"
             _current_wave_template_clusters_key = "ss_wave_template_clusters"
             _current_wave_span_template_clusters_key = "ss_wave_span_template_clusters"
+            _current_mode = "SS"
         else:
             current_index_selected_key = "cs_index_selected"
             current_index_key = "cs_index"
@@ -2110,6 +2206,14 @@ class WaveClustWidget(QWidget):
             _current_label_selected_key = "cs_label_selected"
             _current_wave_template_clusters_key = "cs_wave_template_clusters"
             _current_wave_span_template_clusters_key = "cs_wave_span_template_clusters"
+            _current_mode = "CS"
+
+        if lib.isNanLabel(self._localDataBase[_current_label_selected_key][0]):
+            _label_selected_str = str()
+        else:
+            _label_selected_str = str(self._localDataBase[_current_label_selected_key][0])
+        self.plot_popup_waveform.setTitle(
+            "Y: Waveform ["+_current_mode+" #"+_label_selected_str+"](uV) | X: Time(ms)", color='k', size='12')
 
         _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
         _labels = self._localDataBase[_current_index_labels_key][_idx]
@@ -2161,6 +2265,14 @@ class WaveClustWidget(QWidget):
         self.viewBox_ssxprob_popUpPlot.setLimits(yMin=0., minYRange=0.)
         vb_range = self.viewBox_ssxprob_popUpPlot.viewRange()
         self.viewBox_ssxprob_popUpPlot.setYRange(0., vb_range[1][1])
+
+        if lib.isNanLabel(self._localDataBase["ss_label_selected"][0]):
+            _ss_label_selected_str = str()
+        else:
+            _ss_label_selected_str = str(self._localDataBase["ss_label_selected"][0])
+
+        self.plot_popup_ssxprob.setTitle(
+            "Y: [SS #"+_ss_label_selected_str+"]x[SS #"+_ss_label_selected_str+"]_XProb(1) | X: Time(ms)", color='k', size='12')
         return 0
 
     def plot_csxprob_popUp(self):
@@ -2173,6 +2285,20 @@ class WaveClustWidget(QWidget):
         self.viewBox_csxprob_popUpPlot.setLimits(yMin=0., minYRange=0.)
         vb_range = self.viewBox_csxprob_popUpPlot.viewRange()
         self.viewBox_csxprob_popUpPlot.setYRange(0., vb_range[1][1])
+
+        if lib.isNanLabel(self._localDataBase["ss_label_selected"][0]):
+            _ss_label_selected_str = str()
+        else:
+            _ss_label_selected_str = str(self._localDataBase["ss_label_selected"][0])
+
+        if lib.isNanLabel(self._localDataBase["cs_label_selected"][0]):
+            _cs_label_selected_str = str()
+        else:
+            _cs_label_selected_str = str(self._localDataBase["cs_label_selected"][0])
+
+        self.plot_popup_csxprob.setTitle(
+            "Y: [CS #"+_cs_label_selected_str+"]x[SS #"+_ss_label_selected_str+"]_XProb(1) | X: Time(ms)", color='k', size='12')
+
         return 0
 
 ## ################################################################################################
@@ -2205,7 +2331,10 @@ class WaveClustWidget(QWidget):
                 self._workingDataBase['popUp_ROI_y'] = \
                     np.append(self._workingDataBase['popUp_ROI_y'], [mousePoint.y()])
 
-                if self._localDataBase['flag_gmm'][0]:
+
+                if (self._localDataBase['flag_gmm'][0] and \
+                    self.pushBtn_scatterPlot_popup_applymethod.isChecked()):
+
                     self.pltData_scatter_popUpPlot_ROI.\
                         setData(self._workingDataBase['popUp_ROI_x'],
                                 self._workingDataBase['popUp_ROI_y'],
@@ -2213,6 +2342,11 @@ class WaveClustWidget(QWidget):
                     if (self._workingDataBase['popUp_ROI_x'].size \
                         > (self.input_dialog_gmm.doubleSpinBx.value()-1)):
                         self.cluster_GMM()
+                        self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+                        self.infLine_popUpPlot_hLine.setValue(0.)
+                        self.infLine_popUpPlot_vLine.setValue(0.)
+                        self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+                        self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
                 else:
                     self.pltData_scatter_popUpPlot_ROI.\
                             setData(self._workingDataBase['popUp_ROI_x'],
@@ -2248,6 +2382,20 @@ class WaveClustWidget(QWidget):
                             setData(self._workingDataBase['popUp_ROI_x'][[0,-1],],
                                     self._workingDataBase['popUp_ROI_y'][[0,-1],],
                                     pen=pg.mkPen(color='m', width=2, style=QtCore.Qt.DotLine))
+        return 0
+
+    def popUpPlot_mouseMoved_scatter(self, evt):
+        if not(self.pushBtn_scatterPlot_popup_applymethod.isChecked()):
+            return 0
+        if not(self._localDataBase['flag_gmm']):
+            return 0
+        pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+        if self.plot_popup_scatter.sceneBoundingRect().contains(pos):
+            mousePoint = self.viewBox_scatter_popUpPlot.mapSceneToView(pos)
+            self.infLine_popUpPlot_vLine.setValue(mousePoint.x())
+            self.infLine_popUpPlot_hLine.setValue(mousePoint.y())
+            self.infLine_popUpPlot_vLine.setPen((255,0,255,255))
+            self.infLine_popUpPlot_hLine.setPen((255,0,255,255))
         return 0
 
     def popUp_task_completed(self):

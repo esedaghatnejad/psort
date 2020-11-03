@@ -2262,6 +2262,9 @@ class PsortGuiSignals(PsortGuiWidget):
         self.WaveClustWidget.pushBtn_scatterPlot_popup_ok.clicked.\
             connect(self.onWaveClust_Ok_Clicked)
 
+        self.proxy_MouseMoved_WaveClustScatter = \
+            pg.SignalProxy(self.WaveClustWidget.plot_popup_scatter.scene().sigMouseMoved, \
+            rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseMoved_scatter)
         self.proxy_MouseClicked_WaveClustScatter = \
             pg.SignalProxy(self.WaveClustWidget.plot_popup_scatter.scene().sigMouseClicked, \
             rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseClicked_scatter)
