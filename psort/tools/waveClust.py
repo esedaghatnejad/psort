@@ -36,6 +36,8 @@ class WaveClustWidget(QWidget):
         self._localDataBase = {
             'ss_index_labels':                  np.zeros((0), dtype=np.int32),
             'cs_index_labels':                  np.zeros((0), dtype=np.int32),
+            'ss_index_labels_old':              np.zeros((0), dtype=np.int32),
+            'cs_index_labels_old':              np.zeros((0), dtype=np.int32),
             "ss_centers":                       np.zeros((1,2), dtype=np.float32),
             "ss_clust_num":                     np.ones((1), dtype=np.uint32),
             "cs_centers":                       np.zeros((1,2), dtype=np.float32),
@@ -53,7 +55,8 @@ class WaveClustWidget(QWidget):
             "ss_wave_template_clusters":        np.zeros((0), dtype=np.float32),
             "ss_wave_span_template_clusters":   np.zeros((0), dtype=np.float32),
             "cs_wave_template_clusters":        np.zeros((0), dtype=np.float32),
-            "cs_wave_span_template_clusters":   np.zeros((0), dtype=np.float32)
+            "cs_wave_span_template_clusters":   np.zeros((0), dtype=np.float32),
+            "current_slot_num":                 np.zeros((1), dtype=np.int32)
             }
 
         self.build_scatterPlot_popup_Widget()
@@ -660,6 +663,9 @@ class WaveClustWidget(QWidget):
             current_pca_bound_min_key = "cs_pca_bound_min"
             current_pca_bound_max_key = "cs_pca_bound_max"
 
+        self._localDataBase['ss_index_labels_old'] = np.copy(self._localDataBase['ss_index_labels'])
+        self._localDataBase['cs_index_labels_old'] = np.copy(self._localDataBase['cs_index_labels'])
+
         _minPca = self._workingDataBase[current_pca_bound_min_key][0] * 1000.
         _maxPca = self._workingDataBase[current_pca_bound_max_key][0] * 1000.
         self.infLine_waveform_minPca.setValue(_minPca)
@@ -773,6 +779,7 @@ class WaveClustWidget(QWidget):
         self.comboBx_scatterPlot_PcaNum2_Changed()
 
     def pushBtn_scatterPlot_popup_applymethod_Clicked(self):
+        self.set_GMM_crosshair(False)
         if self._localDataBase['is_ss']:
             current_scatter_mat_key = "ss_scatter_mat"
             _current_index_labels_key = "ss_index_labels"
@@ -792,11 +799,14 @@ class WaveClustWidget(QWidget):
             current_wave_key = "cs_wave"
             current_index_key = "cs_index"
 
+        if self._workingDataBase[current_index_key].sum() < 1:
+            self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+            return 0
+
         if not(self.pushBtn_scatterPlot_popup_applymethod.isChecked()):
-            self.infLine_popUpPlot_vLine.setValue(0.)
-            self.infLine_popUpPlot_hLine.setValue(0.)
-            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
-            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
+            self.set_GMM_crosshair(False)
+            self.pushBtn_scatterPlot_popup_clear_Clicked()
+            return 0
 
         _data = self._workingDataBase[current_scatter_mat_key][:,self._localDataBase[_current_features_key]]
 
@@ -804,6 +814,7 @@ class WaveClustWidget(QWidget):
         if self.comboBx_scatterPlot_popup_method.currentText() == "GMM":
             # GMM
             self._localDataBase["flag_gmm"][0] = True
+            self.set_GMM_crosshair(True)
             message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = 2.
@@ -814,14 +825,13 @@ class WaveClustWidget(QWidget):
             self.input_dialog_gmm = PsortInputDialog(self, \
                 message=message, doubleSpinBx_params=doubleSpinBx_params)
             if not(self.input_dialog_gmm.exec_()):
+                self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
+                self._localDataBase["flag_gmm"][0] = False
+                self.set_GMM_crosshair(False)
                 return 0
         elif self.comboBx_scatterPlot_popup_method.currentText() == "ISO-Split":
             # ISO-SPLIT
             self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
-            self.infLine_popUpPlot_vLine.setValue(0.)
-            self.infLine_popUpPlot_hLine.setValue(0.)
-            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
-            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             labels = lib.isosplit(_data)
             _index_int = np.where(self._workingDataBase[current_index_key])[0]
             self._localDataBase[_current_index_labels_key][_index_int] = labels
@@ -829,10 +839,6 @@ class WaveClustWidget(QWidget):
         elif self.comboBx_scatterPlot_popup_method.currentText() == "HDBScan":
             # HDBSCAN
             self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
-            self.infLine_popUpPlot_vLine.setValue(0.)
-            self.infLine_popUpPlot_hLine.setValue(0.)
-            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
-            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             labels = lib.HDBSCAN(_data)
             _index_int = np.where(self._workingDataBase[current_index_key])[0]
             self._localDataBase[_current_index_labels_key][_index_int] = labels
@@ -840,10 +846,6 @@ class WaveClustWidget(QWidget):
         elif self.comboBx_scatterPlot_popup_method.currentText() == "Isolation-score":
             # ISOLATION SCORE
             self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
-            self.infLine_popUpPlot_vLine.setValue(0.)
-            self.infLine_popUpPlot_hLine.setValue(0.)
-            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
-            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             _idx = np.logical_not(lib.isNanLabel(self._localDataBase[_current_index_labels_key]))
             _labels = self._localDataBase[_current_index_labels_key][_idx]
             labels_unique, counts = \
@@ -859,10 +861,6 @@ class WaveClustWidget(QWidget):
         elif self.comboBx_scatterPlot_popup_method.currentText() == "Outlier":
             # Outlier Detection
             self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
-            self.infLine_popUpPlot_vLine.setValue(0.)
-            self.infLine_popUpPlot_hLine.setValue(0.)
-            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
-            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
             message = 'Specify the quantile threshold in percent.'
             doubleSpinBx_params = {}
             doubleSpinBx_params['value'] = 99.
@@ -933,6 +931,8 @@ class WaveClustWidget(QWidget):
             _current_centers_key = "cs_centers"
             _current_clust_num_key = "cs_clust_num"
 
+        if self._workingDataBase[current_index_key].sum() < 1:
+            return 0
 
         self._localDataBase[_current_index_labels_key] = np.zeros_like(
             self._workingDataBase[current_index_key], dtype = np.int32)
@@ -959,15 +959,20 @@ class WaveClustWidget(QWidget):
 
     def pushBtn_scatterPlot_popup_selectatt_Clicked(self):
         if self._localDataBase['is_ss']:
+            current_index_key = "ss_index"
             current_scatter_list_key = "ss_scatter_list"
             current_pca1_index_key = "ss_pca1_index"
             current_pca2_index_key = "ss_pca2_index"
             _current_features_key = "ss_features"
         else:
+            current_index_key = "cs_index"
             current_scatter_list_key = "cs_scatter_list"
             current_pca1_index_key = "cs_pca1_index"
             current_pca2_index_key = "cs_pca2_index"
             _current_features_key = "cs_features"
+
+        if self._workingDataBase[current_index_key].sum() < 1:
+            return 0
 
         if self._workingDataBase['umap_enable']:
             enable_list = np.ones_like(self._localDataBase[_current_features_key], dtype = np.bool)
@@ -1142,7 +1147,7 @@ class WaveClustWidget(QWidget):
             setData(np.zeros((0)), np.zeros((0)) )
 
         self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
-        self.infLine_popUpPlot_vLine.setValue(0.)
+        self.set_GMM_crosshair(False)
         return 0
 
     def comboBx_scatterPlot_popup_spike_mode_Changed(self):
@@ -1764,8 +1769,8 @@ class WaveClustWidget(QWidget):
 
     def update_ss_labels(self):
 
-        if not (np.shape(self._workingDataBase['ss_index']) == \
-                np.shape(self._localDataBase['ss_index_labels'])):
+        if not (self._workingDataBase['ss_index'].size == \
+                self._localDataBase['ss_index_labels'].size):
             self._localDataBase['ss_index_labels'] = \
                      np.zeros_like(self._workingDataBase['ss_index'], dtype = np.int32)
             self._localDataBase['ss_index_labels'][self._workingDataBase['ss_index'] == False] = nanLabel
@@ -2343,10 +2348,7 @@ class WaveClustWidget(QWidget):
                         > (self.input_dialog_gmm.doubleSpinBx.value()-1)):
                         self.cluster_GMM()
                         self.pushBtn_scatterPlot_popup_applymethod.setChecked(False)
-                        self.infLine_popUpPlot_hLine.setValue(0.)
-                        self.infLine_popUpPlot_vLine.setValue(0.)
-                        self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
-                        self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
+                        self.set_GMM_crosshair(False)
                 else:
                     self.pltData_scatter_popUpPlot_ROI.\
                             setData(self._workingDataBase['popUp_ROI_x'],
@@ -2394,8 +2396,6 @@ class WaveClustWidget(QWidget):
             mousePoint = self.viewBox_scatter_popUpPlot.mapSceneToView(pos)
             self.infLine_popUpPlot_vLine.setValue(mousePoint.x())
             self.infLine_popUpPlot_hLine.setValue(mousePoint.y())
-            self.infLine_popUpPlot_vLine.setPen((255,0,255,255))
-            self.infLine_popUpPlot_hLine.setPen((255,0,255,255))
         return 0
 
     def popUp_task_completed(self):
@@ -2403,8 +2403,9 @@ class WaveClustWidget(QWidget):
         return 0
 
     def popUp_task_cancelled(self):
-        self.pushBtn_scatterPlot_popup_reset_Clicked()
         self.scatterPoints_popUp_reset_ROI()
+        self._localDataBase['ss_index_labels'] = np.copy(self._localDataBase['ss_index_labels_old'])
+        self._localDataBase['cs_index_labels'] = np.copy(self._localDataBase['cs_index_labels_old'])
         return 0
 
     def scatterPoints_popUp_reset_ROI(self):
@@ -2419,4 +2420,15 @@ class WaveClustWidget(QWidget):
             setData(np.zeros((0)), np.zeros((0)) )
         self.pltData_waveform_popUpPlot_ROI2.\
             setData(np.zeros((0)), np.zeros((0)) )
+        return 0
+
+    def set_GMM_crosshair(self, isActive):
+        if isActive:
+            self.infLine_popUpPlot_vLine.setPen((255,0,255,255))
+            self.infLine_popUpPlot_hLine.setPen((255,0,255,255))
+        else:
+            self.infLine_popUpPlot_vLine.setValue(0.)
+            self.infLine_popUpPlot_hLine.setValue(0.)
+            self.infLine_popUpPlot_vLine.setPen((0,0,0,0))
+            self.infLine_popUpPlot_hLine.setPen((0,0,0,0))
         return 0

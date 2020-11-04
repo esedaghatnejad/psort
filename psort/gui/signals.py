@@ -34,7 +34,6 @@ from psort.tools.waveClust import WaveClustWidget
 
 ## ################################################################################################
 ## ################################################################################################
-
 flag_color_toggle = True
 @decorator.decorator
 def showWaitCursor(func, *args, **kwargs):
@@ -86,7 +85,6 @@ class PsortGuiSignals(PsortGuiWidget):
 ## ################################################################################################
 ## ################################################################################################
 #%% HIGH LEVEL FUNCTIONS
-    @showWaitCursor
     def refresh_workingDataBase(self):
         if self._workingDataBase['isAnalyzed'][0]:
             self.update_guiWidgets_from_guiDataBase()
@@ -598,12 +596,12 @@ class PsortGuiSignals(PsortGuiWidget):
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onToolbar_refresh_ButtonClick(self):
         self.refresh_workingDataBase()
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onToolbar_slotNumCurrent_ValueChanged(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
@@ -1096,70 +1094,6 @@ class PsortGuiSignals(PsortGuiWidget):
             self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
         return 0
 
-    def onSsPanel_selectPcaData_Clicked(self):
-        if (self._workingDataBase['ss_index'].sum() < 2):
-            return 0
-        if self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 0:
-            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_manual'], dtype=np.unicode)
-        elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1):
-            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_gmm'], dtype=np.unicode)
-            message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
-            doubleSpinBx_params = {}
-            doubleSpinBx_params['value'] = 2.
-            doubleSpinBx_params['dec'] = 0
-            doubleSpinBx_params['step'] = 1.
-            doubleSpinBx_params['max'] = 10
-            doubleSpinBx_params['min'] = 2.
-            doubleSpinBx_params['okDefault'] = True
-            self.input_dialog = PsortInputDialog(self, \
-                message=message, doubleSpinBx_params=doubleSpinBx_params)
-            if not(self.input_dialog.exec_()):
-                return 0
-        else:
-            return 0
-        self.scatterSelect_showWidget(True)
-        return 0
-
-    def onCsPanel_selectPcaData_Clicked(self):
-        if (self._workingDataBase['cs_index'].sum() < 2):
-            return 0
-        if self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 0:
-            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_manual'], dtype=np.unicode)
-        elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1):
-            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_gmm'], dtype=np.unicode)
-            message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
-            doubleSpinBx_params = {}
-            doubleSpinBx_params['value'] = 2.
-            doubleSpinBx_params['dec'] = 0
-            doubleSpinBx_params['step'] = 1.
-            doubleSpinBx_params['max'] = 10
-            doubleSpinBx_params['min'] = 2.
-            doubleSpinBx_params['okDefault'] = True
-            self.input_dialog = PsortInputDialog(self, \
-                message=message, doubleSpinBx_params=doubleSpinBx_params)
-            if not(self.input_dialog.exec_()):
-                return 0
-        else:
-            return 0
-        self.scatterSelect_showWidget(True)
-        return 0
-
-    # @showWaitCursor
-    def onSsPanel_selectWave_Clicked(self):
-        if (self._workingDataBase['ss_index'].sum() < 2):
-            return 0
-        self._workingDataBase['popUp_mode'] = np.array(['ss_wave_manual'], dtype=np.unicode)
-        self.scatterSelect_showWidget(True)
-        return 0
-
-    # @showWaitCursor
-    def onCsPanel_selectWave_Clicked(self):
-        if (self._workingDataBase['cs_index'].sum() < 2):
-            return 0
-        self._workingDataBase['popUp_mode'] = np.array(['cs_wave_manual'], dtype=np.unicode)
-        self.scatterSelect_showWidget(True)
-        return 0
-
     @showWaitCursor
     def onSsPanel_learnWave_Clicked(self):
         if (self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()) and \
@@ -1196,7 +1130,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_waveform()
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onSsPanel_deselect_Clicked(self):
         signals_lib.reset_ss_ROI(self._workingDataBase, forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
@@ -1204,7 +1138,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onCsPanel_deselect_Clicked(self):
         signals_lib.reset_cs_ROI(self._workingDataBase, forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
@@ -1941,7 +1875,7 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.ScatterSelectWidget.scatterSelect_mouseClicked)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onScatterSelect_Cancel_Clicked(self):
         self.ScatterSelectWidget.scatterSelect_task_cancelled()
         self.scatterSelect_showWidget(False)
@@ -1951,6 +1885,72 @@ class PsortGuiSignals(PsortGuiWidget):
     def onScatterSelect_Ok_Clicked(self):
         self.scatterSelect_task_completed()
         self.scatterSelect_showWidget(False)
+        return 0
+
+    @showWaitCursor
+    def onSsPanel_selectPcaData_Clicked(self):
+        if (self._workingDataBase['ss_index'].sum() < 2):
+            return 0
+        if self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 0:
+            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_manual'], dtype=np.unicode)
+        elif (self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex() == 1):
+            self._workingDataBase['popUp_mode'] = np.array(['ss_pca_gmm'], dtype=np.unicode)
+            message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 2.
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 1.
+            doubleSpinBx_params['max'] = 10
+            doubleSpinBx_params['min'] = 2.
+            doubleSpinBx_params['okDefault'] = True
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if not(self.input_dialog.exec_()):
+                return 0
+        else:
+            return 0
+        self.scatterSelect_showWidget(True)
+        return 0
+
+    @showWaitCursor
+    def onCsPanel_selectPcaData_Clicked(self):
+        if (self._workingDataBase['cs_index'].sum() < 2):
+            return 0
+        if self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 0:
+            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_manual'], dtype=np.unicode)
+        elif (self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex() == 1):
+            self._workingDataBase['popUp_mode'] = np.array(['cs_pca_gmm'], dtype=np.unicode)
+            message = 'Specify the number of clusters \n' + 'and then choose the initial points.'
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 2.
+            doubleSpinBx_params['dec'] = 0
+            doubleSpinBx_params['step'] = 1.
+            doubleSpinBx_params['max'] = 10
+            doubleSpinBx_params['min'] = 2.
+            doubleSpinBx_params['okDefault'] = True
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if not(self.input_dialog.exec_()):
+                return 0
+        else:
+            return 0
+        self.scatterSelect_showWidget(True)
+        return 0
+
+    @showWaitCursor
+    def onSsPanel_selectWave_Clicked(self):
+        if (self._workingDataBase['ss_index'].sum() < 2):
+            return 0
+        self._workingDataBase['popUp_mode'] = np.array(['ss_wave_manual'], dtype=np.unicode)
+        self.scatterSelect_showWidget(True)
+        return 0
+
+    @showWaitCursor
+    def onCsPanel_selectWave_Clicked(self):
+        if (self._workingDataBase['cs_index'].sum() < 2):
+            return 0
+        self._workingDataBase['popUp_mode'] = np.array(['cs_wave_manual'], dtype=np.unicode)
+        self.scatterSelect_showWidget(True)
         return 0
 
     def scatterSelect_showWidget(self, showScatterSelect=False):
@@ -2110,7 +2110,7 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseClicked_CS) #J
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onWaveDissect_Cancel_Clicked(self):
         self.WaveDissectWidget.popUp_task_cancelled()
         self.waveDissect_showWidget(False)
@@ -2143,10 +2143,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self.undoRedo_add()
         return 0
 
+    @showWaitCursor
     def onSsPanel_waveDissect_Clicked(self):
         self.onPushBtn_waveDissect_Clicked()
         return 0
 
+    @showWaitCursor
     def onCsPanel_waveDissect_Clicked(self):
         self.onPushBtn_waveDissect_Clicked()
         return 0
@@ -2190,7 +2192,7 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.SlotBoundaryWidget.slotBoundary_mouseClicked)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onSlotBoundary_Cancel_Clicked(self):
         self.slotBoundary_showWidget(False)
         return 0
@@ -2273,13 +2275,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseClicked_waveform)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onWaveClust_Cancel_Clicked(self):
         self.WaveClustWidget.popUp_task_cancelled()
         self.waveClust_showWidget(False)
         return 0
 
-    # @showWaitCursor
+    @showWaitCursor
     def onWaveClust_Ok_Clicked(self):
         self.WaveClustWidget.popUp_task_completed()
         self.waveClust_showWidget(False)
@@ -2307,15 +2309,35 @@ class PsortGuiSignals(PsortGuiWidget):
             self.undoRedo_add()
         return 0
 
+    @showWaitCursor
     def onSsPanel_waveClust_Clicked(self):
+        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.WaveClustWidget.comboBx_scatterPlot_popup_spike_mode.setCurrentIndex(1)
         self.WaveClustWidget._localDataBase["is_ss"] = True
+        if not(self.WaveClustWidget._localDataBase["current_slot_num"] == slot_num):
+            self.WaveClustWidget._localDataBase['ss_index_labels'] = \
+                     np.zeros_like(self._workingDataBase['ss_index'], dtype = np.int32)
+            self.WaveClustWidget._localDataBase['ss_index_labels'][self._workingDataBase['ss_index'] == False] = lib.nanLabel
+            self.WaveClustWidget._localDataBase['cs_index_labels'] = \
+                     np.zeros_like(self._workingDataBase['cs_index'], dtype = np.int32)
+            self.WaveClustWidget._localDataBase['cs_index_labels'][self._workingDataBase['cs_index'] == False] = lib.nanLabel
+        self.WaveClustWidget._localDataBase["current_slot_num"] = slot_num
         self.onPushBtn_waveClust_Clicked()
         return 0
 
+    @showWaitCursor
     def onCsPanel_waveClust_Clicked(self):
+        slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.WaveClustWidget.comboBx_scatterPlot_popup_spike_mode.setCurrentIndex(0)
         self.WaveClustWidget._localDataBase["is_ss"] = False
+        if not(self.WaveClustWidget._localDataBase["current_slot_num"] == slot_num):
+            self.WaveClustWidget._localDataBase['ss_index_labels'] = \
+                     np.zeros_like(self._workingDataBase['ss_index'], dtype = np.int32)
+            self.WaveClustWidget._localDataBase['ss_index_labels'][self._workingDataBase['ss_index'] == False] = lib.nanLabel
+            self.WaveClustWidget._localDataBase['cs_index_labels'] = \
+                     np.zeros_like(self._workingDataBase['cs_index'], dtype = np.int32)
+            self.WaveClustWidget._localDataBase['cs_index_labels'][self._workingDataBase['cs_index'] == False] = lib.nanLabel
+        self.WaveClustWidget._localDataBase["current_slot_num"] = slot_num
         self.onPushBtn_waveClust_Clicked()
         return 0
 
@@ -2335,7 +2357,6 @@ class PsortGuiSignals(PsortGuiWidget):
 
 ## ################################################################################################
 ## ################################################################################################
-
     def update_SSPcaNum_comboBx(self):
         if (self._workingDataBase['ss_index'].sum() > 1):
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
