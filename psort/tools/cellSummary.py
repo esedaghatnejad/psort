@@ -93,7 +93,7 @@ class CellSummarySignals(CellSummaryWidget):
     def update_text(self):
         file_name = str.format(self._workingDataBase['file_name'][0])
         duration = float( self._workingDataBase['ch_data'].size ) \
-                    / float( self._workingDataBase['sample_rate'][0] / 60. )
+                    / float( self._workingDataBase['sample_rate'][0] ) / 60.0 
         numCS = float( self._workingDataBase['cs_index'].sum() )
         freqCS = self._workingDataBase['cs_ifr_mean'][0]
         numSS = float( self._workingDataBase['ss_index'].sum() )

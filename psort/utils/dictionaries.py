@@ -147,7 +147,7 @@ for key in GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(GLOBAL_DICT[key])
 ## ################################################################################################
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 39], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 40], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
