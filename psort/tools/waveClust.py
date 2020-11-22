@@ -902,8 +902,10 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.make_ss_label_list()
+            self.comboBx_scatterPlot_popup_ss_label_Changed()
         else:
             self.make_cs_label_list()
+            self.comboBx_scatterPlot_popup_cs_label_Changed()
 
         # Re-plot
         self.reset_plots()
@@ -921,6 +923,7 @@ class WaveClustWidget(QWidget):
             current_index_key = "ss_index"
             current_scatter1_key = "ss_scatter1"
             current_scatter2_key = "ss_scatter2"
+            current_index_selected_key = "ss_index_selected"
             _current_centers_key = "ss_centers"
             _current_clust_num_key = "ss_clust_num"
         else:
@@ -928,6 +931,7 @@ class WaveClustWidget(QWidget):
             current_index_key = "cs_index"
             current_scatter1_key = "cs_scatter1"
             current_scatter2_key = "cs_scatter2"
+            current_index_selected_key = "cs_index_selected"
             _current_centers_key = "cs_centers"
             _current_clust_num_key = "cs_clust_num"
 
@@ -942,13 +946,37 @@ class WaveClustWidget(QWidget):
         self._localDataBase[_current_centers_key][0,1] = np.mean(self._workingDataBase[current_scatter2_key])
         self._localDataBase[_current_clust_num_key][0] = 1
 
+        # Reset and remove selections
+        self._workingDataBase[current_index_selected_key] = \
+            np.zeros((self._workingDataBase[current_index_key].sum(),),
+                          dtype=np.bool)
+
         if self._localDataBase['is_ss']:
             self.make_ss_label_list()
+            self.comboBx_scatterPlot_popup_ss_label_Changed()
         else:
             self.make_cs_label_list()
+            self.comboBx_scatterPlot_popup_cs_label_Changed()
+
+        # Reset and remove ROI from the plot
+        self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
+        self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
+        self.pltData_scatter_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_scatter_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_waveform_popUpPlot_ROI.\
+            setData(np.zeros((0)), np.zeros((0)) )
+        self.pltData_waveform_popUpPlot_ROI2.\
+            setData(np.zeros((0)), np.zeros((0)) )
 
         # Re-plot
         self.reset_plots()
+        self.make_scatter_list()
+        self.make_clust_centers()
+        self.extract_template()
+        self.extract_ss_xprob()
+        self.extract_cs_xprob()
         self.plot_scatter_popUp()
         self.plot_waveform_popUp()
         self.plot_peakhist_popUp()
@@ -1046,8 +1074,10 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.make_ss_label_list()
+            self.comboBx_scatterPlot_popup_ss_label_Changed()
         else:
             self.make_cs_label_list()
+            self.comboBx_scatterPlot_popup_cs_label_Changed()
 
         # Re-plot
         self.reset_plots()
@@ -1175,17 +1205,30 @@ class WaveClustWidget(QWidget):
             current_pca2_index_key = "ss_pca2_index"
             current_pca_bound_min_key = "ss_pca_bound_min"
             current_pca_bound_max_key = "ss_pca_bound_max"
-
+            current_scatter_list_key = "ss_scatter_list"
         else:
             current_pca1_index_key = "cs_pca1_index"
             current_pca2_index_key = "cs_pca2_index"
             current_pca_bound_min_key = "cs_pca_bound_min"
             current_pca_bound_max_key = "cs_pca_bound_max"
+            current_scatter_list_key = "cs_scatter_list"
 
-        self.comboBx_popup_scatterPlot_PcaNum1.\
-            setCurrentIndex(self._workingDataBase[current_pca1_index_key][0])
-        self.comboBx_popup_scatterPlot_PcaNum2.\
-            setCurrentIndex(self._workingDataBase[current_pca2_index_key][0])
+        self.make_scatter_list()
+
+        num_D = len(self._workingDataBase[current_scatter_list_key])
+        if (self._workingDataBase[current_pca1_index_key][0] < num_D):
+            self.comboBx_popup_scatterPlot_PcaNum1.\
+                setCurrentIndex(self._workingDataBase[current_pca1_index_key][0])
+        else:
+            self.comboBx_popup_scatterPlot_PcaNum1.setCurrentIndex(0)
+            self._workingDataBase[current_pca1_index_key][0] = 0
+
+        if (self._workingDataBase[current_pca2_index_key][0] < num_D):
+            self.comboBx_popup_scatterPlot_PcaNum2.\
+                setCurrentIndex(self._workingDataBase[current_pca2_index_key][0])
+        else:
+            self.comboBx_popup_scatterPlot_PcaNum2.setCurrentIndex(0)
+            self._workingDataBase[current_pca2_index_key][0] = 0
 
         self.make_clust_centers()
         self.extract_template()
@@ -1521,8 +1564,10 @@ class WaveClustWidget(QWidget):
 
         if self._localDataBase['is_ss']:
             self.make_ss_label_list()
+            self.comboBx_scatterPlot_popup_ss_label_Changed()
         else:
             self.make_cs_label_list()
+            self.comboBx_scatterPlot_popup_cs_label_Changed()
 
         # Re-plot
         self.reset_plots()

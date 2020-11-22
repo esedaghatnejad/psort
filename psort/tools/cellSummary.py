@@ -6,9 +6,10 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import *
 import pyqtgraph as pg
+import pyqtgraph.exporters
 import numpy as np
 from copy import deepcopy
 import sys # We need sys so that we can pass argv to QApplication
@@ -19,6 +20,7 @@ from psort.utils import signals_lib
 #%% CellSummaryDataBase
 _workingDataBase = {
         'file_name':              np.array([''], dtype=np.unicode),
+        'file_path':              np.array([''], dtype=np.unicode),
         'index_slot_edges' :      np.zeros((30), dtype=np.uint32),
         'total_slot_num':         np.full( (1), 30, dtype=np.uint8),
         'current_slot_num':       np.zeros((1), dtype=np.uint8),
@@ -38,13 +40,23 @@ class CellSummaryWidget(QMainWindow):
 
         self.setWindowTitle("PurkinjeSort Cell Summary")
         self.layout_grand = QVBoxLayout()
+        self.layout_title = QHBoxLayout()
         self.graphWin = pg.GraphicsWindow(title="Cell Summary")
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
+        self.txtlabel_title = QLabel("Title:")
+        lib.setFont(self.txtlabel_title, color="black")
+        self.txtedit_title = QLineEdit()
+        lib.setFont(self.txtedit_title, color="black")
+        self.pushBtn_savePlot = QPushButton("Save plot")
+        lib.setFont(self.pushBtn_savePlot, color="black")
+        self.layout_title.addWidget(self.txtlabel_title)
+        self.layout_title.addWidget(self.txtedit_title)
+        self.layout_title.addWidget(self.pushBtn_savePlot)
+        self.layout_grand.addLayout(self.layout_title)
         self.layout_grand.addWidget(self.graphWin)
         self.widget_grand = QWidget()
         self.widget_grand.setLayout(self.layout_grand)
-        self.resize(1000, 600)
         self.setCentralWidget(self.widget_grand)
         return None
 ## #############################################################################
@@ -52,6 +64,8 @@ class CellSummaryWidget(QMainWindow):
 class CellSummarySignals(CellSummaryWidget):
     def __init__(self, parent=None, psort_grandDataBase=None):
         super(CellSummarySignals, self).__init__(parent)
+        self.pushBtn_savePlot.clicked.connect(self.pushBtn_savePlot_Clicked)
+        self.txtedit_title.textEdited.connect(self.txtedit_title_TextEdited)
         self.init_plot()
         self._workingDataBase = deepcopy(_workingDataBase)
         if psort_grandDataBase is None:
@@ -64,6 +78,7 @@ class CellSummarySignals(CellSummaryWidget):
             self.update_workingDataBase()
             self.update_plot()
             self.update_text()
+        self.resize(1000, 600)
         return None
 
     def update_plot(self):
@@ -78,20 +93,45 @@ class CellSummarySignals(CellSummaryWidget):
     def update_text(self):
         file_name = str.format(self._workingDataBase['file_name'][0])
         duration = float( self._workingDataBase['ch_data'].size ) \
-                    / float( self._workingDataBase['sample_rate'][0] )
+                    / float( self._workingDataBase['sample_rate'][0] / 60. )
         numCS = float( self._workingDataBase['cs_index'].sum() )
         freqCS = self._workingDataBase['cs_ifr_mean'][0]
         numSS = float( self._workingDataBase['ss_index'].sum() )
         freqSS = self._workingDataBase['ss_ifr_mean'][0]
-        self.pltLabel_Stats.setText(
-            "{} ::   Duration: {:.1f} min ,   numCS: {:.0f} ,   freqCS: {:.2f} Hz ,   numSS: {:.0f} ,   freqSS: {:.2f} Hz".format(
-            file_name,
-            (duration / 60.),
-            numCS,
-            freqCS,
-            numSS,
-            freqSS
-            ), color='k', size='14pt', bold=False)
+        title_text = str("{} ::   Duration: {:.1f} min ,   numCS: {:.0f} ,   freqCS: {:.2f} Hz ,   numSS: {:.0f} ,   freqSS: {:.2f} Hz").format(\
+            file_name, duration, numCS, freqCS, numSS, freqSS)
+        self.pltLabel_Stats.setText(title_text, color='k', size='14pt', bold=False)
+        self.txtedit_title.setText(title_text)
+        return 0
+
+    def txtedit_title_TextEdited(self):
+        title_text = self.txtedit_title.text()
+        self.pltLabel_Stats.setText(title_text, color='k', size='14pt', bold=False)
+        return 0
+
+    def pushBtn_savePlot_Clicked(self):
+        QtGui.QApplication.processEvents()
+        QtGui.QApplication.processEvents()
+        file_path = self._workingDataBase['file_path'][0]
+        if not(os.path.isdir(file_path)):
+            file_path = os.getcwd()
+        file_fullPath, _ = QFileDialog.\
+            getSaveFileName(self, "Save plot", file_path,
+                            filter="PNG (*.png)")
+        if file_fullPath == '':
+            return 0
+        _, file_path, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
+        if not(file_ext == '.png'):
+            file_fullPath = file_fullPath + '.png'
+        if os.path.isdir(file_path):
+            # create an exporter instance, as an argument give it
+            # the item you wish to export
+            ex_png = pg.exporters.ImageExporter(self.graphWin.scene())
+            ex_png.export(file_fullPath)
+            file_fullPath_svg = file_fullPath[0:-5]
+            file_fullPath_svg = file_fullPath_svg + '.svg'
+            ex_svg = pg.exporters.SVGExporter(self.graphWin.scene())
+            ex_svg.export(file_fullPath_svg)
         return 0
 
     def init_plot(self):
