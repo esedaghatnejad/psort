@@ -4,6 +4,7 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Jay Pi <jay.s.314159@gmail.com>
          Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
+         Mohammad Amin Fakharian <ma.fakharian@gmail.com>
 """
 ## #############################################################################
 #%% IMPORT PACKAGES
@@ -679,30 +680,77 @@ class WaveDissectWidget(QWidget):
         self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
         self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
         self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
-        self.view_selectedWaveform_idx[0] = -1
+        # self.view_selectedWaveform_idx[0] = -1
         which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
         current_index_key = "%s_index" % which_waveform_current.lower()
 
+
         # Check to see if any of CS or SS waveforms is selected
         if any(self._workingDataBase[current_index_selected_key]):
+            if np.sum(self._workingDataBase[current_index_selected_key]) <= 1:
+                self.view_selectedWaveform_idx[0] = -1
+            if not self.view_selectedWaveform_idx[0] == -1:
+                # save selections
+                _selected_index = np.zeros_like(self._workingDataBase[current_index_key])
+                _index_int = np.where(self._workingDataBase[current_index_key])[0]
+                _index_selected_int = _index_int[self._workingDataBase[current_index_selected_key]]
+                _selected_index[_index_selected_int] = True
 
-            # Save the index of the waveform that will be selected after the current selection is deleted
-            current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
-            saved_index = current_index_selected[0] - 1
+                current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
+                which_waveform_index_currentView = np.where(current_index_selected == self.view_selectedWaveform_idx[0])[0]
+                # Save the index of the waveform that will be selected after the current selection is deleted
+                if which_waveform_index_currentView == np.size(current_index_selected)-1:
+                    saved_index = current_index_selected[0]
+                else:
+                    saved_index = current_index_selected[which_waveform_index_currentView+1]-1
+                # Delete the currently viewed waveform
+                _spike_index_int = np.where(self._workingDataBase[current_index_key])[0]
+                _spike_index_selected_int = \
+                        _spike_index_int[self._workingDataBase[current_index_selected_key]][which_waveform_index_currentView]
+                self._workingDataBase[current_index_key][_spike_index_selected_int] = False
+                if which_waveform_current == "CS":
+                    _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+                    _cs_index_slow_selected_int = \
+                        _cs_index_slow_int[self._workingDataBase['cs_index_selected']][which_waveform_index_currentView]
+                    self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
 
-            # Delete the currently selected waveforms
-            _spike_index_int = np.where(self._workingDataBase[current_index_key])[0]
-            _spike_index_selected_int = \
-                    _spike_index_int[self._workingDataBase[current_index_selected_key]]
-            self._workingDataBase[current_index_key][_spike_index_selected_int] = False
-            if which_waveform_current == "CS":
-                _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
-                _cs_index_slow_selected_int = \
-                    _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
-                self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
-            self._workingDataBase[current_index_selected_key] = \
-                np.zeros((self._workingDataBase[current_index_key].sum()), dtype=np.bool)
+                if self._workingDataBase[current_index_key].sum() > 1:
+                    self._workingDataBase[current_index_selected_key] = \
+                        _selected_index[self._workingDataBase[current_index_key] == 1]
+                else:
+                    self._workingDataBase[current_index_selected_key] = np.zeros((0), dtype=np.bool)
+
+                if np.sum(self._workingDataBase[current_index_selected_key]) <= 1:
+                    self.view_selectedWaveform_idx[0] = -1
+                else:
+                    self.view_selectedWaveform_idx[0] = saved_index
+            else:
+                # Save the index of the waveform that will be selected after the current selection is deleted
+                current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
+                saved_index = current_index_selected[0] - 1
+
+                # Delete the currently selected waveforms
+                _spike_index_int = np.where(self._workingDataBase[current_index_key])[0]
+                _spike_index_selected_int = \
+                        _spike_index_int[self._workingDataBase[current_index_selected_key]]
+                self._workingDataBase[current_index_key][_spike_index_selected_int] = False
+                if which_waveform_current == "CS":
+                    _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+                    _cs_index_slow_selected_int = \
+                        _cs_index_slow_int[self._workingDataBase['cs_index_selected']]
+                    self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
+                self._workingDataBase[current_index_selected_key] = \
+                    np.zeros((self._workingDataBase[current_index_key].sum()), dtype=np.bool)
+
+                # If there is at least one waveform left after deletion, select the next waveform
+                if np.sum(self._workingDataBase[current_index_key]) > 0 :
+                    if saved_index < 0 :
+                        # Select the saved index
+                        self._workingDataBase[current_index_selected_key][0] = True
+                    else:
+                        # Select the saved index
+                        self._workingDataBase[current_index_selected_key][saved_index] = True
 
             # Re-extract waveforms
             if which_waveform_current == "CS":
@@ -726,16 +774,8 @@ class WaveDissectWidget(QWidget):
             self.pltData_CS_popUpPlot_ROI2.\
                 setData(np.zeros((0)), np.zeros((0)) )
 
-            # If there is at least one waveform left after deletion, select the next waveform
-            if np.sum(self._workingDataBase[current_index_key]) > 0 :
-                if saved_index < 0 :
-                    # Select the saved index
-                    self._workingDataBase[current_index_selected_key][0] = True
-                else:
-                    # Select the saved index
-                    self._workingDataBase[current_index_selected_key][saved_index] = True
-
             # Re-plot
+            self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
             if which_waveform_current == "CS":
                 self.plot_rawSignal_CsIndex_popUp()
                 self.plot_rawSignal_CsIndexSelected_popUp()
@@ -756,31 +796,88 @@ class WaveDissectWidget(QWidget):
         self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
         self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
         self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
-        self.view_selectedWaveform_idx[0] = -1
+        # self.view_selectedWaveform_idx[0] = -1
         which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         current_index_selected_key = "%s_index_selected" % which_waveform_current.lower()
         current_index_key = "%s_index" % which_waveform_current.lower()
         # Check to see if any of waveforms of the interested type is selected
         if any(self._workingDataBase[current_index_selected_key]):
 
-            # Save the index of the waveform that will be selected after the current selection is deleted
-            current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
-            saved_index = current_index_selected[0] - 1
-            # Move the currently selected waveforms to a differnt type
-            if which_waveform_current == "CS":
-                self.move_selected_from_cs_to_ss()
+            if np.sum(self._workingDataBase[current_index_selected_key]) <= 1:
+                self.view_selectedWaveform_idx[0] = -1
+            if not self.view_selectedWaveform_idx[0] == -1:
+                # save selections
+                ss_selected_index = np.zeros_like(self._workingDataBase['ss_index'])
+                ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
+                ss_index_selected_int = ss_index_int[self._workingDataBase['ss_index_selected']]
+                ss_selected_index[ss_index_selected_int] = True
+                cs_selected_index = np.zeros_like(self._workingDataBase['cs_index'])
+                cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+                cs_index_selected_int = cs_index_int[self._workingDataBase['cs_index_selected']]
+                cs_selected_index[cs_index_selected_int] = True
+
+                current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
+                which_waveform_index_currentView = np.where(current_index_selected == self.view_selectedWaveform_idx[0])[0]
+                # Save the index of the waveform that will be selected after the current selection is deleted
+                if which_waveform_index_currentView == np.size(current_index_selected)-1:
+                    saved_index = current_index_selected[0]
+                else:
+                    saved_index = current_index_selected[which_waveform_index_currentView+1]-1
+                # Move the currently viewed waveform to a differnt type
+                self._workingDataBase[current_index_selected_key] = np.zeros((self._workingDataBase[current_index_key].sum()), dtype=np.bool)
+                self._workingDataBase[current_index_selected_key][current_index_selected[which_waveform_index_currentView]] = True
+                if which_waveform_current == "CS":
+                    self.move_selected_from_cs_to_ss()
+                else:
+                    self.move_selected_from_ss_to_cs()
+
+                if self._workingDataBase['ss_index'].sum() > 1:
+                    self._workingDataBase['ss_index_selected'] = \
+                        ss_selected_index[self._workingDataBase['ss_index'] == 1]
+                else:
+                    self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
+
+                if self._workingDataBase['cs_index'].sum() > 1:
+                    self._workingDataBase['cs_index_selected'] = \
+                        cs_selected_index[self._workingDataBase['cs_index'] == 1]
+                else:
+                    self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+
+                if np.sum(self._workingDataBase[current_index_selected_key]) <= 1:
+                    self.view_selectedWaveform_idx[0] = -1
+                else:
+                    self.view_selectedWaveform_idx[0] = saved_index
+
             else:
-                self.move_selected_from_ss_to_cs()
-            if self._workingDataBase['ss_index'].sum() > 1:
-                self._workingDataBase['ss_index_selected'] = \
-                    np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
-            else:
-                self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
-            if self._workingDataBase['cs_index'].sum() > 1:
-                self._workingDataBase['cs_index_selected'] = \
-                    np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
-            else:
-                self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+
+                # Save the index of the waveform that will be selected after the current selection is deleted
+                current_index_selected = np.where(self._workingDataBase[current_index_selected_key])[0] # indices of selected waveforms
+                saved_index = current_index_selected[0] - 1
+                # Move the currently selected waveforms to a differnt type
+                if which_waveform_current == "CS":
+                    self.move_selected_from_cs_to_ss()
+                else:
+                    self.move_selected_from_ss_to_cs()
+                if self._workingDataBase['ss_index'].sum() > 0:
+                    self._workingDataBase['ss_index_selected'] = \
+                        np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
+                else:
+                    self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
+                if self._workingDataBase['cs_index'].sum() > 0:
+                    self._workingDataBase['cs_index_selected'] = \
+                        np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
+                else:
+                    self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
+
+                # If there is at least one waveform left after deletion, select the next waveform
+                if np.sum(self._workingDataBase[current_index_key]) > 0 :
+                    if saved_index < 0 :
+                        # Select the saved index
+                        self._workingDataBase[current_index_selected_key][0] = True
+                    else:
+                        # Select the saved index
+                        self._workingDataBase[current_index_selected_key][saved_index] = True
+
             signals_lib.extract_ss_peak(self._workingDataBase)
             signals_lib.extract_cs_peak(self._workingDataBase)
             signals_lib.extract_ss_waveform(self._workingDataBase)
@@ -801,16 +898,8 @@ class WaveDissectWidget(QWidget):
             self.pltData_CS_popUpPlot_ROI2.\
                 setData(np.zeros((0)), np.zeros((0)) )
 
-            # If there is at least one waveform left after deletion, select the next waveform
-            if np.sum(self._workingDataBase[current_index_key]) > 0 :
-                if saved_index < 0 :
-                    # Select the saved index
-                    self._workingDataBase[current_index_selected_key][0] = True
-                else:
-                    # Select the saved index
-                    self._workingDataBase[current_index_selected_key][saved_index] = True
-
             # Re-plot
+            self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
             self.plot_rawSignal_CsIndex_popUp()
             self.plot_rawSignal_CsIndexSelected_popUp()
             self.plot_cs_waveform_popUp()
@@ -1149,34 +1238,45 @@ class WaveDissectWidget(QWidget):
         # Determine which waveform is currently of interest
         which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
 
+        # save selections
+        _ss_selected_index = np.zeros_like(self._workingDataBase['ss_index'])
+        _ss_index_int = np.where(self._workingDataBase['ss_index'])[0]
+        _ss_index_selected_int = _ss_index_int[self._workingDataBase['ss_index_selected']]
+        _ss_selected_index[_ss_index_selected_int] = True
+
+        _cs_selected_index = np.zeros_like(self._workingDataBase['cs_index'])
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _cs_index_selected_int = _cs_index_int[self._workingDataBase['cs_index_selected']]
+        _cs_selected_index[_cs_index_selected_int] = True
+
         _time = self._workingDataBase['ch_time']
 
         idx = (np.abs(_time - selected_time_point)).argmin()
 
         if which_waveform_current == "CS":
             if self.checkBx_rawPlot_popup_alignment.isChecked() == True:
-                self.align_cs(idx)
+                idx = self.align_cs(idx)
             else:
                 self._workingDataBase["cs_index"][idx] = True
+                self._workingDataBase["cs_index_slow"][idx] = True
+            self.resolve_cs_conflicts(idx)
         else:
             if self.checkBx_rawPlot_popup_alignment.isChecked() == True:
-                self.align_ss(idx)
+                idx = self.align_ss(idx)
             else:
                 self._workingDataBase["ss_index"][idx] = True
+            self.resolve_ss_conflicts(idx)
 
-        signals_lib.resolve_ss_ss_conflicts(self._workingDataBase)
-        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
         signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
-        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
 
         if self._workingDataBase['ss_index'].sum() > 1:
             self._workingDataBase['ss_index_selected'] = \
-                np.zeros((self._workingDataBase['ss_index'].sum()), dtype=np.bool)
+                _ss_selected_index[self._workingDataBase['ss_index'] == 1]
         else:
             self._workingDataBase['ss_index_selected'] = np.zeros((0), dtype=np.bool)
         if self._workingDataBase['cs_index'].sum() > 1:
             self._workingDataBase['cs_index_selected'] = \
-                np.zeros((self._workingDataBase['cs_index'].sum()), dtype=np.bool)
+                _cs_selected_index[self._workingDataBase['cs_index'] == 1]
         else:
             self._workingDataBase['cs_index_selected'] = np.zeros((0), dtype=np.bool)
         signals_lib.extract_ss_peak(self._workingDataBase)
@@ -1203,6 +1303,7 @@ class WaveDissectWidget(QWidget):
         # Re-plot
         self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
         self.view_selectedWaveform_idx[0] = -1
+        self.plot_rawSignal_indexSelectedView_popUp() # highlight the waveform of interest
         self.plot_rawSignal_CsIndex_popUp()
         self.plot_rawSignal_CsIndexSelected_popUp()
         self.plot_cs_waveform_popUp()
@@ -1210,6 +1311,114 @@ class WaveDissectWidget(QWidget):
         self.plot_rawSignal_SsIndex_popUp()
         self.plot_rawSignal_SsIndexSelected_popUp()
         self.plot_ss_waveform_popUp()
+
+    def resolve_ss_conflicts(self,idx):
+        # SS_SS conflicts
+        flag_ss = 1
+        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_SS_SS_AROUND'][0]
+        # search .5ms before and .5ms after the SS and select the dominant peak
+        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
+        _ss_index = self._workingDataBase['ss_index']
+        _ss_index_local = idx
+
+        # if there is not enough data window before the potential SS, then skip it
+        if _ss_index_local < window_len:
+            self._workingDataBase['ss_index'][_ss_index_local] = False
+            flag_ss = 0
+        # if there is not enough data window after the potential SS, then skip it
+        if _ss_index_local > (_ss_index.size - window_len):
+            self._workingDataBase['ss_index'][_ss_index_local] = False
+            flag_ss = 0
+        if flag_ss:
+            search_win_inds = np.arange(_ss_index_local-window_len, \
+                                        _ss_index_local+window_len, 1)
+            ss_search_win_bool = _ss_index[search_win_inds]
+            ss_search_win_int  = np.where(ss_search_win_bool)[0]
+            # if there is just one SS in window, then all is OK
+            if ss_search_win_int.size > 1:
+                self._workingDataBase['ss_index'][search_win_inds] = np.zeros(search_win_inds.shape,dtype=np.bool)
+                self._workingDataBase['ss_index'][idx] = True
+
+        # CS_SS conflicts
+        flag_ss = 1
+        win_look_before  = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_BEFORE'][0]
+        win_look_after   = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_AFTER'][0]
+        window_len_back = int(win_look_before * self._workingDataBase['sample_rate'][0])
+        window_len_front = int(win_look_after * self._workingDataBase['sample_rate'][0])
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _cs_index_slow_int = np.where(self._workingDataBase['cs_index_slow'])[0]
+        _ss_index = self._workingDataBase['ss_index']
+        _cs_index = self._workingDataBase['cs_index']
+        _ss_index_local = idx
+
+        # if there is not enough data window before the potential SS, then skip it
+        if _ss_index_local < window_len_front:
+            self._workingDataBase['ss_index'][_ss_index_local] = False
+            flag_ss = 0
+        # if there is not enough data window after the potential SS, then skip it
+        if _ss_index_local > (_ss_index.size - window_len_back):
+            self._workingDataBase['ss_index'][_ss_index_local] = False
+            flag_ss = 0
+        if flag_ss:
+            search_win_inds = np.arange(_ss_index_local-window_len_front, \
+                                        _ss_index_local+window_len_back, 1)
+            cs_search_win_bool = _cs_index[search_win_inds]
+            cs_search_win_int  = np.where(cs_search_win_bool)[0]
+            # if there is no CS in window, then all is OK
+            if cs_search_win_int.size > 0:
+                ind_del = np.arange(0,cs_search_win_int.size,1) \
+                        + np.sum(self._workingDataBase['cs_index'][:(_ss_index_local-window_len_front)])
+                _cs_index_selected_int = _cs_index_int[ind_del]
+                self._workingDataBase['cs_index'][_cs_index_selected_int] = False
+                _cs_index_slow_selected_int = _cs_index_slow_int[ind_del]
+                self._workingDataBase['cs_index_slow'][_cs_index_slow_selected_int] = False
+        return 0
+
+    def resolve_cs_conflicts(self,idx):
+        # CS_CS conflicts
+        flag_cs = 1
+        win_look_around  = self._workingDataBase['GLOBAL_CONFLICT_CS_CS_AROUND'][0]
+        window_len = int(win_look_around * self._workingDataBase['sample_rate'][0])
+        _cs_index = self._workingDataBase['cs_index']
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _cs_index_local = idx
+        # if there is not enough data window before the potential CS, then skip it
+        if _cs_index_local < window_len:
+            _cs_index[_cs_index_local] = False
+            flag_cs = 0
+        # if there is not enough data window after the potential CS, then skip it
+        if _cs_index_local > (_cs_index.size - window_len):
+            _cs_index[_cs_index_local] = False
+            flag_cs = 0
+        if flag_cs:
+            search_win_inds = np.arange(_cs_index_local-window_len, \
+                                        _cs_index_local+window_len, 1)
+            cs_search_win_bool = _cs_index[search_win_inds]
+            cs_search_win_int  = np.where(cs_search_win_bool)[0]
+            # if there is just one CS in window, then all is OK
+            if cs_search_win_int.size > 1:
+                # just accept the idx and reject the rest
+                cs_search_win_int = cs_search_win_int + _cs_index_local - window_len
+                self._workingDataBase['cs_index'][cs_search_win_int] = False
+                self._workingDataBase['cs_index'][idx] = True
+
+        # CS_SS conflicts
+        win_look_before  = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_BEFORE'][0]
+        win_look_after   = self._workingDataBase['GLOBAL_CONFLICT_CS_SS_AFTER'][0]
+        window_len_back = int(win_look_before * self._workingDataBase['sample_rate'][0])
+        window_len_front = int(win_look_after * self._workingDataBase['sample_rate'][0])
+        _cs_index_int = np.where(self._workingDataBase['cs_index'])[0]
+        _ss_index = self._workingDataBase['ss_index']
+        _cs_index_local = idx
+        search_win_inds = np.arange(_cs_index_local-window_len_back, \
+                                    _cs_index_local+window_len_front, 1)
+        ss_search_win_bool = _ss_index[search_win_inds]
+        ss_search_win_int  = np.where(ss_search_win_bool)[0]
+        if ss_search_win_int.size > 0:
+            _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
+            _ss_index[_ss_ind_invalid] = False
+        return 0
+
 
     def move_selected_from_cs_to_ss(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
@@ -1329,7 +1538,7 @@ class WaveDissectWidget(QWidget):
             cs_ind = cs_ind_search_win + _cs_slow_index-window_len_before
             _cs_index[cs_ind] = True
 
-        return 0
+        return cs_ind
 
     def align_ss(self, idx):
         win_look_before  = self._workingDataBase['GLOBAL_WAVE_TEMPLATE_SS_BEFORE'][0]
@@ -1362,7 +1571,7 @@ class WaveDissectWidget(QWidget):
 
         ss_ind = ss_ind_search_win + _ss_index_selected - window_len_before
         _ss_index[ss_ind] = True
-        return 0
+        return ss_ind
 
     def comboBx_rawPlot_popup_spike_of_interest_currentIndexChanged(self):
         self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
@@ -1468,6 +1677,7 @@ class WaveDissectWidget(QWidget):
         return 0
 
     def plot_ss_waveform_popUp(self):
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         nan_array = np.full((self._workingDataBase['ss_wave'].shape[0]), np.NaN).reshape(-1, 1)
         ss_waveform = np.append(self._workingDataBase['ss_wave'], nan_array, axis=1)
         ss_wave_span = np.append(self._workingDataBase['ss_wave_span'], nan_array, axis=1)
@@ -1489,7 +1699,7 @@ class WaveDissectWidget(QWidget):
                 ss_waveform_selected.ravel(),
                 connect="finite")
         #
-        if self.view_selectedWaveform_idx[0] != -1:
+        if self.view_selectedWaveform_idx[0] != -1 and which_waveform_current == 'SS':
             nan_array = np.full((self._workingDataBase\
                         ['ss_wave'][self.view_selectedWaveform_idx, :].shape[0]), np.NaN).reshape(-1, 1)
             ss_waveform_selected = np.append(\
@@ -1511,6 +1721,7 @@ class WaveDissectWidget(QWidget):
         return 0
 
     def plot_cs_waveform_popUp(self):
+        which_waveform_current = self.comboBx_rawPlot_popup_spike_of_interest.currentText() # which waveform type currently of interest
         nan_array = np.full((self._workingDataBase['cs_wave'].shape[0]), np.NaN).reshape(-1, 1)
         cs_waveform = np.append(self._workingDataBase['cs_wave'], nan_array, axis=1)
         cs_wave_span = np.append(self._workingDataBase['cs_wave_span'], nan_array, axis=1)
@@ -1531,7 +1742,7 @@ class WaveDissectWidget(QWidget):
                 cs_wave_span_selected.ravel()*1000.,
                 cs_waveform_selected.ravel(),
                 connect="finite")
-        if self.view_selectedWaveform_idx[0] != -1:
+        if self.view_selectedWaveform_idx[0] != -1 and which_waveform_current == 'CS':
             nan_array = np.full((self._workingDataBase\
                         ['cs_wave'][self.view_selectedWaveform_idx, :].shape[0]), np.NaN).reshape(-1, 1)
             cs_waveform_selected = np.append(\
@@ -1601,8 +1812,10 @@ class WaveDissectWidget(QWidget):
     def popUpPlot_mouseClicked_raw(self, evt):
         # If this plot is not currently active, remove all ROI points and set it to the active plot
         if self.which_plot_active != 0:
+            _add_spike_flag = self.pushBtn_rawPlot_popup_addspike.isChecked()
             self.pushBtn_rawPlot_popup_clear_Clicked()
             self.which_plot_active = 0
+            self.pushBtn_rawPlot_popup_addspike.setChecked(_add_spike_flag)
 
         if evt[0].button() == QtCore.Qt.LeftButton:
             pos = evt[0].scenePos()

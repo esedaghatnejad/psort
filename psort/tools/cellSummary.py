@@ -93,7 +93,7 @@ class CellSummarySignals(CellSummaryWidget):
     def update_text(self):
         file_name = str.format(self._workingDataBase['file_name'][0])
         duration = float( self._workingDataBase['ch_data'].size ) \
-                    / float( self._workingDataBase['sample_rate'][0] ) / 60.0 
+                    / float( self._workingDataBase['sample_rate'][0] ) / 60.0
         numCS = float( self._workingDataBase['cs_index'].sum() )
         freqCS = self._workingDataBase['cs_ifr_mean'][0]
         numSS = float( self._workingDataBase['ss_index'].sum() )
@@ -128,7 +128,7 @@ class CellSummarySignals(CellSummaryWidget):
             # the item you wish to export
             ex_png = pg.exporters.ImageExporter(self.graphWin.scene())
             ex_png.export(file_fullPath)
-            file_fullPath_svg = file_fullPath[0:-5]
+            file_fullPath_svg = file_fullPath[0:-4]
             file_fullPath_svg = file_fullPath_svg + '.svg'
             ex_svg = pg.exporters.SVGExporter(self.graphWin.scene())
             ex_svg.export(file_fullPath_svg)

@@ -116,6 +116,7 @@ class CommonAvgSignals(CommonAvgWidget):
         self.label_statusBar.setText('Add file to the table')
         self.num_iteration = 0
         self.counter_iteration = 0
+        self.lastUsedPath = os.getcwd()
         return None
 
     def onTable_itemSelectionChanged(self):
@@ -134,7 +135,7 @@ class CommonAvgSignals(CommonAvgWidget):
         if self._workingDataBase['file_path'].size > 0:
             file_path = self._workingDataBase['file_path'][-1]
         else:
-            file_path = os.getcwd()
+            file_path = self.lastUsedPath
         file_fullPath_array, _ = QFileDialog.\
             getOpenFileNames(self, "Open File", file_path,
                             filter="Data file (*.mat *.continuous *.h5)")
@@ -200,6 +201,7 @@ class CommonAvgSignals(CommonAvgWidget):
                                 fullPath_components[counter_key])
             self.widget_table.setItem(rowCount+counter_file, 0,
                 QTableWidgetItem(self._workingDataBase['file_name'][rowCount+counter_file]))
+        self.lastUsedPath = deepcopy(self._workingDataBase['file_path'][-1])
         return 0
 
     def load_process_start(self):
