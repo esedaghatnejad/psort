@@ -449,6 +449,8 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onMenubar_commonAvg_ButtonClick)
         self.actionBtn_menubar_tools_cellSummary.triggered.\
             connect(self.onMenubar_cellSummary_ButtonClick)
+        self.actionBtn_menubar_tools_realign_CS.triggered.\
+            connect(self.onMenubar_realignCS_ButtonClick)
         return 0
 
     def connect_toolbar_signals(self):
@@ -751,6 +753,37 @@ class PsortGuiSignals(PsortGuiWidget):
                 psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
             )
         self.menubar_cellSummary.show()
+        return 0
+
+    def onMenubar_realignCS_ButtonClick(self):
+        if self._workingDataBase['cs_index'].sum() < 2:
+            return 0
+        if not(self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()) or \
+           not(self._workingDataBase['csLearnTemp_mode'][0]):
+            self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.setChecked(True)
+            self._workingDataBase['csLearnTemp_mode'][0] = True
+            signals_lib.extract_cs_template(self._workingDataBase)
+        signals_lib.align_cs_wrt_cs_temp(self._workingDataBase)
+        signals_lib.resolve_cs_cs_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
+        signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
+
+        signals_lib.extract_cs_peak(self._workingDataBase)
+        signals_lib.extract_cs_waveform(self._workingDataBase)
+        signals_lib.extract_cs_similarity(self._workingDataBase)
+        signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
+        signals_lib.extract_cs_xprob(self._workingDataBase)
+        signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
+        self.update_CSPcaNum_comboBx()
+        self.plot_rawSignal(just_update_selected=True)
+        self.plot_cs_peaks_histogram()
+        self.plot_cs_ifr_histogram()
+        self.plot_cs_xprob()
+        self.plot_cs_waveform()
+        self.plot_cs_pca()
+        self.undoRedo_add()
         return 0
 
     def onInfLineSsThresh_positionChangeFinished(self):

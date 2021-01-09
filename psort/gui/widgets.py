@@ -732,8 +732,14 @@ class PsortGuiWidget(QMainWindow):
         self.actionBtn_menubar_tools_umap = QAction("UMAP for dim reduction", self, checkable=True)
         self.actionBtn_menubar_tools_cellSummary = QAction("Cell Summary", self)
         self.actionBtn_menubar_tools_prefrences = QAction("Prefrences...", self)
+
+        self.menu_menubar_tools_realign = QMenu('Re-align', self)
+        self.actionBtn_menubar_tools_realign_CS = QAction("Complex spikes", self)
+        self.menu_menubar_tools_realign.addAction(self.actionBtn_menubar_tools_realign_CS)
+
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_umap)
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_cellSummary)
+        self.menu_menubar_tools.addMenu(self.menu_menubar_tools_realign)
         self.menu_menubar_tools.addAction(self.actionBtn_menubar_tools_prefrences)
 
 

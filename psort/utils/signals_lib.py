@@ -43,6 +43,7 @@ def resolve_ss_ss_conflicts(_workingDataBase):
         if ss_search_win_int.size < 2:
             continue
         if ss_search_win_int.size > 1:
+            # find the dominant min/max as the index of the spike
             if _peakType == 'min':
                 valid_ind = np.argmin(ss_search_win_data)
             elif _peakType == 'max':
@@ -82,6 +83,7 @@ def resolve_cs_slow_cs_slow_conflicts(_workingDataBase):
         if cs_search_win_int.size < 2:
             continue
         if cs_search_win_int.size > 1:
+            # find the dominant min/max as the index of the spike
             if _peakType == 'min':
                 valid_ind = np.argmin(cs_search_win_data)
             elif _peakType == 'max':
@@ -142,6 +144,7 @@ def resolve_cs_cs_slow_conflicts(_workingDataBase):
         search_win_inds = np.arange(_cs_index_local, \
                                     _cs_index_local+window_len, 1)
         cs_search_win_data = _data_cs[search_win_inds]
+        # find the dominant min/max as the index of the spike
         if _peakType == 'max':
             _cs_index_slow_local = np.argmax(cs_search_win_data)
         elif _peakType == 'min':
@@ -164,6 +167,7 @@ def resolve_cs_ss_conflicts(_workingDataBase):
         ss_search_win_bool = _ss_index[search_win_inds]
         ss_search_win_int  = np.where(ss_search_win_bool)[0]
         if ss_search_win_int.size > 0:
+            # invalidate SS around a CS
             _ss_ind_invalid = ss_search_win_int + _cs_index_local - window_len_back
             _ss_index[_ss_ind_invalid] = False
     return 0
