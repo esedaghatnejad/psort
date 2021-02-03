@@ -307,8 +307,8 @@ class WaveDissectWidget(QWidget):
         return 0
 #%% INIT
     def init_rawPlot_popup_var(self):
-        self.x_zoom_level = 200 # initialize zoom level (ms)
-        self.y_zoom_level = 300 # (uV)
+        self.x_zoom_level = 20 # initialize zoom level (ms)
+        self.y_zoom_level = 500 # (uV)
         self.which_plot_active = 0 # indicator for which plot is currently active for the purpose of using ROI
                                    # 0: raw plot; 1: sideplot1 (ss); 2: sideplot2 (cs)
         return 0
@@ -530,21 +530,20 @@ class WaveDissectWidget(QWidget):
         self.view_selectedWaveform_idx = np.array([-1])
         self.popUp_rawPlot()
         # Set X axis zoom level range and initial setting
-        x_range_max = (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 # (max. - min. time) / 2 ms
-        x_range_min = 5 # 5 ms
-        self.slider_rawPlot_popup_x_zoom_level.setMaximum(x_range_max.astype(int)*1000)
+        x_range_max = 1000 # ( (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 ).astype(int)*1000 # (max. - min. time) / 2 ms
+        x_range_min = 1 # ms
+        self.slider_rawPlot_popup_x_zoom_level.setMaximum(x_range_max)
         self.slider_rawPlot_popup_x_zoom_level.setMinimum(x_range_min)
         self.slider_rawPlot_popup_x_zoom_level.setValue(self.x_zoom_level)
-        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(x_range_min, x_range_max.astype(int)*1000)
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(x_range_min, x_range_max)
         self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(self.x_zoom_level)
         # Set Y axis zoom level range and initial setting
-        y_range_max = np.max([np.abs(self._workingDataBase['ch_data_cs']),np.abs(self._workingDataBase['ch_data_ss'])])*4
-        (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/2 # (max. - min. time) / 2 ms
-        y_range_min = 10 # 10 uV
-        self.slider_rawPlot_popup_y_zoom_level.setMaximum(y_range_max.astype(int))
+        y_range_max = ( np.max([np.abs(self._workingDataBase['ch_data_cs']),np.abs(self._workingDataBase['ch_data_ss'])])*1.5 ).astype(int)
+        y_range_min = 1 # uV
+        self.slider_rawPlot_popup_y_zoom_level.setMaximum(y_range_max)
         self.slider_rawPlot_popup_y_zoom_level.setMinimum(y_range_min)
         self.slider_rawPlot_popup_y_zoom_level.setValue(self.y_zoom_level)
-        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setRange(y_range_min, y_range_max.astype(int))
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setRange(y_range_min, y_range_max)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.y_zoom_level)
 
         return 0
@@ -1087,24 +1086,28 @@ class WaveDissectWidget(QWidget):
     def slider_rawPlot_popup_x_zoom_level_SliderMoved(self):
         self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(\
             self.slider_rawPlot_popup_x_zoom_level.value())
+        self.x_zoom_level = int(self.slider_rawPlot_popup_x_zoom_level.value())
         return 0
 
     # Y-Axis zoom level changed
     def slider_rawPlot_popup_y_zoom_level_SliderMoved(self):
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(\
             self.slider_rawPlot_popup_y_zoom_level.value())
+        self.y_zoom_level = int(self.slider_rawPlot_popup_y_zoom_level.value())
         return 0
 
     # X-Axis zoom level spinbox changed
     def spinBx_rawPlot_popup_x_zoom_level_indicator_ValueChanged(self):
         self.slider_rawPlot_popup_x_zoom_level.\
             setValue(self.spinBx_rawPlot_popup_x_zoom_level_indicator.value())
+        self.x_zoom_level = int(self.spinBx_rawPlot_popup_x_zoom_level_indicator.value())
         return 0
 
     # Y-Axis zoom level spinbox changed
     def spinBx_rawPlot_popup_y_zoom_level_indicator_ValueChanged(self):
         self.slider_rawPlot_popup_y_zoom_level.\
             setValue(self.spinBx_rawPlot_popup_y_zoom_level_indicator.value())
+        self.y_zoom_level = int(self.spinBx_rawPlot_popup_y_zoom_level_indicator.value())
         return 0
 
     # 'G' - Set zoom level from raw plot

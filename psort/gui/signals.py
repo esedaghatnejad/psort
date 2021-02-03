@@ -793,16 +793,20 @@ class PsortGuiSignals(PsortGuiWidget):
         signals_lib.extract_cs_waveform(self._workingDataBase)
         signals_lib.extract_cs_similarity(self._workingDataBase)
         signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
         signals_lib.extract_cs_time(self._workingDataBase)
         signals_lib.extract_cs_xprob(self._workingDataBase)
         signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
         signals_lib.extract_cs_scatter(self._workingDataBase)
+        self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
         self.plot_cs_ifr_histogram()
         self.plot_cs_xprob()
         self.plot_cs_waveform()
+        self.plot_ss_pca()
         self.plot_cs_pca()
         self.undoRedo_add()
         return 0
@@ -1213,11 +1217,14 @@ class PsortGuiSignals(PsortGuiWidget):
         signals_lib.extract_ss_similarity(self._workingDataBase)
         signals_lib.extract_ss_ifr(self._workingDataBase)
         signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
         signals_lib.extract_ss_xprob(self._workingDataBase)
         signals_lib.extract_cs_xprob(self._workingDataBase)
         signals_lib.extract_ss_pca(self._workingDataBase)
         signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
+        self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
         self.plot_ss_ifr_histogram()
@@ -1225,6 +1232,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_xprob()
         self.plot_ss_waveform()
         self.plot_ss_pca()
+        self.plot_cs_pca()
         self.undoRedo_add()
         return 0
 
@@ -1245,16 +1253,20 @@ class PsortGuiSignals(PsortGuiWidget):
         signals_lib.extract_cs_waveform(self._workingDataBase)
         signals_lib.extract_cs_similarity(self._workingDataBase)
         signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
         signals_lib.extract_cs_time(self._workingDataBase)
         signals_lib.extract_cs_xprob(self._workingDataBase)
         signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
         signals_lib.extract_cs_scatter(self._workingDataBase)
+        self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
         self.plot_cs_ifr_histogram()
         self.plot_cs_xprob()
         self.plot_cs_waveform()
+        self.plot_ss_pca()
         self.plot_cs_pca()
         self.undoRedo_add()
         return 0
@@ -1273,11 +1285,14 @@ class PsortGuiSignals(PsortGuiWidget):
         signals_lib.extract_ss_similarity(self._workingDataBase)
         signals_lib.extract_ss_ifr(self._workingDataBase)
         signals_lib.extract_ss_time(self._workingDataBase)
+        signals_lib.extract_cs_time(self._workingDataBase)
         signals_lib.extract_ss_xprob(self._workingDataBase)
         signals_lib.extract_cs_xprob(self._workingDataBase)
         signals_lib.extract_ss_pca(self._workingDataBase)
         signals_lib.extract_ss_scatter(self._workingDataBase)
+        signals_lib.extract_cs_scatter(self._workingDataBase)
         self.update_SSPcaNum_comboBx()
+        self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_ss_peaks_histogram()
         self.plot_ss_ifr_histogram()
@@ -1285,6 +1300,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_xprob()
         self.plot_ss_waveform()
         self.plot_ss_pca()
+        self.plot_cs_pca()
         self.undoRedo_add()
         return 0
 
@@ -1305,16 +1321,20 @@ class PsortGuiSignals(PsortGuiWidget):
         signals_lib.extract_cs_waveform(self._workingDataBase)
         signals_lib.extract_cs_similarity(self._workingDataBase)
         signals_lib.extract_cs_ifr(self._workingDataBase)
+        signals_lib.extract_ss_time(self._workingDataBase)
         signals_lib.extract_cs_time(self._workingDataBase)
         signals_lib.extract_cs_xprob(self._workingDataBase)
         signals_lib.extract_cs_pca(self._workingDataBase)
+        signals_lib.extract_ss_scatter(self._workingDataBase)
         signals_lib.extract_cs_scatter(self._workingDataBase)
+        self.update_SSPcaNum_comboBx()
         self.update_CSPcaNum_comboBx()
         self.plot_rawSignal(just_update_selected=True)
         self.plot_cs_peaks_histogram()
         self.plot_cs_ifr_histogram()
         self.plot_cs_xprob()
         self.plot_cs_waveform()
+        self.plot_ss_pca()
         self.plot_cs_pca()
         self.undoRedo_add()
         return 0
@@ -1460,7 +1480,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 doubleSpinBx_params['step'] = 10.
                 doubleSpinBx_params['max'] = 1e+5
                 doubleSpinBx_params['min'] = 1e-8
-                doubleSpinBx_params['okDefault'] = False
+                doubleSpinBx_params['okDefault'] = True
                 self.input_dialog = PsortInputDialog(self, \
                     message=message, doubleSpinBx_params=doubleSpinBx_params)
                 if self.input_dialog.exec_():
@@ -1479,7 +1499,7 @@ class PsortGuiSignals(PsortGuiWidget):
                 doubleSpinBx_params['step'] = 0.0001
                 doubleSpinBx_params['max'] = 1e+5
                 doubleSpinBx_params['min'] = 1e-8
-                doubleSpinBx_params['okDefault'] = False
+                doubleSpinBx_params['okDefault'] = True
                 self.input_dialog = PsortInputDialog(self, \
                     message=message, doubleSpinBx_params=doubleSpinBx_params)
                 if self.input_dialog.exec_():
@@ -1524,16 +1544,52 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def load_process_finished_complement_lfp(self):
         self._workingDataBase['isLfpSideloaded'][0] = True
-        psortDataBase_currentSlot = self.psortDataBase.get_currentSlotDataBase()
-        psortDataBase_topLevel = self.psortDataBase.get_topLevelDataBase()
-        index_start_on_ch_data = psortDataBase_currentSlot['index_start_on_ch_data'][0]
-        index_end_on_ch_data = psortDataBase_currentSlot['index_end_on_ch_data'][0]
+        psort_grandDataBase = self.psortDataBase.get_grandDataBase_Pointer()
+        ch_lfp = deepcopy(psort_grandDataBase[-1]['ch_lfp'])
+        ch_lfp_max = np.max(ch_lfp)
+        # Scale ch_lfp UP and put it in 100-10000 range
+        if ch_lfp_max < 100.:
+            message = str('Maximum signal value is: {:f}.\n'+\
+                'For best performance the data should be in 100-10,000 range.\n'\
+                'Please specify the scale factor for the signal:'\
+                ).format(ch_lfp_max)
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 1000.
+            doubleSpinBx_params['dec'] = 1
+            doubleSpinBx_params['step'] = 10.
+            doubleSpinBx_params['max'] = 1e+5
+            doubleSpinBx_params['min'] = 1e-8
+            doubleSpinBx_params['okDefault'] = True
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if self.input_dialog.exec_():
+                scale_value = self.input_dialog.doubleSpinBx.value()
+                psort_grandDataBase[-1]['ch_lfp'] = (ch_lfp * scale_value)
+        # Scale ch_lfp DOWN and put it in 100-10000 range
+        if ch_lfp_max > 10000.:
+            message = str('Maximum signal value is: {:f}.\n'+\
+                'For best performance the data should be in 100-10,000 range.\n'\
+                'Please specify the scale factor for the signal:'\
+                ).format(ch_lfp_max)
+            doubleSpinBx_params = {}
+            doubleSpinBx_params['value'] = 0.001
+            doubleSpinBx_params['dec'] = 8
+            doubleSpinBx_params['step'] = 0.0001
+            doubleSpinBx_params['max'] = 1e+5
+            doubleSpinBx_params['min'] = 1e-8
+            doubleSpinBx_params['okDefault'] = True
+            self.input_dialog = PsortInputDialog(self, \
+                message=message, doubleSpinBx_params=doubleSpinBx_params)
+            if self.input_dialog.exec_():
+                scale_value = self.input_dialog.doubleSpinBx.value()
+                psort_grandDataBase[-1]['ch_lfp'] = (ch_lfp * scale_value)
+        index_start_on_ch_data = psort_grandDataBase[-2]['index_start_on_ch_data'][0]
+        index_end_on_ch_data = psort_grandDataBase[-2]['index_end_on_ch_data'][0]
         self._workingDataBase['ch_lfp'] = \
-            psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data]
+            deepcopy(psort_grandDataBase[-1]['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data])
         signals_lib.filter_data(self._workingDataBase)
         self.onRawSignal_CsAutoThresh_Clicked()
         self.refresh_workingDataBase()
-        # self.plot_rawSignal(just_update_selected=False)
         return 0
 
     def save_process_start(self):

@@ -17,7 +17,10 @@ from psort.utils import lib
 
 class PsortDataBase():
     def __init__(self):
-        self._grandDataBase = [[],[],[]]
+        self._grandDataBase = []
+        self._grandDataBase.clear()
+        self._grandDataBase.append(deepcopy(dictionaries._singleSlotDataBase))
+        self._grandDataBase.append(deepcopy(dictionaries._topLevelDataBase))
         self._currentSlotDataBase = self._grandDataBase[-2]
         self._topLevelDataBase = self._grandDataBase[-1]
         self.init_slotsDataBase_hard()
@@ -270,21 +273,21 @@ class PsortDataBase():
             psortDataBase_currentSlot['index_start_on_ch_data'][0]
         index_end_on_ch_data = \
             psortDataBase_currentSlot['index_end_on_ch_data'][0]
-        psortDataBase_topLevel['ch_data'][index_start_on_ch_data:index_end_on_ch_data] = \
-            guiSignals_workingDataBase['ch_data']
-        psortDataBase_topLevel['ch_time'][index_start_on_ch_data:index_end_on_ch_data] = \
-            guiSignals_workingDataBase['ch_time']
+        # psortDataBase_topLevel['ch_data'][index_start_on_ch_data:index_end_on_ch_data] = \
+        #     guiSignals_workingDataBase['ch_data']
+        # psortDataBase_topLevel['ch_time'][index_start_on_ch_data:index_end_on_ch_data] = \
+        #     guiSignals_workingDataBase['ch_time']
         psortDataBase_topLevel['ss_index'][index_start_on_ch_data:index_end_on_ch_data] = \
             guiSignals_workingDataBase['ss_index']
         psortDataBase_topLevel['cs_index'][index_start_on_ch_data:index_end_on_ch_data] = \
             guiSignals_workingDataBase['cs_index']
         psortDataBase_topLevel['cs_index_slow'][index_start_on_ch_data:index_end_on_ch_data] = \
             guiSignals_workingDataBase['cs_index_slow']
-        psortDataBase_topLevel['sample_rate'][0] = \
-            guiSignals_workingDataBase['sample_rate'][0]
-        if psortDataBase_topLevel['isLfpSideloaded'][0]:
-            psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data] = \
-                guiSignals_workingDataBase['ch_lfp']
+        # psortDataBase_topLevel['sample_rate'][0] = \
+        #     guiSignals_workingDataBase['sample_rate'][0]
+        # if psortDataBase_topLevel['isLfpSideloaded'][0]:
+        #     psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data] = \
+        #         guiSignals_workingDataBase['ch_lfp']
         return 0
 
     def backward_compatibility_for_Psort_03(self):
