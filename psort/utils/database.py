@@ -154,6 +154,9 @@ class PsortDataBase():
                     for counter_slot in range(len(self._grandDataBase)-1):
                         self._grandDataBase[counter_slot][key] = \
                             deepcopy(dictionaries._singleSlotDataBase[key])
+            for key in dictionaries._topLevelDataBase.keys():
+                if not(key in self._grandDataBase[-1].keys()):
+                    self._grandDataBase[-1][key] = deepcopy(dictionaries._topLevelDataBase[key])
             self._currentSlotDataBase = self._grandDataBase[-2]
             self._topLevelDataBase = self._grandDataBase[-1]
             self.set_file_fullPath(file_fullPath)
@@ -180,6 +183,22 @@ class PsortDataBase():
             else:
                 print('Error: <database.load_dataBase: ' \
                     + 'size of common average data does not match main data.>')
+        return 0
+
+    def sideload_lfp(self, file_fullPath, ch_data=None, ch_time=None, sample_rate=None):
+        _ch_data_lfp_orig = deepcopy(ch_data)
+        _ch_time_lfp_orig = deepcopy(ch_time)
+        _ch_data = self._topLevelDataBase['ch_data']
+        _ch_time = self._topLevelDataBase['ch_time']
+        self._topLevelDataBase['file_fullPathLfp'] = \
+            np.array([file_fullPath], dtype=np.unicode)
+        self._topLevelDataBase['isLfpSideloaded'][0] = True
+        # check _ch_data_lfp_orig size
+        if _ch_data_lfp_orig.size == _ch_data.size:
+            self._topLevelDataBase['ch_lfp'] = deepcopy(_ch_data_lfp_orig)
+        else:
+            _ch_data_lfp_orig = lib.resample(x_input=_ch_time_lfp_orig, y_input=_ch_data_lfp_orig, x_output=_ch_time)
+            self._topLevelDataBase['ch_lfp'] = deepcopy(_ch_data_lfp_orig)
         return 0
 
     def is_all_slots_analyzed(self):
@@ -263,6 +282,9 @@ class PsortDataBase():
             guiSignals_workingDataBase['cs_index_slow']
         psortDataBase_topLevel['sample_rate'][0] = \
             guiSignals_workingDataBase['sample_rate'][0]
+        if psortDataBase_topLevel['isLfpSideloaded'][0]:
+            psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data] = \
+                guiSignals_workingDataBase['ch_lfp']
         return 0
 
     def backward_compatibility_for_Psort_03(self):

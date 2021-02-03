@@ -147,7 +147,7 @@ for key in GLOBAL_DICT.keys():
     _singleSlotDataBase[key] = deepcopy(GLOBAL_DICT[key])
 ## ################################################################################################
 _topLevelDataBase = {
-        'PSORT_VERSION':          np.array([0, 4, 42], dtype=np.uint32),
+        'PSORT_VERSION':          np.array([0, 4, 43], dtype=np.uint32),
         'file_fullPathOriginal':  np.array([''], dtype=np.unicode),
         'file_fullPathCommonAvg': np.array([''], dtype=np.unicode),
         'file_fullPath':          np.array([''], dtype=np.unicode),
@@ -165,6 +165,7 @@ _topLevelDataBase = {
         'cs_index_slow':          np.zeros((0), dtype=np.bool),
         'cs_index':               np.zeros((0), dtype=np.bool),
         'sample_rate':            np.zeros((1), dtype=np.uint32),
+        'isLfpSideloaded':        np.zeros((1), dtype=np.bool),
         }
 ## ################################################################################################
 _workingDataBase = {
@@ -236,13 +237,14 @@ _workingDataBase = {
     'popUp_ROI_y':            np.zeros((0), dtype=np.float32),
     'popUp_mode':             np.array(['ss_pca_manual'],   dtype=np.unicode),
     'flag_index_detection':   np.array([True], dtype=np.bool),
-    'flag_tools_prefrences':   np.array([False],dtype=np.bool),
+    'flag_tools_prefrences':  np.array([False],dtype=np.bool),
     'ss_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
     'cs_index_slow_undoRedo': np.zeros((0,0), dtype=np.bool),
     'cs_index_undoRedo':      np.zeros((0,0), dtype=np.bool),
     'index_undoRedo':         np.zeros((1), dtype=np.int),
     'length_undoRedo':        np.zeros((1), dtype=np.int),
     'batch_size_undoRedo':    np.full( (1), 20, dtype=np.uint32),
+    'isLfpSideloaded':        np.zeros((1), dtype=np.bool),
 }
 
 for key in _singleSlotDataBase.keys():
@@ -251,6 +253,8 @@ for key in _singleSlotDataBase.keys():
 _fileDataBase = {
     'load_file_fullPath': np.array([''], dtype=np.unicode),
     'save_file_fullPath': np.array([''], dtype=np.unicode),
+    'isMainSignal':       np.zeros((1), dtype=np.bool),
     'isCommonAverage':    np.zeros((1), dtype=np.bool),
+    'isLfpSignal':        np.zeros((1), dtype=np.bool),
 }
 ## ################################################################################################

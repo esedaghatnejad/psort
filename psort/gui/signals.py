@@ -217,6 +217,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.actionBtn_toolbar_save.setEnabled(isEnable)
         self.actionBtn_menubar_file_save.setEnabled(isEnable)
         self.actionBtn_menubar_file_restart.setEnabled(isEnable)
+        self.actionBtn_menubar_file_lfp.setEnabled(isEnable)
         if isEnable:
             self.undoRedo_enable()
         else:
@@ -230,6 +231,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.menu_menubar_addons.setEnabled(isEnable)
         self.actionBtn_menubar_file_open.setEnabled(isEnable)
         self.actionBtn_menubar_file_restart.setEnabled(isEnable)
+        self.actionBtn_menubar_file_lfp.setEnabled(isEnable)
         if isEnable:
             self.layout_grand.setCurrentIndex(0)
         return 0
@@ -435,8 +437,10 @@ class PsortGuiSignals(PsortGuiWidget):
     def connect_menubar_signals(self):
         self.actionBtn_menubar_file_open.triggered.\
             connect(self.onToolbar_load_ButtonClick)
+        self.actionBtn_menubar_file_lfp.triggered.\
+            connect(self.onMenubar_lfp_ButtonClick)
         self.actionBtn_menubar_file_restart.triggered.\
-            connect(self.onToolbar_restart_ButtonClick)
+            connect(self.onMenubar_restart_ButtonClick)
         self.actionBtn_menubar_file_save.triggered.\
             connect(self.onToolbar_save_ButtonClick)
         self.actionBtn_menubar_file_exit.triggered.\
@@ -445,12 +449,12 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onMenubar_prefrences_ButtonClick)
         self.actionBtn_menubar_tools_umap.triggered.\
             connect(self.onMenubar_umap_ButtonClick)
-        self.actionBtn_menubar_addons_commonAvg.triggered.\
-            connect(self.onMenubar_commonAvg_ButtonClick)
         self.actionBtn_menubar_tools_cellSummary.triggered.\
             connect(self.onMenubar_cellSummary_ButtonClick)
         self.actionBtn_menubar_tools_realign_CS.triggered.\
             connect(self.onMenubar_realignCS_ButtonClick)
+        self.actionBtn_menubar_addons_commonAvg.triggered.\
+            connect(self.onMenubar_commonAvg_ButtonClick)
         return 0
 
     def connect_toolbar_signals(self):
@@ -632,12 +636,29 @@ class PsortGuiSignals(PsortGuiWidget):
                             filter="Data file (*.psort *.mat *.continuous *.h5 *.smr)")
         if os.path.isfile(os.path.realpath(file_fullPath)):
             self._fileDataBase['load_file_fullPath'] = file_fullPath
+            self._fileDataBase['isMainSignal'][0] = True
             self._fileDataBase['isCommonAverage'][0] = False
+            self._fileDataBase['isLfpSignal'][0] = False
             self.init_workingDataBase()
             self.load_process_start()
         return 0
 
-    def onToolbar_restart_ButtonClick(self):
+    def onMenubar_lfp_ButtonClick(self):
+        _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
+        if not(os.path.isdir(file_path)):
+            file_path = os.getcwd()
+        file_fullPath, _ = QFileDialog.\
+            getOpenFileName(self, "Open File", file_path,
+                            filter="Data file (*.mat *.continuous *.h5 *.smr)")
+        if os.path.isfile(os.path.realpath(file_fullPath)):
+            self._fileDataBase['load_file_fullPath'] = file_fullPath
+            self._fileDataBase['isMainSignal'][0] = False
+            self._fileDataBase['isCommonAverage'][0] = False
+            self._fileDataBase['isLfpSignal'][0] = True
+            self.load_process_start()
+        return 0
+
+    def onMenubar_restart_ButtonClick(self):
         self.slotBoundary_showWidget(True, 'soft')
         return 0
 
@@ -1359,7 +1380,9 @@ class PsortGuiSignals(PsortGuiWidget):
         self.menubar.setEnabled(True)
 
         file_fullPath = self._fileDataBase['load_file_fullPath']
+        isMainSignal = self._fileDataBase['isMainSignal'][0]
         isCommonAverage = self._fileDataBase['isCommonAverage'][0]
+        isLfpSignal = self._fileDataBase['isLfpSignal'][0]
         _, _, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
         if file_ext == '.psort':
             self.psortDataBase.\
@@ -1373,7 +1396,13 @@ class PsortGuiSignals(PsortGuiWidget):
             self.load_process_finished_complement()
             return 0
 
-        if not(isCommonAverage):
+        if isLfpSignal:
+            self.psortDataBase.\
+                sideload_lfp(file_fullPath, ch_data=ch_data, ch_time=ch_time, sample_rate=sample_rate)
+            self.load_process_finished_complement_lfp()
+            return 0
+
+        if isMainSignal:
             self.psortDataBase.\
                 load_dataBase(file_fullPath, ch_data=ch_data, ch_time=ch_time,
                                 sample_rate=sample_rate, isCommonAverage=False)
@@ -1389,7 +1418,9 @@ class PsortGuiSignals(PsortGuiWidget):
                                     filter="Data file (*.mat *.continuous *.h5 *.smr)")
                 if os.path.isfile(os.path.realpath(cmn_file_fullPath)):
                     self._fileDataBase['load_file_fullPath'] = cmn_file_fullPath
+                    self._fileDataBase['isMainSignal'][0] = False
                     self._fileDataBase['isCommonAverage'][0] = True
+                    self._fileDataBase['isLfpSignal'][0] = False
                     self.load_process_start()
             else:
                 self.load_process_finished_complement()
@@ -1489,6 +1520,20 @@ class PsortGuiSignals(PsortGuiWidget):
             connect(self.onToolbar_slotNumCurrent_ValueChanged)
         if flag_restart_session:
             self.slotBoundary_showWidget(True, 'hard')
+        return 0
+
+    def load_process_finished_complement_lfp(self):
+        self._workingDataBase['isLfpSideloaded'][0] = True
+        psortDataBase_currentSlot = self.psortDataBase.get_currentSlotDataBase()
+        psortDataBase_topLevel = self.psortDataBase.get_topLevelDataBase()
+        index_start_on_ch_data = psortDataBase_currentSlot['index_start_on_ch_data'][0]
+        index_end_on_ch_data = psortDataBase_currentSlot['index_end_on_ch_data'][0]
+        self._workingDataBase['ch_lfp'] = \
+            psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data]
+        signals_lib.filter_data(self._workingDataBase)
+        self.onRawSignal_CsAutoThresh_Clicked()
+        self.refresh_workingDataBase()
+        # self.plot_rawSignal(just_update_selected=False)
         return 0
 
     def save_process_start(self):
@@ -2483,6 +2528,10 @@ class PsortGuiSignals(PsortGuiWidget):
             psortDataBase_topLevel['cs_index_slow'][index_start_on_ch_data:index_end_on_ch_data]
         self._workingDataBase['sample_rate'][0] = \
             psortDataBase_topLevel['sample_rate'][0]
+        if psortDataBase_topLevel['isLfpSideloaded'][0]:
+            self._workingDataBase['ch_lfp'] = \
+                psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data]
+        self._workingDataBase['isLfpSideloaded'][0] = psortDataBase_topLevel['isLfpSideloaded'][0]
         # if the SLOT is already analyzed then transfer the data over,
         # otherwise, do not transfer and use the current values for the new slot
         if self._workingDataBase['isAnalyzed'][0]:

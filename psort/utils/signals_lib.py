@@ -294,12 +294,20 @@ def filter_data(_workingDataBase):
             sample_rate=_workingDataBase['sample_rate'][0],
             lo_cutoff_freq=_workingDataBase['ss_min_cutoff_freq'][0],
             hi_cutoff_freq=_workingDataBase['ss_max_cutoff_freq'][0])
-    _workingDataBase['ch_data_cs'] = \
-        lib.bandpass_filter(
-            _workingDataBase['ch_data'],
-            sample_rate=_workingDataBase['sample_rate'][0],
-            lo_cutoff_freq=_workingDataBase['cs_min_cutoff_freq'][0],
-            hi_cutoff_freq=_workingDataBase['cs_max_cutoff_freq'][0])
+    if _workingDataBase['isLfpSideloaded'][0]:
+        _workingDataBase['ch_data_cs'] = \
+            lib.bandpass_filter(
+                _workingDataBase['ch_lfp'],
+                sample_rate=_workingDataBase['sample_rate'][0],
+                lo_cutoff_freq=_workingDataBase['cs_min_cutoff_freq'][0],
+                hi_cutoff_freq=_workingDataBase['cs_max_cutoff_freq'][0])
+    else:
+        _workingDataBase['ch_data_cs'] = \
+            lib.bandpass_filter(
+                _workingDataBase['ch_data'],
+                sample_rate=_workingDataBase['sample_rate'][0],
+                lo_cutoff_freq=_workingDataBase['cs_min_cutoff_freq'][0],
+                hi_cutoff_freq=_workingDataBase['cs_max_cutoff_freq'][0])
     return 0
 
 def detect_ss_index(_workingDataBase):

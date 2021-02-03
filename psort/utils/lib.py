@@ -17,6 +17,7 @@ from sklearn import cluster
 from sklearn import mixture
 from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import LocalOutlierFactor
+from numbers import Number
 import matplotlib as plt
 from matplotlib import path
 from copy import deepcopy
@@ -655,6 +656,16 @@ def distance_to_next_element(bool_array_from, bool_array_to):
     out_[hold_index_next_to==-1] = 0
     out_[np.logical_not(bool_array_from)] = 0
     return out_
+
+def resample(x_input, y_input, x_output):
+    if isinstance(x_output, Number):
+        _num = int(x_output)
+    elif x_output.size == 1:
+        _num = int(x_output[0])
+    else:
+        _num = x_output.size
+    y_output, _ = signal.resample(y_input, _num, t=x_input, axis=0, window=None, domain='time')
+    return y_output
 
 def isolation_score(scatter_mat,labels,nknn = 6):
     unique_labels = np.unique(labels)
