@@ -125,13 +125,23 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_next_window.setToolTip('Move to the next<br>time window<br><b>(E)')
         self.pushBtn_rawPlot_popup_next_window.setAutoRepeat(True)
         self.slider_rawPlot_popup_x_zoom_level = QSlider(QtCore.Qt.Horizontal)
+        self.slider_rawPlot_popup_x_zoom_level.setMaximum(1000)
+        self.slider_rawPlot_popup_x_zoom_level.setMinimum(1)
+        self.slider_rawPlot_popup_x_zoom_level.setValue(20)
         self.spinBx_rawPlot_popup_x_zoom_level_indicator = QSpinBox()
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(1, 1000)
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(20)
         self.label_rawPlot_popup_x_zoom = QLabel("X-axis range:")
         lib.setFont(self.label_rawPlot_popup_x_zoom, color="black")
         self.label_rawPlot_popup_x_zoom_unit = QLabel(" ms ")
         lib.setFont(self.label_rawPlot_popup_x_zoom_unit, color="black")
         self.slider_rawPlot_popup_y_zoom_level = QSlider(QtCore.Qt.Horizontal)
+        self.slider_rawPlot_popup_y_zoom_level.setMaximum(1000)
+        self.slider_rawPlot_popup_y_zoom_level.setMinimum(1)
+        self.slider_rawPlot_popup_y_zoom_level.setValue(500)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator = QSpinBox()
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setRange(1, 1000)
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(500)
         self.label_rawPlot_popup_y_zoom = QLabel("Y-axis range:")
         lib.setFont(self.label_rawPlot_popup_y_zoom, color="black")
         self.label_rawPlot_popup_y_zoom_unit = QLabel(" uV ")
@@ -523,29 +533,32 @@ class WaveDissectWidget(QWidget):
 
 #%% SIGNAL
 
-    def pushBtn_waveDissect_Clicked(self):
+    def pushBtn_waveDissect_Clicked(self, y_zoom_level=1000, spike_of_interest="CS"):
         self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
         self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
         self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
         self.view_selectedWaveform_idx = np.array([-1])
         self.popUp_rawPlot()
         # Set X axis zoom level range and initial setting
-        x_range_max = 1000 # ( (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 ).astype(int)*1000 # (max. - min. time) / 2 ms
-        x_range_min = 1 # ms
-        self.slider_rawPlot_popup_x_zoom_level.setMaximum(x_range_max)
-        self.slider_rawPlot_popup_x_zoom_level.setMinimum(x_range_min)
-        self.slider_rawPlot_popup_x_zoom_level.setValue(self.x_zoom_level)
-        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(x_range_min, x_range_max)
-        self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(self.x_zoom_level)
+        # x_range_max = 1000 # ( (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 ).astype(int)*1000 # (max. - min. time) / 2 ms
+        # x_range_min = 1 # ms
+        # self.slider_rawPlot_popup_x_zoom_level.setMaximum(x_range_max)
+        # self.slider_rawPlot_popup_x_zoom_level.setMinimum(x_range_min)
+        # self.slider_rawPlot_popup_x_zoom_level.setValue(self.x_zoom_level)
+        # self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(x_range_min, x_range_max)
+        # self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(self.x_zoom_level)
         # Set Y axis zoom level range and initial setting
-        y_range_max = ( np.max([np.abs(self._workingDataBase['ch_data_cs']),np.abs(self._workingDataBase['ch_data_ss'])])*1.5 ).astype(int)
+        y_range_max = ( np.max([np.abs(self._workingDataBase['ch_data_cs']),np.abs(self._workingDataBase['ch_data_ss'])])*2 ).astype(int)
         y_range_min = 1 # uV
         self.slider_rawPlot_popup_y_zoom_level.setMaximum(y_range_max)
         self.slider_rawPlot_popup_y_zoom_level.setMinimum(y_range_min)
-        self.slider_rawPlot_popup_y_zoom_level.setValue(self.y_zoom_level)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setRange(y_range_min, y_range_max)
-        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.y_zoom_level)
+        self.slider_rawPlot_popup_y_zoom_level.setValue(y_zoom_level)
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(y_zoom_level)
+        self.y_zoom_level = y_zoom_level
 
+        self.comboBx_rawPlot_popup_spike_of_interest.setCurrentText(spike_of_interest)
+        self.comboBx_rawPlot_popup_spike_of_interest_currentIndexChanged()
         return 0
 
     # 'S' - Select the waveforms in ROI

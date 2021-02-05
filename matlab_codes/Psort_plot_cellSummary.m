@@ -1,4 +1,4 @@
-function Psort_plot_cellSummary(file_fullPath)
+function psortDB = Psort_plot_cellSummary(file_fullPath)
 % This function is part of PurkinjeSort project
 % it reads psort file and plots a summary of cell properties
 
@@ -71,12 +71,36 @@ ss_wave = psortDB.topLevel_data.ch_data(psortDB.topLevel_data.ss_wave_inds);
 cs_wave = psortDB.topLevel_data.ch_data(psortDB.topLevel_data.cs_wave_inds);
 ss_wave_span = psortDB.topLevel_data.ss_wave_span;
 cs_wave_span = psortDB.topLevel_data.cs_wave_span;
-ss_wave_span_mean = mean(ss_wave_span)';
-cs_wave_span_mean = mean(cs_wave_span)';
-ss_wave_mean = mean(ss_wave)';
-cs_wave_mean = mean(cs_wave)';
-ss_wave_stdv = std(ss_wave)';
-cs_wave_stdv = std(cs_wave)';
+
+if isempty(ss_wave)
+    ss_wave_span_mean = nan;
+    ss_wave_mean = nan;
+    ss_wave_stdv = nan;
+elseif isvector(ss_wave)
+    ss_wave_span_mean = ss_wave_span(:);
+    ss_wave_mean = ss_wave(:);
+    ss_wave_stdv = nan(size(ss_wave_mean));
+else
+    ss_wave_span_mean = nanmean(ss_wave_span)';
+    ss_wave_mean = nanmean(ss_wave)';
+    ss_wave_stdv = nanstd(ss_wave)';
+end
+
+if isempty(cs_wave)
+    cs_wave_span_mean = nan;
+    cs_wave_mean = nan;
+    cs_wave_stdv = nan;
+elseif isvector(cs_wave)
+    cs_wave_span_mean = cs_wave_span(:);
+    cs_wave_mean = cs_wave(:);
+    cs_wave_stdv = nan(size(cs_wave_mean));
+else
+    cs_wave_span_mean = nanmean(cs_wave_span)';
+    cs_wave_mean = nanmean(cs_wave)';
+    cs_wave_stdv = nanstd(cs_wave)';
+end
+
+
 plot(ss_wave_span_mean*1000, ss_wave_mean+ss_wave_stdv, '-b', 'linewidth', 1)
 plot(ss_wave_span_mean*1000, ss_wave_mean-ss_wave_stdv, '-b', 'linewidth', 1)
 plot(cs_wave_span_mean*1000, cs_wave_mean+cs_wave_stdv, '-r', 'linewidth', 1)

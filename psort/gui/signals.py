@@ -659,7 +659,7 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onMenubar_restart_ButtonClick(self):
-        self.slotBoundary_showWidget(True, 'soft')
+        self.slotBoundary_showWidget(True, 'hard')
         return 0
 
     def onToolbar_save_ButtonClick(self):
@@ -789,25 +789,8 @@ class PsortGuiSignals(PsortGuiWidget):
         signals_lib.resolve_cs_cs_slow_conflicts(self._workingDataBase)
         signals_lib.resolve_cs_ss_conflicts(self._workingDataBase)
 
-        signals_lib.extract_cs_peak(self._workingDataBase)
-        signals_lib.extract_cs_waveform(self._workingDataBase)
-        signals_lib.extract_cs_similarity(self._workingDataBase)
-        signals_lib.extract_cs_ifr(self._workingDataBase)
-        signals_lib.extract_ss_time(self._workingDataBase)
-        signals_lib.extract_cs_time(self._workingDataBase)
-        signals_lib.extract_cs_xprob(self._workingDataBase)
-        signals_lib.extract_cs_pca(self._workingDataBase)
-        signals_lib.extract_ss_scatter(self._workingDataBase)
-        signals_lib.extract_cs_scatter(self._workingDataBase)
-        self.update_SSPcaNum_comboBx()
-        self.update_CSPcaNum_comboBx()
-        self.plot_rawSignal(just_update_selected=True)
-        self.plot_cs_peaks_histogram()
-        self.plot_cs_ifr_histogram()
-        self.plot_cs_xprob()
-        self.plot_cs_waveform()
-        self.plot_ss_pca()
-        self.plot_cs_pca()
+        self._workingDataBase['flag_index_detection'][0] = False
+        self.refresh_workingDataBase()
         self.undoRedo_add()
         return 0
 
@@ -2021,7 +2004,6 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(False)
         return 0
 
-    @showWaitCursor
     def onSsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
@@ -2046,7 +2028,6 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(True)
         return 0
 
-    @showWaitCursor
     def onCsPanel_selectPcaData_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
@@ -2279,26 +2260,24 @@ class PsortGuiSignals(PsortGuiWidget):
 
     @showWaitCursor
     def onSsPanel_waveDissect_Clicked(self):
-        self.onPushBtn_waveDissect_Clicked()
+        self.onPushBtn_waveDissect_Clicked(spike_of_interest="SS")
         return 0
 
     @showWaitCursor
     def onCsPanel_waveDissect_Clicked(self):
-        self.onPushBtn_waveDissect_Clicked()
+        self.onPushBtn_waveDissect_Clicked(spike_of_interest="CS")
         return 0
 
-    def onPushBtn_waveDissect_Clicked(self):
+    def onPushBtn_waveDissect_Clicked(self, spike_of_interest):
         # copy _workingDataBase over to WaveDissectWidget
         self.WaveDissectWidget._workingDataBase = deepcopy(self._workingDataBase)
         # set y_zoom_level to match the signal
         viewBox_range = self.viewBox_rawSignal.viewRange()
         ymin = viewBox_range[1][0]
         ymax = viewBox_range[1][1]
-        self.WaveDissectWidget.y_zoom_level = int(ymax-ymin)
-        self.WaveDissectWidget.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(self.WaveDissectWidget.y_zoom_level)
-        self.WaveDissectWidget.slider_rawPlot_popup_y_zoom_level.setValue(self.WaveDissectWidget.y_zoom_level)
+        y_zoom_level = int(ymax-ymin)
         # Enable the WaveDissectWidget module
-        self.WaveDissectWidget.pushBtn_waveDissect_Clicked()
+        self.WaveDissectWidget.pushBtn_waveDissect_Clicked(y_zoom_level, spike_of_interest)
         self.waveDissect_showWidget(True)
         return 0
 

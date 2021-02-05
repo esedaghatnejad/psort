@@ -24,10 +24,14 @@ end
 % Last slot or slot N+2 is the most important one. This where the topLevel
 % data is stored
 psortDataBase = struct;
-file_info = h5info(file_fullPath);
+warning('off','MATLAB:imagesci:deprecatedHDF5:warnBitfieldNotSupported')
+file_info = hdf5info(file_fullPath);
+file_info = file_info.GroupHierarchy;
+
 group_info = struct2cell(file_info.Groups.Groups);
-list_slot_name = group_info(1,:);
-num_slots = length(file_info.Groups.Groups);
+index_Name = find(ismember(fieldnames(file_info.Groups.Groups), 'Name'));
+list_slot_name = group_info( index_Name ,:);
+num_slots = length(list_slot_name);
 % read N slot_data
 for counter_slot = 1 : 1 : num_slots - 2
     slot_name = ['/data/i' num2str(counter_slot-1)];
@@ -35,6 +39,7 @@ for counter_slot = 1 : 1 : num_slots - 2
     num_variables = length(file_info.Groups.Groups(slot_index).Datasets);
     for counter_variable = 1 : 1 : num_variables
         variable_name = file_info.Groups.Groups(slot_index).Datasets(counter_variable).Name;
+        variable_name = variable_name(length(slot_name)+2:end);
         variable_data = h5read(file_fullPath,[slot_name '/' variable_name]);
         if contains(variable_name, '_mode') || contains(variable_name, 'file')
             variable_data = char(variable_data(1:4:end))';
@@ -53,6 +58,7 @@ slot_index = find(ismember(list_slot_name, slot_name));
 num_variables = length(file_info.Groups.Groups(slot_index).Datasets);
 for counter_variable = 1 : 1 : num_variables
     variable_name = file_info.Groups.Groups(slot_index).Datasets(counter_variable).Name;
+    variable_name = variable_name(length(slot_name)+2:end);
     variable_data = h5read(file_fullPath,[slot_name '/' variable_name]);
     if contains(variable_name, '_mode') || contains(variable_name, 'file')
         variable_data = char(variable_data(1:4:end))';

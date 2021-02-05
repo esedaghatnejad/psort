@@ -33,6 +33,7 @@ function psortDB = extract_slot_data(psortDB, use_current_slot)
 if (nargin < 2)
     use_current_slot = false;
 end
+%%
 total_slot_num = psortDB.topLevel_data.total_slot_num;
 index_slot_edges = psortDB.topLevel_data.index_slot_edges;
 ch_data = psortDB.topLevel_data.ch_data;
@@ -88,18 +89,14 @@ for counter_slot = 1 : total_slot_num
         psortDB.slot_data(GLOBAL_slot_num).GLOBAL_XPROB_CS_BINSIZE, ...
         psortDB.slot_data(GLOBAL_slot_num).GLOBAL_XPROB_CS_BEFORE, ...
         psortDB.slot_data(GLOBAL_slot_num).GLOBAL_XPROB_CS_AFTER);
-    ss_pca_mat_slot = extract_pca(ss_wave_slot, sample_rate, ...
+    [ss_pca_mat_slot, ss_pca1_slot, ss_pca2_slot] = extract_pca(ss_wave_slot, sample_rate, ...
         psortDB.slot_data(GLOBAL_slot_num).ss_pca_bound_min, ...
         psortDB.slot_data(GLOBAL_slot_num).ss_pca_bound_max, ...
         psortDB.slot_data(GLOBAL_slot_num).GLOBAL_WAVE_PLOT_SS_BEFORE);
-    ss_pca1_slot = ss_pca_mat_slot(:,1);
-    ss_pca2_slot = ss_pca_mat_slot(:,2);
-    cs_pca_mat_slot = extract_pca(cs_wave_slot, sample_rate, ...
+    [cs_pca_mat_slot, cs_pca1_slot, cs_pca2_slot] = extract_pca(cs_wave_slot, sample_rate, ...
         psortDB.slot_data(GLOBAL_slot_num).cs_pca_bound_min, ...
         psortDB.slot_data(GLOBAL_slot_num).cs_pca_bound_max, ...
         psortDB.slot_data(GLOBAL_slot_num).GLOBAL_WAVE_PLOT_CS_BEFORE);
-    cs_pca1_slot = cs_pca_mat_slot(:,1);
-    cs_pca2_slot = cs_pca_mat_slot(:,2);
     %% store slot data
     psortDB.slot_data(counter_slot).ch_data = ch_data_slot;
     psortDB.slot_data(counter_slot).ch_time = ch_time_slot;
@@ -187,6 +184,11 @@ end
 %% function extract_waveform
 function [waveform, span] = extract_waveform(data, spike_bool, sample_rate, win_len_before, win_len_after)
 spike_bool = logical(spike_bool); spike_bool(1) = false; spike_bool(end) = false;
+if sum(spike_bool) < 1
+    waveform = [];
+    span = [];
+    return;
+end
 spike_int = find(spike_bool);
 win_len_before_int = round(double(win_len_before) * double(sample_rate));
 win_len_after_int  = round(double(win_len_after)  * double(sample_rate));
@@ -201,11 +203,19 @@ ind(ind<1) = 1;
 ind(ind>length(data)) = length(data);
 waveform = data(ind);
 span = span_int / double(sample_rate);
+if sum(spike_bool)==1
+    waveform = reshape(waveform, 1, []);
+    span     = reshape(span, 1, []);
+end
 end
 
 %% function extract_ifr
 function instant_firing_rate = extract_ifr(index_bool, sample_rate)
 index_bool = logical(index_bool); index_bool(1) = false; index_bool(end) = false;
+if sum(index_bool) < 2
+    instant_firing_rate = [];
+    return;
+end
 index_value = find(index_bool);
 inter_spike_interval = diff(index_value) / double(sample_rate);
 inter_spike_interval = [inter_spike_interval(:); inter_spike_interval(end)];
@@ -237,11 +247,23 @@ ind(ind<1) = 1;
 ind(ind>length(spike2_bool)) = length(spike2_bool);
 S1xS2_bool = spike2_bool(ind);
 output_span = span_int * double(bin_size);
+if sum(spike1_bool)==1
+    S1xS2_bool  = reshape(S1xS2_bool, 1, []);
+    output_span = reshape(output_span, 1, []);
+end
 end
 
 %% function extract_pca
-function pca_mat = extract_pca(waveform, sample_rate, pca_bound_min, pca_bound_max, win_len_before)
+function [pca_mat, pca1, pca2] = extract_pca(waveform, sample_rate, pca_bound_min, pca_bound_max, win_len_before)
+if size(waveform,1) < 2
+    pca_mat = [];
+    pca1 = [];
+    pca2 = [];
+    return;
+end
 minPca = round( ( double(pca_bound_min) + double(win_len_before) ) * double(sample_rate) );
 maxPca = round( ( double(pca_bound_max) + double(win_len_before) )  * double(sample_rate) );
 [~, pca_mat, ~] = pca(waveform(:,minPca:maxPca));
+pca1 = pca_mat(:,1);
+pca2 = pca_mat(:,2);
 end
