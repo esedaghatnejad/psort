@@ -1452,13 +1452,13 @@ class PsortGuiSignals(PsortGuiWidget):
                                 QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
             flag_restart_session = (_reply == QtGui.QMessageBox.Yes)
             # Scale ch_data UP and put it in 100-10000 range
-            if ch_data_max < 100.:
+            if ch_data_max < 50.:
                 message = str('Maximum signal value is: {:f}.\n'+\
                     'For best performance the data should be in 100-10,000 range.\n'\
                     'Please specify the scale factor for the signal:'\
                     ).format(ch_data_max)
                 doubleSpinBx_params = {}
-                doubleSpinBx_params['value'] = 1000.
+                doubleSpinBx_params['value'] = 100.
                 doubleSpinBx_params['dec'] = 1
                 doubleSpinBx_params['step'] = 10.
                 doubleSpinBx_params['max'] = 1e+5
@@ -1477,7 +1477,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     'Please specify the scale factor for the signal:'\
                     ).format(ch_data_max)
                 doubleSpinBx_params = {}
-                doubleSpinBx_params['value'] = 0.001
+                doubleSpinBx_params['value'] = 0.01
                 doubleSpinBx_params['dec'] = 8
                 doubleSpinBx_params['step'] = 0.0001
                 doubleSpinBx_params['max'] = 1e+5

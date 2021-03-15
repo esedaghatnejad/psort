@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='psort',
-      version='0.4.45',
+      version='1.0.0',
       description='PurkinjeSort',
       long_description=long_description,
       url='https://github.com/esedaghatnejad/psort',

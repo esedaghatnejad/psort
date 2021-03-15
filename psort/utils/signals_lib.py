@@ -49,7 +49,11 @@ def resolve_ss_ss_conflicts(_workingDataBase):
             elif _peakType == 'max':
                 valid_ind = np.argmax(ss_search_win_data)
             ss_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
-            ss_search_win_bool[valid_ind] = True
+            # following is to address the bug that the dominant value takes place at the margin of the
+            # window and is not a local optima. This results in erroneous alignments.
+            # instead of "ss_search_win_bool[valid_ind] = True" , "ss_search_win_bool[0] = False",
+            # and "ss_search_win_bool[-1] = False"
+            ss_search_win_bool[valid_ind] = not( (valid_ind == 0) or (valid_ind == ss_search_win_bool.size) )
             _ss_index[search_win_inds] = deepcopy(ss_search_win_bool)
     return 0
 
@@ -89,7 +93,9 @@ def resolve_cs_slow_cs_slow_conflicts(_workingDataBase):
             elif _peakType == 'max':
                 valid_ind = np.argmax(cs_search_win_data)
             cs_search_win_bool = np.zeros(search_win_inds.shape,dtype=np.bool)
-            cs_search_win_bool[valid_ind] = True
+            # See the description in resolve_ss_ss_conflicts
+            # removed "cs_search_win_bool[valid_ind] = True"
+            cs_search_win_bool[valid_ind] = not( (valid_ind == 0) or (valid_ind == cs_search_win_bool.size) )
             _cs_index_slow[search_win_inds] = deepcopy(cs_search_win_bool)
     return 0
 
@@ -150,6 +156,7 @@ def resolve_cs_cs_slow_conflicts(_workingDataBase):
         elif _peakType == 'min':
             _cs_index_slow_local = np.argmin(cs_search_win_data)
         _cs_index_slow_local = _cs_index_slow_local + _cs_index_local
+        # ESN: decided not to reject the edges, look at resolve_ss_ss_conflicts
         _cs_index_slow[_cs_index_slow_local] = True
     return 0
 
