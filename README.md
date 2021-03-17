@@ -1,11 +1,22 @@
 # P-sort: an open-source software for cerebellar neurophysiology
 ![P-sort main window](./psort/icons/main_window.png)
 
+# Table of content
+[Introduction](#introduction)
+[P-sort Main Window](#p-sort-main-window)
+[Cluster Module](#cluster-module)
+[Dissect Module](#dissect-module)
+[Installing Anaconda and Necessary Packages](#install-anaconda-and-necessary-packages)
+[Running P-sort](#running-p-sort)
+[Supported File Formats](#supported-file-formats)
+[A Typical Work Flow of P-sort](#a-typical-work-flow-of-p-sort)
+
+# Introduction
 Analysis of electrophysiological data from Purkinje cells (P-cells) of the cerebellum presents challenges for spike detection. Complex spikes have waveforms that vary significantly from one event to the next, raising the problem of misidentification. Even when complex spikes are detected correctly, the simple spikes may belong to a different P-cell, raising the danger of misattribution. We analyzed data from over 300 P-cells in marmosets, macaques, and mice, using our semi-automated software called P-sort that addresses the spike identification and attribution problems. Like other sorting softwares, P-sort relies on nonlinear dimensionality reduction to cluster spikes. However, it also uses the statistical relationship between simple and complex spikes to merge seemingly disparate clusters, or split a single cluster. In comparison with expert manual curation, occasionally P-sort identified significantly more complex spikes, as well as prevented misattribution of clusters. Three existing automatic sorters performed less well, particularly for identification of complex spikes. To improve development of analysis tools for the cerebellum, we provide labeled data for 313 recording sessions, as well as statistical characteristics of waveforms and firing patterns, available for download at https://doi.org/10.17605/osf.io/gjdm4.
 
 P-sort is an open-source, Python-based software that runs on Windows, MacOS, and Linux platforms. To cluster waveforms and identify simple and complex spikes, P-sort uses both a linear dimensionality reduction algorithm and a novel nonlinear algorithm called UMAP (Uniform Manifold Approximation and Projection) (McInnes et al., 2018). Importantly, it quantifies the probabilistic interaction between complex and simple spikes, providing an objective measure that can split a single cluster, or merge two different clusters, despite similarities or differences in their waveforms. Thus, P-sort helps the user go beyond waveforms to improve clustering of spikes.
 
-# P-sort main window
+# P-sort Main Window
 To allow P-sort to run on Windows, MacOS, and Linux, the code was written using Python-based libraries (Behnel et al., 2011; Harris et al., 2020; Pedregosa et al., 2011; Virtanen et al., 2020). The GUI was written using PyQt5 (The Qt Company and Riverbank Computing Ltd.) and PyQtGraph to provide a fast and intuitive interaction for the user. To facilitate further development of P-sort by the user community, we used object-oriented coding.
 
 A process starts by loading the data and dividing it into one or more periods of time (called slots). The slot framework helps the user to account for potential drift and fluctuation in spike quality and shape over time. After sorting one slot, the parameters and waveform templates will be copied to the next slot to facilitate the sorting, but the user can further change the parameters independently in each slot.
@@ -31,3 +42,73 @@ Cluster Module toolbox includes manual and automatic labelling tools to label da
 
 # Dissect Module
 P-sort dissect module is designed to provide more tools for reviewing individual spikes. In some scenarios, looking at the individual spikes and their surrounding events provides a better insight than the average features. Dissect module provide a tool set to move between spike events and look at each one over time. This module also provides the tool to manually overwrite a spike or change its alignment.
+
+# Installing Anaconda and Necessary Packages
+Go to https://www.anaconda.com/ and then choose Download Tab and download the most recent Anaconda package for your system. I will present the steps for a Windows computer, but Mac and Linux are not that much different. I recommend downloading the 64-Bit Graphical Installer (~500 MB).
+
+Installing Anaconda is very straight forward. The only point is that there should be **no space** in the installation path. If your account name does not have any space in it (here: `ehsan`) then I suggest keeping the default path (here: `C:\Users\ehsan\anaconda3`). If you do not want to occupy your User folder (for example, it is getting backed-up periodically) or you have other constraints, then I suggest `C:\anaconda3` as the path.
+
+After installation, you should see **Anaconda Prompt (Anaconda3)** in your Start Menu.
+
+Most of the packages that P-sort is using is either already installed along with Anaconda or have been included in the source code. There are just two packages that are supported by Anaconda but have not been installed by default. We will install them now. This is a one-time action. Right click on **Anaconda Prompt** and run it as **Administrator**. In the Anaconda Prompt, type:
+
+`conda install pyqt`
+
+Press ‘y’ and hit **Enter** when asked for. Next, type:
+
+`conda install pyqtgraph`
+
+Press ‘y’ and hit **Enter** when asked for. That’s it. Now you can run the P-sort software.
+
+# Running P-sort
+Download the most recent version of P-sort from *GitHub*. Place it in a designated folder, it can be any folder. I have placed mine in `D:\codes\psort`. Run **Anaconda Prompt** from **Start Menu** and navigate to P-sort folder. In *MacOS* or *Linux*, launch **Terminal** and then navigate to P-sort folder.
+
+Since P-sort is a Python package you have 2 options to run the code.
+
+1. Installing the P-sort and then run it by simply typing `psort` in the prompt. This a more convenient option if you are a user of P-sort and you do not intend to change the source code.
+2.	Run it from the source code. This is more convenient if you want to change the source code and debug your codes.
+
+## Install and Run P-sort
+Navigate to P-sort folder and then type the following command:
+
+`python setup.py install`
+
+This command will install the `psort package` in the `conda library` and make it available for further use. After this installation, any time that you open the **Anaconda Prompt** (or **Terminal**), regardless of your current directory, by simply typing `psort` the program will run.
+
+`psort`
+
+**Note:** if you want to upgrade the version of the P-sort, make sure to first uninstall the current version, and then attempt to install the new version. For uninstalling the current version type:
+
+`pip uninstall psort`
+
+Press ‘y’ and hit **Enter** when asked for.
+
+## Run P-sort from the Source Code
+To run the P-sort from the source code you need to always navigate to P-sort folder and then type the following command to run the software.
+
+`python -m psort`
+
+# Supported File Formats
+P-sort supports .continuous, .h5, .mat, and .smr
+
+**.mat file** should contain:
+- `ch_data` (1 x data_length, unit raw data in micro volt)
+- `ch_time` (1 x data_length, time tags in seconds)
+- `ch_info.header.sampleRate` (1 x 1, sampling frequency in Hz)
+or instead of `ch_info.header.sampleRate` you can simply have a variable named `sample_rate` (1 x 1, sampling frequency in Hz)
+
+**.h5 file** should contain:
+- `ch_data` (data_length x 1, unit raw data in micro volt)
+- `ch_time` (data_length x 1, time tags in seconds)
+- `sample_rate` (1 x 1, sampling frequency in Hz)
+
+**.continuous file** is the default file format of *OpenEphys* software and contains the data for a single channel.
+
+**.smr file** is the default file format of *CED systems* and can contain multiple channels and multiple analog signals. After opening a **.smr file** with P-sort, it will scan the data and ask you to choose the channel which includes the unit data.
+
+# A Typical Work Flow of P-sort
+after loading the main unit data, P-sort will ask for a **Common Average** data. This can be your ground signal, reference signal, common average of multiple channels, or simply another channel that you want to subtract from the main signal. If you do not want to load any **Common Average** data, select **No**, otherwise, select **Yes** and load another file in the same way as the main data.
+
+The program will load the data and by default divide it into equal slots with approximately 100s length. Next dialog will ask if you want to change the slot length. If you want to change the slot length/boundries select **Yes**, otherwise, select **No**.
+
+The P-sort is under the assumption that the input data is from a single unit and is in micro-volts (uv). Single unit data in uv should be in 100-10000 range. If your data is out of this range, then a window will pop-up and ask you to enter a scale factor. I highly recommend scaling your data to get the best performance.
