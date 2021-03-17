@@ -2,14 +2,14 @@
 ![P-sort main window](./psort/icons/main_window.png)
 
 # Table of content
-[Introduction](#introduction)
-[P-sort Main Window](#p-sort-main-window)
-[Cluster Module](#cluster-module)
-[Dissect Module](#dissect-module)
-[Installing Anaconda and Necessary Packages](#install-anaconda-and-necessary-packages)
-[Running P-sort](#running-p-sort)
-[Supported File Formats](#supported-file-formats)
-[A Typical Work Flow of P-sort](#a-typical-work-flow-of-p-sort)
+- [Introduction](#introduction)
+- [P-sort Main Window](#p-sort-main-window)
+- [Cluster Module](#cluster-module)
+- [Dissect Module](#dissect-module)
+- [Installing Anaconda and Necessary Packages](#install-anaconda-and-necessary-packages)
+- [Running P-sort](#running-p-sort)
+- [Supported File Formats](#supported-file-formats)
+- [A Typical Work Flow of P-sort](#a-typical-work-flow-of-p-sort)
 
 # Introduction
 Analysis of electrophysiological data from Purkinje cells (P-cells) of the cerebellum presents challenges for spike detection. Complex spikes have waveforms that vary significantly from one event to the next, raising the problem of misidentification. Even when complex spikes are detected correctly, the simple spikes may belong to a different P-cell, raising the danger of misattribution. We analyzed data from over 300 P-cells in marmosets, macaques, and mice, using our semi-automated software called P-sort that addresses the spike identification and attribution problems. Like other sorting softwares, P-sort relies on nonlinear dimensionality reduction to cluster spikes. However, it also uses the statistical relationship between simple and complex spikes to merge seemingly disparate clusters, or split a single cluster. In comparison with expert manual curation, occasionally P-sort identified significantly more complex spikes, as well as prevented misattribution of clusters. Three existing automatic sorters performed less well, particularly for identification of complex spikes. To improve development of analysis tools for the cerebellum, we provide labeled data for 313 recording sessions, as well as statistical characteristics of waveforms and firing patterns, available for download at https://doi.org/10.17605/osf.io/gjdm4.
