@@ -1,4 +1,10 @@
 # P-sort: an open-source software for cerebellar neurophysiology
+P-sort has been developed in [Shadmehr Lab](http://www.shadmehrlab.org), [Department of Biomedical Engineering](https://www.bme.jhu.edu), [Johns Hopkins University](https://www.jhu.edu) and in collaboration with colleagues from University of Washington and Baylor College of Medicine.
+
+Please refer to our paper for further information.
+
+Sedaghat-Nejad E., Fakharian M.A., Pi J., Hage P., Kojima Y., Soetedjo R., Ohmae Sh., Medina J.F., & Shadmehr R. (2021). P-sort: an open-source software for cerebellar neurophysiology. *bioRxiv* 2021.03.16.435644. https://doi.org/10.1101/2021.03.16.435644
+
 ![P-sort Main Window](./psort/icons/main_window.png)
 
 # Table of content
@@ -10,6 +16,7 @@
 - [Running P-sort](#running-p-sort)
 - [Supported File Formats](#supported-file-formats)
 - [A Typical Work Flow of P-sort](#a-typical-work-flow-of-p-sort)
+- [P-sort Data Model](#p-sort-data-model)
 
 # Introduction
 Analysis of electrophysiological data from Purkinje cells (P-cells) of the cerebellum presents challenges for spike detection. Complex spikes have waveforms that vary significantly from one event to the next, raising the problem of misidentification. Even when complex spikes are detected correctly, the simple spikes may belong to a different P-cell, raising the danger of misattribution. We analyzed data from over 300 P-cells in marmosets, macaques, and mice, using our semi-automated software called P-sort that addresses the spike identification and attribution problems. Like other sorting softwares, P-sort relies on nonlinear dimensionality reduction to cluster spikes. However, it also uses the statistical relationship between simple and complex spikes to merge seemingly disparate clusters, or split a single cluster. In comparison with expert manual curation, occasionally P-sort identified significantly more complex spikes, as well as prevented misattribution of clusters. Three existing automatic sorters performed less well, particularly for identification of complex spikes. To improve development of analysis tools for the cerebellum, we provide labeled data for 313 recording sessions, as well as statistical characteristics of waveforms and firing patterns, available for download at https://doi.org/10.17605/osf.io/gjdm4.
