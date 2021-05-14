@@ -5,6 +5,9 @@ Please refer to our paper for further information.
 
 Sedaghat-Nejad E., Fakharian M.A., Pi J., Hage P., Kojima Y., Soetedjo R., Ohmae Sh., Medina J.F., & Shadmehr R. (2021). P-sort: an open-source software for cerebellar neurophysiology. *bioRxiv* 2021.03.16.435644. https://doi.org/10.1101/2021.03.16.435644
 
+Please visit our YouTube channel for P-sort tutorials. 
+[Shadmehr Lab YouTube Channel](https://youtube.com/playlist?list=PLbROvBk7LN5Rb9YN5WtR9swfoLs9_IETU)
+
 ![P-sort Main Window](./psort/icons/main_window.png)
 
 # Table of content
