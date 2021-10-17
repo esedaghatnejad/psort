@@ -678,6 +678,7 @@ class WaveClustWidget(QWidget):
         self.make_att_list()
         self.make_ss_label_list()
         self.make_cs_label_list()
+        self.extract_template()
         self.make_scatter_list()
         self.make_clust_centers()
         self.extract_template()
@@ -907,6 +908,8 @@ class WaveClustWidget(QWidget):
             self.make_cs_label_list()
             self.comboBx_scatterPlot_popup_cs_label_Changed()
 
+        self.extract_template()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -957,6 +960,8 @@ class WaveClustWidget(QWidget):
         else:
             self.make_cs_label_list()
             self.comboBx_scatterPlot_popup_cs_label_Changed()
+
+        self.extract_template()
 
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
@@ -1079,6 +1084,8 @@ class WaveClustWidget(QWidget):
             self.make_cs_label_list()
             self.comboBx_scatterPlot_popup_cs_label_Changed()
 
+        self.extract_template()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -1099,6 +1106,7 @@ class WaveClustWidget(QWidget):
             current_wave_key = "ss_wave"
             current_index_selected_key = "ss_index_selected"
             current_wave_span_key = "ss_wave_span"
+            current_index_key = "ss_index"
             _current_index_labels_key = "ss_index_labels"
             _current_label_selected_key = "ss_label_selected"
         else:
@@ -1107,8 +1115,12 @@ class WaveClustWidget(QWidget):
             current_wave_key = "cs_wave"
             current_index_selected_key = "cs_index_selected"
             current_wave_span_key = "cs_wave_span"
+            current_index_key = "cs_index"
             _current_index_labels_key = "cs_index_labels"
             _current_label_selected_key = "cs_label_selected"
+
+        if (self._workingDataBase[current_index_key].sum() < 2):
+            return 0
 
         if len(self._workingDataBase['popUp_ROI_x']) > 1: # if any region of interest is chosen
 
@@ -1353,6 +1365,8 @@ class WaveClustWidget(QWidget):
             signals_lib.extract_cs_scatter(self._workingDataBase)
             self.make_cs_label_list()
 
+        self.extract_template()
+
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
         self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
@@ -1427,6 +1441,7 @@ class WaveClustWidget(QWidget):
 
         self.make_ss_label_list()
         self.make_cs_label_list()
+        self.extract_template()
 
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
@@ -1569,6 +1584,8 @@ class WaveClustWidget(QWidget):
             self.make_cs_label_list()
             self.comboBx_scatterPlot_popup_cs_label_Changed()
 
+        self.extract_template()
+
         # Re-plot
         self.reset_plots()
         self.plot_scatter_popUp()
@@ -1710,7 +1727,6 @@ class WaveClustWidget(QWidget):
 
         if self._workingDataBase["ss_index"].sum() < 1:
             self._localDataBase['ss_label_selected'][0] = nanLabel
-            self.extract_template()
             return 0
 
         _idx = np.logical_not(lib.isNanLabel(self._localDataBase['ss_index_labels']))
@@ -1721,7 +1737,6 @@ class WaveClustWidget(QWidget):
             addItems([str(lbl) for lbl in \
                       _labels_unique])
         self._localDataBase['ss_label_selected'][0] = int(_labels_unique[0])
-        self.extract_template()
         return 0
 
     def make_cs_label_list(self):
@@ -1729,7 +1744,6 @@ class WaveClustWidget(QWidget):
 
         if self._workingDataBase["cs_index"].sum() < 1:
             self._localDataBase['cs_label_selected'][0] = nanLabel
-            self.extract_template()
             return 0
 
         _idx = np.logical_not(lib.isNanLabel(self._localDataBase['cs_index_labels']))
@@ -1740,7 +1754,6 @@ class WaveClustWidget(QWidget):
             addItems([str(lbl) for lbl in \
                       _labels_unique])
         self._localDataBase['cs_label_selected'][0] = int(_labels_unique[0])
-        self.extract_template()
         return 0
 
     def make_att_list(self):
@@ -2116,7 +2129,6 @@ class WaveClustWidget(QWidget):
                                 +self._workingDataBase[current_GLOBAL_WAVE_TEMPLATE_AFTER_key][0]) \
                                 * self._workingDataBase['sample_rate'][0])
             _window = np.arange(_ind_begin, _ind_end, 1)
-
             index_cluster = (_labels == self._localDataBase[_current_label_selected_key])
 
             _wave = self._workingDataBase[current_wave_key][index_cluster,:]
