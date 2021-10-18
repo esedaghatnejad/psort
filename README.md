@@ -3,10 +3,12 @@ P-sort has been developed in [Shadmehr Lab](http://www.shadmehrlab.org), [Depart
 
 Please refer to our paper for further information.
 
-Sedaghat-Nejad E., Fakharian M.A., Pi J., Hage P., Kojima Y., Soetedjo R., Ohmae Sh., Medina J.F., & Shadmehr R. (2021). P-sort: an open-source software for cerebellar neurophysiology. *bioRxiv* 2021.03.16.435644. https://doi.org/10.1101/2021.03.16.435644
+Sedaghat-Nejad, E., Fakharian, M. A., Pi, J., Hage, P., Kojima, Y., Soetedjo, R., Ohmae, S., Medina, J. F., & Shadmehr, R. (2021). P-sort: an open-source software for cerebellar neurophysiology. *Journal of Neurophysiology*, 126(4), 1055–1075. https://doi.org/10.1152/jn.00172.2021
 
-Please visit our YouTube channel for P-sort tutorials. 
+Please visit our YouTube channel for P-sort tutorials.
 [Shadmehr Lab YouTube Channel](https://youtube.com/playlist?list=PLbROvBk7LN5Rb9YN5WtR9swfoLs9_IETU)
+
+![JNeurophys Cover](./psort/icons/jn_2021_126_4.jpg)
 
 ![P-sort Main Window](./psort/icons/main_window.png)
 
@@ -18,6 +20,7 @@ Please visit our YouTube channel for P-sort tutorials.
 - [Installing Anaconda and Necessary Packages](#install-anaconda-and-necessary-packages)
 - [Running P-sort](#running-p-sort)
 - [Supported File Formats](#supported-file-formats)
+- [Working with Psort File](#working-with-psort-file)
 - [A Typical Work Flow of P-sort](#a-typical-work-flow-of-p-sort)
 - [P-sort Data Model](#p-sort-data-model)
 
@@ -41,7 +44,7 @@ After resolving the potential conflicts, P-sort provides sets of potential simpl
 
 Overall, P-sort’s main window aims to provide a balance between the ability to visualize each spike waveform, and the ability to cluster the spikes and visualize their interactions. From this main window P-sort branches into two additional windows: the Cluster Module, and the Dissect Module.
 
-![P-sort Work Flow](./psort/icons/work_flow.png)
+![P-sort Work Flow](./psort/icons/work_flow.jpg)
 
 # Cluster Module
 A unique challenge in cerebellar neurophysiology is finding the simple and complex spike clusters that belong to a single P-cell. It is possible that on certain recordings, one or more neurons will contribute to the signals that are recorded by a single contact. For example, it is possible that the large amplitude simple spikes are not produced by the P-cell that has produced the complex spikes in the recording. Rather, the smaller amplitude simple spikes should be attributed to the complex spikes.
@@ -62,18 +65,45 @@ Installing Anaconda is very straight forward. The only point is that there shoul
 
 After installation, you should see **Anaconda Prompt (Anaconda3)** in your Start Menu.
 
-Most of the packages that P-sort is using is either already installed along with Anaconda or have been included in the source code. There are just two packages that are supported by Anaconda but have not been installed by default. We will install them now. This is a one-time action. Right click on **Anaconda Prompt** and run it as **Administrator**. In the Anaconda Prompt, type:
+To prevent conflicts with other python packages, I recommend installing and using psort in an independent environment. Please follow these instructions to make a new environment and install psort.
 
-`conda install pyqt`
+Download the most recent version of P-sort from *GitHub*. Place it in a designated folder, it can be any folder. I have placed mine in `D:\codes\psort`. Right click on **Anaconda Prompt** and run it as **Administrator**. Navigate to P-sort folder. In *MacOS* or *Linux*, launch **Terminal** and then navigate to P-sort folder.
 
-Press ‘y’ and hit **Enter** when asked for. Next, type:
+Activate the base environment. Usually the Anaconda opens in `(base)` env by default and you do not need to do this.
 
-`conda install pyqtgraph`
+`conda activate base`
 
-Press ‘y’ and hit **Enter** when asked for. That’s it. Now you can run the P-sort software.
+Remove the `psort` env if you already have created one. If this is your first time, skip this step.
+
+`conda env remove -n psort`
+
+Make a new environment called `psort` and install python 3.7 inside of it.
+
+`conda create -n psort python=3.7`
+
+Activate the `psort` env.
+
+`conda activate psort`
+
+We will now install necessary packages. This is a one-time action.
+```
+conda install pyqtgraph
+conda install -c conda-forge umap-learn
+conda install pytables
+conda install decorator
+conda install matplotlib
+```
+
+Press ‘y’ and hit **Enter** when asked for.
+
+That’s it. Now you can run the P-sort software.
 
 # Running P-sort
-Download the most recent version of P-sort from *GitHub*. Place it in a designated folder, it can be any folder. I have placed mine in `D:\codes\psort`. Run **Anaconda Prompt** from **Start Menu** and navigate to P-sort folder. In *MacOS* or *Linux*, launch **Terminal** and then navigate to P-sort folder.
+Run **Anaconda Prompt** from **Start Menu** and navigate to P-sort folder. In *MacOS* or *Linux*, launch **Terminal** and then navigate to P-sort folder where `setup.py` is located.
+
+Anaconda Prompt usually opens in the `base` env. You need to activate the `psort` env, first.
+
+`conda activate psort`
 
 Since P-sort is a Python package you have 2 options to run the code.
 
@@ -81,13 +111,15 @@ Since P-sort is a Python package you have 2 options to run the code.
 2.	Run it from the source code. This is more convenient if you want to change the source code and debug your codes.
 
 ## Install and Run P-sort
-Navigate to P-sort folder and then type the following command:
+Navigate to P-sort folder where `setup.py` is located. and then install `psort`:
 
 `python setup.py install`
 
-This command will install the `psort package` in the `conda library` and make it available for further use. After this installation, any time that you open the **Anaconda Prompt** (or **Terminal**), regardless of your current directory, by simply typing `psort` the program will run.
-
-`psort`
+This command will install the `psort package` in the `conda library` and make it available for further use. After this installation, any time that you open the **Anaconda Prompt** (or **Terminal**), regardless of your current directory, you can activate the `psort` env and then by simply typing `psort` the program will run.
+```
+conda activate psort
+psort
+```
 
 **Note:** if you want to upgrade the version of the P-sort, make sure to first uninstall the current version, and then attempt to install the new version. For uninstalling the current version type:
 
@@ -96,9 +128,11 @@ This command will install the `psort package` in the `conda library` and make it
 Press ‘y’ and hit **Enter** when asked for.
 
 ## Run P-sort from the Source Code
-To run the P-sort from the source code you need to always navigate to P-sort folder and then type the following command to run the software.
-
-`python -m psort`
+To run the P-sort from the source code you need to always navigate to P-sort folder where `setup.py` is located, and then type the following command to run the software.
+```
+conda activate psort
+python -m psort
+```
 
 # Supported File Formats
 P-sort supports .continuous, .h5, .mat, and .smr
@@ -118,6 +152,31 @@ or instead of `ch_info.header.sampleRate` you can simply have a variable named `
 
 **.smr file** is the default file format of *CED systems* and can contain multiple channels and multiple analog signals. After opening a **.smr file** with P-sort, it will scan the data and ask you to choose the channel which includes the unit data.
 
+# Working with Psort File
+`.psort` file is just a `.h5` file under the hood and you can work with it in many languages.
+For **Python**, I suggest reading the file using `Deepdish` package. Here is how to extract spike times:
+```
+psort_file_address = "./data/file_id.psort"
+grandDataBase = deepdish.io.load(psort_file_address)
+topLevelDataBase = grandDataBase[-1]
+ch_time = topLevelDataBase['ch_time']
+ss_index = topLevelDataBase['ss_index']
+cs_index = topLevelDataBase['cs_index']
+ss_time = ch_time[ss_index]
+cs_time = ch_time[cs_index]
+```
+
+For working with the `.psort` file in `Matlab` you can use the codes that are provided in the `matlab_codes` folder.
+```
+psort_file_address = './data/file_id.psort';
+grandDataBase = Psort_read_psort(psort_file_address);
+ch_time = double(grandDataBase.topLevel_data.ch_time);
+ss_index = logical(double(grandDataBase.topLevel_data.ss_index));
+cs_index = logical(double(grandDataBase.topLevel_data.cs_index));
+ss_time = ch_time(ss_index);
+cs_time = ch_time(cs_index);
+```
+
 # A Typical Work Flow of P-sort
 after loading the main unit data, P-sort will ask for a **Common Average** data. This can be your ground signal, reference signal, common average of multiple channels, or simply another channel that you want to subtract from the main signal. If you do not want to load any **Common Average** data, select **No**, otherwise, select **Yes** and load another file in the same way as the main data.
 
@@ -128,4 +187,4 @@ The P-sort is under the assumption that the input data is from a single unit and
 # P-sort Data Model
 Following is the data model of P-sort software.
 
-![P-sort Data Model](./psort/icons/data_model.png)
+![P-sort Data Model](./psort/icons/data_model.jpg)
