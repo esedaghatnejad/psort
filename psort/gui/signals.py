@@ -34,25 +34,25 @@ from psort.tools.waveClust import WaveClustWidget
 
 ## ################################################################################################
 ## ################################################################################################
-flag_color_toggle = True
-@decorator.decorator
-def showWaitCursor(func, *args, **kwargs):
-    QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-    QtWidgets.QApplication.processEvents()
-    try:
-        return func(*args, **kwargs)
-    finally:
-        QtWidgets.QApplication.restoreOverrideCursor()
-        currentDT = datetime.datetime.now()
-        args[0].txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
-                + ' Analyzed Slot# ' + str(args[0].txtedit_toolbar_slotNumCurrent.value()))
-        global flag_color_toggle
-        if flag_color_toggle:
-            lib.setFont(args[0].txtlabel_statusBar, color='green')
-            flag_color_toggle = False
-        else:
-            lib.setFont(args[0].txtlabel_statusBar, color='black')
-            flag_color_toggle = True
+# flag_color_toggle = True
+# @decorator.decorator
+# def showWaitCursor(func, *args, **kwargs):
+#     QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+#     QtWidgets.QApplication.processEvents()
+#     try:
+#         return func(*args, **kwargs)
+#     finally:
+#         QtWidgets.QApplication.restoreOverrideCursor()
+#         currentDT = datetime.datetime.now()
+#         args[0].txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
+#                 + ' Analyzed Slot# ' + str(args[0].txtedit_toolbar_slotNumCurrent.value()))
+#         global flag_color_toggle
+#         if flag_color_toggle:
+#             lib.setFont(args[0].txtlabel_statusBar, color='green')
+#             flag_color_toggle = False
+#         else:
+#             lib.setFont(args[0].txtlabel_statusBar, color='black')
+#             flag_color_toggle = True
 
 ## ################################################################################################
 ## ################################################################################################
@@ -602,12 +602,12 @@ class PsortGuiSignals(PsortGuiWidget):
         self.txtedit_toolbar_slotNumCurrent.setValue(slot_num)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onToolbar_refresh_ButtonClick(self):
         self.refresh_workingDataBase()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onToolbar_slotNumCurrent_ValueChanged(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.transfer_data_from_guiSignals_to_psortDataBase()
@@ -730,7 +730,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.onCsPanel_learnWave_Clicked()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onMenubar_umap_ButtonClick(self):
         self._workingDataBase['umap_enable'][0] = \
             self.actionBtn_menubar_tools_umap.isChecked()
@@ -838,7 +838,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.infLine_rawSignal_CsThresh.setValue(self.infLine_CsPeak.value())
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onInfLineSsWaveMinPca_positionChangeFinished(self):
         # minPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE']
         if self.infLine_SsWave_minPca.value()\
@@ -869,7 +869,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onInfLineSsWaveMaxPca_positionChangeFinished(self):
         # maxPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_SS_BEFORE']
         if self.infLine_SsWave_maxPca.value()\
@@ -900,7 +900,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onInfLineCsWaveMinPca_positionChangeFinished(self):
         # minPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE']
         if self.infLine_CsWave_minPca.value()\
@@ -931,7 +931,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_pca()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onInfLineCsWaveMaxPca_positionChangeFinished(self):
         # maxPca should not be less than -self._workingDataBase['GLOBAL_WAVE_PLOT_CS_BEFORE']
         if self.infLine_CsWave_maxPca.value()\
@@ -1135,7 +1135,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((-_threshold)+1)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_learnWave_Clicked(self):
         if (self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()) and \
             (self._workingDataBase['ss_index'].sum() < 1):
@@ -1153,7 +1153,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_waveform()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_learnWave_Clicked(self):
         if (self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()) and \
             (self._workingDataBase['cs_index'].sum() < 1):
@@ -1171,7 +1171,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_waveform()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_deselect_Clicked(self):
         signals_lib.reset_ss_ROI(self._workingDataBase, forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
@@ -1179,7 +1179,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_ss_pca()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_deselect_Clicked(self):
         signals_lib.reset_cs_ROI(self._workingDataBase, forced_reset = True)
         self.plot_rawSignal(just_update_selected=True)
@@ -1187,7 +1187,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_pca()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_delete_Clicked(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
@@ -1219,7 +1219,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_delete_Clicked(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
@@ -1254,7 +1254,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_keep_Clicked(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
@@ -1287,7 +1287,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_keep_Clicked(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
@@ -1322,7 +1322,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_moveToCs_Clicked(self):
         if self._workingDataBase['ss_index_selected'].sum() < 1:
             return 0
@@ -1331,7 +1331,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_moveToSs_Clicked(self):
         if self._workingDataBase['cs_index_selected'].sum() < 1:
             return 0
@@ -1901,7 +1901,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_enable()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def undoRedo_undo(self):
         # if index_undoRedo is 0 then there is no more UNDO left
         if (self._workingDataBase['index_undoRedo'][0] <= 0):
@@ -1920,7 +1920,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_updatePlots()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def undoRedo_redo(self):
         # if index_undoRedo is length_undoRedo-1 then there is no more REDO left
         if (self._workingDataBase['index_undoRedo'][0] >= \
@@ -1992,13 +1992,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.ScatterSelectWidget.scatterSelect_mouseClicked)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onScatterSelect_Cancel_Clicked(self):
         self.ScatterSelectWidget.scatterSelect_task_cancelled()
         self.scatterSelect_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onScatterSelect_Ok_Clicked(self):
         self.scatterSelect_task_completed()
         self.scatterSelect_showWidget(False)
@@ -2052,7 +2052,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(True)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['ss_index'].sum() < 2):
             return 0
@@ -2060,7 +2060,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.scatterSelect_showWidget(True)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_selectWave_Clicked(self):
         if (self._workingDataBase['cs_index'].sum() < 2):
             return 0
@@ -2225,13 +2225,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseClicked_CS) #J
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveDissect_Cancel_Clicked(self):
         self.WaveDissectWidget.popUp_task_cancelled()
         self.waveDissect_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveDissect_Ok_Clicked(self):
         self.WaveDissectWidget.popUp_task_completed()
         self.waveDissect_showWidget(False)
@@ -2258,12 +2258,12 @@ class PsortGuiSignals(PsortGuiWidget):
             self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_waveDissect_Clicked(self):
         self.onPushBtn_waveDissect_Clicked(spike_of_interest="SS")
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_waveDissect_Clicked(self):
         self.onPushBtn_waveDissect_Clicked(spike_of_interest="CS")
         return 0
@@ -2305,12 +2305,12 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.SlotBoundaryWidget.slotBoundary_mouseClicked)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSlotBoundary_Cancel_Clicked(self):
         self.slotBoundary_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSlotBoundary_Ok_Clicked(self):
         restart_mode = self.SlotBoundaryWidget._workingDataBase['restart_mode'][0]
         index_slot_edges = deepcopy(self.SlotBoundaryWidget._workingDataBase['index_slot_edges'])
@@ -2388,13 +2388,13 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60, slot=self.WaveClustWidget.popUpPlot_mouseClicked_waveform)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveClust_Cancel_Clicked(self):
         self.WaveClustWidget.popUp_task_cancelled()
         self.waveClust_showWidget(False)
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onWaveClust_Ok_Clicked(self):
         self.WaveClustWidget.popUp_task_completed()
         self.waveClust_showWidget(False)
@@ -2422,7 +2422,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.undoRedo_add()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onSsPanel_waveClust_Clicked(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.WaveClustWidget.comboBx_scatterPlot_popup_spike_mode.setCurrentIndex(1)
@@ -2438,7 +2438,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.onPushBtn_waveClust_Clicked()
         return 0
 
-    @showWaitCursor
+    # @showWaitCursor
     def onCsPanel_waveClust_Clicked(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         self.WaveClustWidget.comboBx_scatterPlot_popup_spike_mode.setCurrentIndex(0)

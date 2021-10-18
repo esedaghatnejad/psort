@@ -573,7 +573,7 @@ def GaussianMixture(input_data, n_clusters=2, init_val=None, covariance_type='fu
 missing = {'cuml'} - installed_pkg
 if missing:
     is_cuml_available = False
-    from psort.dependencies.umap_package import UMAP
+    from umap import UMAP
 else:
     is_cuml_available = True
     from cuml import UMAP

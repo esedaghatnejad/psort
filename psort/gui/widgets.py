@@ -99,11 +99,11 @@ class PsortGuiWidget(QMainWindow):
         self.comboBx_mainwin_filterPanel_SsFast.addItems(["Neg(-) SS Filter Peak", \
                                                           "Pos(+) SS Filter Peak"])
         lib.setFont(self.comboBx_mainwin_filterPanel_SsFast, color="blue")
-        self.line_mainwin_filterPanel_l1 = QtGui.QFrame()
+        self.line_mainwin_filterPanel_l1 = QtWidgets.QFrame()
         self.line_mainwin_filterPanel_l1.setFrameShape(QFrame.VLine)
         self.line_mainwin_filterPanel_l1.setFrameShadow(QFrame.Sunken)
 
-        self.line_mainwin_filterPanel_l2 = QtGui.QFrame()
+        self.line_mainwin_filterPanel_l2 = QtWidgets.QFrame()
         self.line_mainwin_filterPanel_l2.setFrameShape(QFrame.VLine)
         self.line_mainwin_filterPanel_l2.setFrameShadow(QFrame.Sunken)
         self.txtlabel_mainwin_filterPanel_csFilter = QLabel("CS Filter (Hz):")
@@ -125,7 +125,7 @@ class PsortGuiWidget(QMainWindow):
         lib.setFont(self.txtedit_mainwin_filterPanel_csFilter_max, color="red")
         self.txtedit_mainwin_filterPanel_csFilter_max.setValue(200.0)
 
-        self.line_mainwin_filterPanel_l3 = QtGui.QFrame()
+        self.line_mainwin_filterPanel_l3 = QtWidgets.QFrame()
         self.line_mainwin_filterPanel_l3.setFrameShape(QFrame.VLine)
         self.line_mainwin_filterPanel_l3.setFrameShadow(QFrame.Sunken)
         self.txtlabel_mainwin_filterPanel_ssFilter = QLabel("SS Filter (Hz):")
@@ -212,10 +212,10 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setDecimals(0)
         lib.setFont(self.txtedit_mainwin_rawSignalPanel_SsThresh, color="blue")
         self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue(300.0)
-        self.line_mainwin_rawSignalPanel_SsL1 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_SsL1 = QtWidgets.QFrame()
         self.line_mainwin_rawSignalPanel_SsL1.setFrameShape(QFrame.VLine)
         self.line_mainwin_rawSignalPanel_SsL1.setFrameShadow(QFrame.Sunken)
-        self.line_mainwin_rawSignalPanel_SsL2 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_SsL2 = QtWidgets.QFrame()
         self.line_mainwin_rawSignalPanel_SsL2.setFrameShape(QFrame.VLine)
         self.line_mainwin_rawSignalPanel_SsL2.setFrameShadow(QFrame.Sunken)
         self.pushBtn_mainwin_rawSignalPanel_SsAutoThresh = QPushButton("Auto")
@@ -266,10 +266,10 @@ class PsortGuiWidget(QMainWindow):
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setDecimals(0)
         lib.setFont(self.txtedit_mainwin_rawSignalPanel_CsThresh, color="red")
         self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue(300.0)
-        self.line_mainwin_rawSignalPanel_CsL1 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_CsL1 = QtWidgets.QFrame()
         self.line_mainwin_rawSignalPanel_CsL1.setFrameShape(QFrame.VLine)
         self.line_mainwin_rawSignalPanel_CsL1.setFrameShadow(QFrame.Sunken)
-        self.line_mainwin_rawSignalPanel_CsL2 = QtGui.QFrame()
+        self.line_mainwin_rawSignalPanel_CsL2 = QtWidgets.QFrame()
         self.line_mainwin_rawSignalPanel_CsL2.setFrameShape(QFrame.VLine)
         self.line_mainwin_rawSignalPanel_CsL2.setFrameShadow(QFrame.Sunken)
         self.pushBtn_mainwin_rawSignalPanel_CsAutoThresh = QPushButton("Auto")
@@ -683,7 +683,7 @@ class PsortGuiWidget(QMainWindow):
 
         self.widget_toolbar_empty = QWidget()
         self.widget_toolbar_empty.\
-            setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
+            setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
 
         self.txtlabel_toolbar_slotNumLabel = QLabel("Slot#")
         lib.setFont(self.txtlabel_toolbar_slotNumLabel)

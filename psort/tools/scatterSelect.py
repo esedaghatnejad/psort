@@ -40,7 +40,7 @@ class ScatterSelectWidget(QWidget):
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_cancel)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_ok)
         # Housekeeping items
-        self.line_scatterPlot_popup_h0 = QtGui.QFrame()
+        self.line_scatterPlot_popup_h0 = QtWidgets.QFrame()
         self.line_scatterPlot_popup_h0.setFrameShape(QFrame.HLine)
         self.line_scatterPlot_popup_h0.setFrameShadow(QFrame.Sunken)
         # plot
