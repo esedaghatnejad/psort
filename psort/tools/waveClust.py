@@ -681,7 +681,6 @@ class WaveClustWidget(QWidget):
         self.extract_template()
         self.make_scatter_list()
         self.make_clust_centers()
-        self.extract_template()
         self.popUp_scatterPlot()
         self.plot_peakhist_popUp()
         self.plot_waveform_popUp()
@@ -960,8 +959,6 @@ class WaveClustWidget(QWidget):
         else:
             self.make_cs_label_list()
             self.comboBx_scatterPlot_popup_cs_label_Changed()
-
-        self.extract_template()
 
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
@@ -1365,8 +1362,6 @@ class WaveClustWidget(QWidget):
             signals_lib.extract_cs_scatter(self._workingDataBase)
             self.make_cs_label_list()
 
-        self.extract_template()
-
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
         self._workingDataBase['popUp_ROI_y'] = np.zeros((0), dtype=np.float32)
@@ -1441,7 +1436,6 @@ class WaveClustWidget(QWidget):
 
         self.make_ss_label_list()
         self.make_cs_label_list()
-        self.extract_template()
 
         # Reset and remove ROI from the plot
         self._workingDataBase['popUp_ROI_x'] = np.zeros((0), dtype=np.float32)
