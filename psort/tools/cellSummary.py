@@ -1,26 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
-import sys  # We need sys so that we can pass argv to QApplication
 from copy import deepcopy
 
 import numpy as np
 import pyqtgraph as pg
-import pyqtgraph.exporters
-
-## #############################################################################
-# %% IMPORT PACKAGES
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
 
 from psort.utils import lib, signals_lib
 
-## #############################################################################
-# %% CellSummaryDataBase
+# CellSummaryDataBase
 _workingDataBase = {
     "file_name": np.array([""], dtype=np.unicode_),
     "file_path": np.array([""], dtype=np.unicode_),
@@ -37,37 +24,35 @@ _workingDataBase = {
 }
 
 
-## #############################################################################
-# %% CellSummaryWidget
-class CellSummaryWidget(QMainWindow):
+# CellSummaryWidget
+class CellSummaryWidget(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(CellSummaryWidget, self).__init__(parent)
 
         self.setWindowTitle("PurkinjeSort Cell Summary")
-        self.layout_grand = QVBoxLayout()
-        self.layout_title = QHBoxLayout()
+        self.layout_grand = QtWidgets.QVBoxLayout()
+        self.layout_title = QtWidgets.QHBoxLayout()
         self.graphWin = pg.GraphicsWindow(title="Cell Summary")
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
-        self.txtlabel_title = QLabel("Title:")
+        self.txtlabel_title = QtWidgets.QLabel("Title:")
         lib.setFont(self.txtlabel_title, color="black")
-        self.txtedit_title = QLineEdit()
+        self.txtedit_title = QtWidgets.QLineEdit()
         lib.setFont(self.txtedit_title, color="black")
-        self.pushBtn_savePlot = QPushButton("Save plot")
+        self.pushBtn_savePlot = QtWidgets.QPushButton("Save plot")
         lib.setFont(self.pushBtn_savePlot, color="black")
         self.layout_title.addWidget(self.txtlabel_title)
         self.layout_title.addWidget(self.txtedit_title)
         self.layout_title.addWidget(self.pushBtn_savePlot)
         self.layout_grand.addLayout(self.layout_title)
         self.layout_grand.addWidget(self.graphWin)
-        self.widget_grand = QWidget()
+        self.widget_grand = QtWidgets.QWidget()
         self.widget_grand.setLayout(self.layout_grand)
         self.setCentralWidget(self.widget_grand)
         return None
 
 
-## #############################################################################
-# %% CellSummarySignals
+# CellSummarySignals
 class CellSummarySignals(CellSummaryWidget):
     def __init__(self, parent=None, psort_grandDataBase=None):
         super(CellSummarySignals, self).__init__(parent)
@@ -126,7 +111,7 @@ class CellSummarySignals(CellSummaryWidget):
         file_path = self._workingDataBase["file_path"][0]
         if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.getSaveFileName(
+        file_fullPath, _ = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save plot", file_path, filter="PNG (*.png)"
         )
         if file_fullPath == "":
@@ -295,7 +280,7 @@ class CellSummarySignals(CellSummaryWidget):
 
     def load_grandDataBase(self):
         file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.getOpenFileName(
+        file_fullPath, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Open File", file_path, filter="Data file (*.psort)"
         )
         if os.path.isfile(os.path.realpath(file_fullPath)):
