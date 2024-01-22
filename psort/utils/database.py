@@ -1,19 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
 from copy import deepcopy
 
-import deepdish
-
-## #############################################################################
-# %% IMPORT PACKAGES
 import numpy as np
 
-from psort.dependencies import openephys_package, pymatreader_package
+from psort.dependencies import deepdish_package as deepdish
 from psort.utils import dictionaries, lib
 
 
@@ -310,10 +300,6 @@ class PsortDataBase:
 
         index_start_on_ch_data = psortDataBase_currentSlot["index_start_on_ch_data"][0]
         index_end_on_ch_data = psortDataBase_currentSlot["index_end_on_ch_data"][0]
-        # psortDataBase_topLevel['ch_data'][index_start_on_ch_data:index_end_on_ch_data] = \
-        #     guiSignals_workingDataBase['ch_data']
-        # psortDataBase_topLevel['ch_time'][index_start_on_ch_data:index_end_on_ch_data] = \
-        #     guiSignals_workingDataBase['ch_time']
         psortDataBase_topLevel["ss_index"][
             index_start_on_ch_data:index_end_on_ch_data
         ] = guiSignals_workingDataBase["ss_index"]
@@ -323,11 +309,6 @@ class PsortDataBase:
         psortDataBase_topLevel["cs_index_slow"][
             index_start_on_ch_data:index_end_on_ch_data
         ] = guiSignals_workingDataBase["cs_index_slow"]
-        # psortDataBase_topLevel['sample_rate'][0] = \
-        #     guiSignals_workingDataBase['sample_rate'][0]
-        # if psortDataBase_topLevel['isLfpSideloaded'][0]:
-        #     psortDataBase_topLevel['ch_lfp'][index_start_on_ch_data:index_end_on_ch_data] = \
-        #         guiSignals_workingDataBase['ch_lfp']
         return 0
 
     def backward_compatibility_for_Psort_03(self):

@@ -1,16 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
-import subprocess
 import sys
 from copy import deepcopy
 from numbers import Number
 
-import deepdish
 import matplotlib as plt
 import numpy as np
 import pkg_resources
@@ -19,9 +11,6 @@ import scipy.stats
 from matplotlib import path
 from neo.io import spike2io
 from numba import jit
-
-## #############################################################################
-# %% IMPORT PACKAGES
 from PyQt5 import QtCore, QtGui, QtWidgets
 from scipy import signal
 from sklearn import cluster, mixture
@@ -29,12 +18,12 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 
+from psort.dependencies import deepdish_package as deepdish
 from psort.dependencies import openephys_package, pymatreader_package
 
 installed_pkg = {pkg.key for pkg in pkg_resources.working_set}
 
-## #############################################################################
-# %% VARIABLES
+# VARIABLES
 (PROJECT_FOLDER, _) = os.path.split(os.path.dirname(os.path.abspath(__file__)))
 GLOBAL_FONT = QtGui.QFont()
 GLOBAL_FONT.setStyleHint(QtGui.QFont.Helvetica)
@@ -44,8 +33,7 @@ GLOBAL_PG_PEN = pg.mkPen(color="k", width=1, style=QtCore.Qt.SolidLine)
 nanLabel = -9999
 
 
-## #############################################################################
-# %% Set widget Defaults
+# Set widget Defaults
 def set_plotWidget(plot_widget, bkg=True):
     if bkg:
         plot_widget.setBackground("w")
@@ -79,8 +67,7 @@ def setFont(widget, pointSize=None, color=None):
     return 0
 
 
-## #############################################################################
-# %% get_fullPath_components
+# get_fullPath_components
 def get_fullPath_components(file_fullPath):
     file_fullPath = os.path.realpath(file_fullPath)
     file_fullPath_without_ext, file_ext = os.path.splitext(file_fullPath)
@@ -252,8 +239,7 @@ def save_file_psort(file_fullPath, grandDataBase):
     return 0
 
 
-## #############################################################################
-# %% load procedure as QThread
+# load procedure as QThread
 class LoadData(QtCore.QThread):
     return_signal = QtCore.pyqtSignal("PyQt_PyObject", "PyQt_PyObject", "PyQt_PyObject")
 
@@ -286,8 +272,7 @@ class LoadData(QtCore.QThread):
             self.return_signal.emit(0, 0, 0)
 
 
-## #############################################################################
-# %% save procedure as QThread
+# save procedure as QThread
 class SaveData(QtCore.QThread):
     return_signal = QtCore.pyqtSignal()
 
@@ -315,8 +300,7 @@ class SaveData(QtCore.QThread):
             self.return_signal.emit()
 
 
-## #############################################################################
-# %% Signal Processing
+# Signal Processing
 def bandpass_filter(data, sample_rate=None, lo_cutoff_freq=None, hi_cutoff_freq=None):
     if sample_rate is None:
         sample_rate = 30000.0
