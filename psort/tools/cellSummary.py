@@ -3,6 +3,7 @@ from copy import deepcopy
 
 import numpy as np
 import pyqtgraph as pg
+import pyqtgraph.exporters as exporters
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from psort.utils import lib, signals_lib
@@ -32,7 +33,7 @@ class CellSummaryWidget(QtWidgets.QMainWindow):
         self.setWindowTitle("PurkinjeSort Cell Summary")
         self.layout_grand = QtWidgets.QVBoxLayout()
         self.layout_title = QtWidgets.QHBoxLayout()
-        self.graphWin = pg.GraphicsWindow(title="Cell Summary")
+        self.graphWin = pg.GraphicsLayoutWidget(title="Cell Summary")
         # Enable antialiasing for prettier plots
         pg.setConfigOptions(antialias=True)
         self.txtlabel_title = QtWidgets.QLabel("Title:")
@@ -106,8 +107,8 @@ class CellSummarySignals(CellSummaryWidget):
         return 0
 
     def pushBtn_savePlot_Clicked(self):
-        QtGui.QApplication.processEvents()
-        QtGui.QApplication.processEvents()
+        QtGui.QGuiApplication.processEvents()
+        QtGui.QGuiApplication.processEvents()
         file_path = self._workingDataBase["file_path"][0]
         if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
@@ -122,11 +123,11 @@ class CellSummarySignals(CellSummaryWidget):
         if os.path.isdir(file_path):
             # create an exporter instance, as an argument give it
             # the item you wish to export
-            ex_png = pg.exporters.ImageExporter(self.graphWin.scene())
+            ex_png = exporters.ImageExporter(self.graphWin.scene())
             ex_png.export(file_fullPath)
             file_fullPath_svg = file_fullPath[0:-4]
             file_fullPath_svg = file_fullPath_svg + ".svg"
-            ex_svg = pg.exporters.SVGExporter(self.graphWin.scene())
+            ex_svg = exporters.SVGExporter(self.graphWin.scene())
             ex_svg.export(file_fullPath_svg)
         return 0
 
