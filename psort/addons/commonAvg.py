@@ -1,24 +1,14 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
 import sys  # We need sys so that we can pass argv to QApplication
 from copy import deepcopy
 
 import numpy as np
-
-## #############################################################################
-# %% IMPORT PACKAGES
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtWidgets
 
 from psort.utils import lib
 
-## #############################################################################
-# %% CommonAvgDataBase
+# CommonAvgDataBase
 _workingDataBase = {
     "file_fullPath": np.array([], dtype=np.unicode_),
     "file_path": np.array([], dtype=np.unicode_),
@@ -39,40 +29,39 @@ _file_keys = [
 ]
 
 
-## #############################################################################
-# %% CommonAvgWidget
-class CommonAvgWidget(QMainWindow):
+# CommonAvgWidget
+class CommonAvgWidget(QtWidgets.QMainWindow):
     def __init__(self, parent=None):
         super(CommonAvgWidget, self).__init__(parent)
         self.setWindowTitle("PurkinjeSort Common Average")
 
-        self.setStatusBar(QStatusBar(self))
-        self.label_statusBar = QLabel("Text")
+        self.setStatusBar(QtWidgets.QStatusBar(self))
+        self.label_statusBar = QtWidgets.QLabel("Text")
         lib.setFont(self.label_statusBar)
-        self.progress_statusBar = QProgressBar()
+        self.progress_statusBar = QtWidgets.QProgressBar()
         self.progress_statusBar.setRange(0, 1)
         self.statusBar().addWidget(self.label_statusBar, 0)
         self.statusBar().addWidget(self.progress_statusBar, 1)
 
-        self.layout_grand = QVBoxLayout()
-        self.widget_table = QTableWidget()
+        self.layout_grand = QtWidgets.QVBoxLayout()
+        self.widget_table = QtWidgets.QTableWidget()
         self.widget_table.setRowCount(0)  # set row count
         self.widget_table.setColumnCount(4)  # set column count
-        self.widget_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.widget_table.setSelectionBehavior(QTableView.SelectRows)
-        self.widget_table.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.widget_table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.widget_table.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+        self.widget_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.widget_table.setHorizontalHeaderLabels(
             ["Name", "Size", "SampleRate", "Status"]
         )
 
-        self.layout_addRemove = QHBoxLayout()
-        self.pushBtn_add = QPushButton("Add")
+        self.layout_addRemove = QtWidgets.QHBoxLayout()
+        self.pushBtn_add = QtWidgets.QPushButton("Add")
         lib.setFont(self.pushBtn_add)
         self.pushBtn_add.setEnabled(True)
-        self.pushBtn_remove = QPushButton("Remove")
+        self.pushBtn_remove = QtWidgets.QPushButton("Remove")
         lib.setFont(self.pushBtn_remove)
         self.pushBtn_remove.setEnabled(False)
-        self.pushBtn_reset = QPushButton("Reset")
+        self.pushBtn_reset = QtWidgets.QPushButton("Reset")
         lib.setFont(self.pushBtn_reset)
         self.pushBtn_reset.setEnabled(False)
         self.layout_addRemove.addWidget(self.pushBtn_add)
@@ -82,18 +71,18 @@ class CommonAvgWidget(QMainWindow):
         self.layout_addRemove.setSpacing(1)
         self.layout_addRemove.setContentsMargins(1, 1, 1, 1)
 
-        self.comboBx_avgMode = QComboBox()
+        self.comboBx_avgMode = QtWidgets.QComboBox()
         lib.setFont(self.comboBx_avgMode)
         self.comboBx_avgMode.setEnabled(False)
         self.comboBx_avgMode.addItems(["Mean", "Median"])
         self.comboBx_avgMode.setCurrentIndex(1)
 
-        self.pushBtn_start = QPushButton("Start")
+        self.pushBtn_start = QtWidgets.QPushButton("Start")
         lib.setFont(self.pushBtn_start)
         self.pushBtn_start.setStyleSheet("Text-align:left")
         self.pushBtn_start.setEnabled(False)
 
-        self.pushBtn_save = QPushButton("Save")
+        self.pushBtn_save = QtWidgets.QPushButton("Save")
         lib.setFont(self.pushBtn_save)
         self.pushBtn_save.setStyleSheet("Text-align:left")
         self.pushBtn_save.setEnabled(False)
@@ -105,15 +94,14 @@ class CommonAvgWidget(QMainWindow):
         self.layout_grand.addWidget(self.pushBtn_save)
         self.layout_grand.setSpacing(1)
         self.layout_grand.setContentsMargins(1, 1, 1, 1)
-        self.widget_grand = QWidget()
+        self.widget_grand = QtWidgets.QWidget()
         self.widget_grand.setLayout(self.layout_grand)
         self.resize(400, 400)
         self.setCentralWidget(self.widget_grand)
         return None
 
 
-## #############################################################################
-# %% CommonAvgSignals
+# CommonAvgSignals
 class CommonAvgSignals(CommonAvgWidget):
     def __init__(self, parent=None):
         super(CommonAvgSignals, self).__init__(parent)
@@ -153,7 +141,7 @@ class CommonAvgSignals(CommonAvgWidget):
             file_path = self._workingDataBase["file_path"][-1]
         else:
             file_path = self.lastUsedPath
-        file_fullPath_array, _ = QFileDialog.getOpenFileNames(
+        file_fullPath_array, _ = QtWidgets.QFileDialog.getOpenFileNames(
             self, "Open File", file_path, filter="Data file (*.mat *.continuous *.h5)"
         )
         if len(file_fullPath_array) > 0:
@@ -191,7 +179,7 @@ class CommonAvgSignals(CommonAvgWidget):
         file_path = self._workingDataBase["file_path"][-1]
         if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.getSaveFileName(
+        file_fullPath, _ = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save DataBase", file_path, filter="h5 Data (*.h5)"
         )
         if file_fullPath == "":
@@ -221,7 +209,7 @@ class CommonAvgSignals(CommonAvgWidget):
             self.widget_table.setItem(
                 rowCount + counter_file,
                 0,
-                QTableWidgetItem(
+                QtWidgets.QTableWidgetItem(
                     self._workingDataBase["file_name"][rowCount + counter_file]
                 ),
             )

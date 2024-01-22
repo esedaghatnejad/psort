@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import datetime
 import os
 import sys
@@ -13,12 +7,7 @@ from copy import deepcopy
 import decorator
 import numpy as np
 import pyqtgraph as pg
-
-## ################################################################################################
-## ################################################################################################
-# %% IMPORT PACKAGES
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
+from PyQt5 import QtCore, QtWidgets
 
 from psort.addons.commonAvg import CommonAvgSignals
 from psort.gui.inputDialog import PsortInputDialog
@@ -32,32 +21,8 @@ from psort.tools.waveDissect import WaveDissectWidget
 from psort.utils import database, dictionaries, lib, signals_lib
 from psort.utils.database import PsortDataBase
 
-## ################################################################################################
-## ################################################################################################
-# flag_color_toggle = True
-# @decorator.decorator
-# def showWaitCursor(func, *args, **kwargs):
-#     QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-#     QtWidgets.QApplication.processEvents()
-#     try:
-#         return func(*args, **kwargs)
-#     finally:
-#         QtWidgets.QApplication.restoreOverrideCursor()
-#         currentDT = datetime.datetime.now()
-#         args[0].txtlabel_statusBar.setText(currentDT.strftime("%H:%M:%S")\
-#                 + ' Analyzed Slot# ' + str(args[0].txtedit_toolbar_slotNumCurrent.value()))
-#         global flag_color_toggle
-#         if flag_color_toggle:
-#             lib.setFont(args[0].txtlabel_statusBar, color='green')
-#             flag_color_toggle = False
-#         else:
-#             lib.setFont(args[0].txtlabel_statusBar, color='black')
-#             flag_color_toggle = True
 
-
-## ################################################################################################
-## ################################################################################################
-# %% CLASS PsortGuiSignals
+# CLASS PsortGuiSignals
 class PsortGuiSignals(PsortGuiWidget):
     def __init__(self, parent=None):
         super(PsortGuiSignals, self).__init__(parent)
@@ -83,9 +48,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.setEnableWidgets(False)
         return None
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% HIGH LEVEL FUNCTIONS
+    # HIGH LEVEL FUNCTIONS
     def refresh_workingDataBase(self):
         if self._workingDataBase["isAnalyzed"][0]:
             self.update_guiWidgets_from_guiDataBase()
@@ -132,9 +95,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase["isAnalyzed"][0] = True
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% INIT FUNCTIONS
+    # INIT FUNCTIONS
     def init_workingDataBase(self):
         self._workingDataBase = deepcopy(dictionaries._workingDataBase)
         self.txtedit_toolbar_slotNumCurrent.valueChanged.disconnect(
@@ -597,9 +558,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_CsXProb.autoRange()
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% CONNECT SIGNALS
+    # CONNECT SIGNALS
     def connect_menubar_signals(self):
         self.actionBtn_menubar_file_open.triggered.connect(
             self.onToolbar_load_ButtonClick
@@ -802,9 +761,7 @@ class PsortGuiSignals(PsortGuiWidget):
         )
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% SIGNALS
+    # SIGNALS
     def onToolbar_next_ButtonClick(self):
         slot_num = self.txtedit_toolbar_slotNumCurrent.value()
         slot_num += 1
@@ -850,7 +807,7 @@ class PsortGuiSignals(PsortGuiWidget):
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
         if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.getOpenFileName(
+        file_fullPath, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Open File",
             file_path,
@@ -869,7 +826,7 @@ class PsortGuiSignals(PsortGuiWidget):
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
         if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.getOpenFileName(
+        file_fullPath, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
             "Open File",
             file_path,
@@ -899,19 +856,19 @@ class PsortGuiSignals(PsortGuiWidget):
             + ")"
         )
         if not (self.psortDataBase.is_all_slots_analyzed()):
-            _reply = QMessageBox.question(
+            _reply = QtWidgets.QMessageBox.question(
                 self,
                 "Save warning",
                 "Some slots are not analyzed. Continue?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.No,
             )
-            if _reply == QtGui.QMessageBox.No:
+            if _reply == QtWidgets.QMessageBox.No:
                 return 0
         _, file_path, _, _, _ = self.psortDataBase.get_file_fullPath_components()
         if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.getSaveFileName(
+        file_fullPath, _ = QtWidgets.QFileDialog.getSaveFileName(
             self, "Save DataBase", file_path, filter="psort DataBase (*.psort)"
         )
         if file_fullPath == "":
@@ -930,17 +887,17 @@ class PsortGuiSignals(PsortGuiWidget):
         return 0
 
     def onMenubar_prefrences_ButtonClick(self):
-        _reply = QMessageBox.question(
+        _reply = QtWidgets.QMessageBox.question(
             self,
             "Change Prefrences",
             "It is not recommended to change the prefrences. \n"
             + "In case you want to proceed, "
             + "it would be better to change the prefrences in a fresh session. \n"
             + "Do you still want to proceed?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No,
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+            QtWidgets.QMessageBox.No,
         )
-        if _reply == QtGui.QMessageBox.No:
+        if _reply == QtWidgets.QMessageBox.No:
             return 0
         self.menubar_prefrences = EditPrefrencesDialog(
             self, workingDataBase=self._workingDataBase
@@ -1446,12 +1403,6 @@ class PsortGuiSignals(PsortGuiWidget):
             0
         ] = self.pushBtn_mainwin_SsPanel_plots_SsWaveBtn_learnWaveform.isChecked()
         signals_lib.extract_ss_template(self._workingDataBase)
-        # signals_lib.extract_ss_similarity(self._workingDataBase)
-        # signals_lib.extract_cs_similarity(self._workingDataBase)
-        # signals_lib.extract_ss_scatter(self._workingDataBase)
-        # signals_lib.extract_cs_scatter(self._workingDataBase)
-        # self.update_SSPcaNum_comboBx()
-        # self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
         self.plot_ss_waveform()
         return 0
@@ -1466,12 +1417,6 @@ class PsortGuiSignals(PsortGuiWidget):
             0
         ] = self.pushBtn_mainwin_CsPanel_plots_CsWaveBtn_learnWaveform.isChecked()
         signals_lib.extract_cs_template(self._workingDataBase)
-        # signals_lib.extract_ss_similarity(self._workingDataBase)
-        # signals_lib.extract_cs_similarity(self._workingDataBase)
-        # signals_lib.extract_ss_scatter(self._workingDataBase)
-        # signals_lib.extract_cs_scatter(self._workingDataBase)
-        # self.update_SSPcaNum_comboBx()
-        # self.update_CSPcaNum_comboBx()
         self.onfilterPanel_CsAlign_IndexChanged()
         self.plot_cs_waveform()
         return 0
@@ -1652,9 +1597,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.undoRedo_add()
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% LOAD & SAVE
+    # LOAD & SAVE
     def load_process_start(self):
         file_fullPath = self._fileDataBase["load_file_fullPath"]
         # in case of a smr file, get the channel index from user
@@ -1733,14 +1676,14 @@ class PsortGuiSignals(PsortGuiWidget):
                 sample_rate=sample_rate,
                 isCommonAverage=False,
             )
-            _reply = QMessageBox.question(
+            _reply = QtWidgets.QMessageBox.question(
                 self,
                 "Load Common Average",
                 "Do you want to load 'Common Average' Data?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.Yes,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.Yes,
             )
-            if _reply == QtGui.QMessageBox.Yes:
+            if _reply == QtWidgets.QMessageBox.Yes:
                 # LOAD COMMON AVERAGE
                 (
                     _,
@@ -1749,7 +1692,7 @@ class PsortGuiSignals(PsortGuiWidget):
                     _,
                     _,
                 ) = self.psortDataBase.get_file_fullPath_components()
-                cmn_file_fullPath, _ = QFileDialog.getOpenFileName(
+                cmn_file_fullPath, _ = QtWidgets.QFileDialog.getOpenFileName(
                     self,
                     "Open File",
                     file_path,
@@ -1788,14 +1731,14 @@ class PsortGuiSignals(PsortGuiWidget):
                 + "Current number of slots is: {:.0f}.\n"
                 + "Do you want to change the slot boundaries?\n"
             ).format(total_duration, total_slot_num)
-            _reply = QMessageBox.question(
+            _reply = QtWidgets.QMessageBox.question(
                 self,
                 "Reset slot boundaries",
                 message,
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.Yes,
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
+                QtWidgets.QMessageBox.Yes,
             )
-            flag_restart_session = _reply == QtGui.QMessageBox.Yes
+            flag_restart_session = _reply == QtWidgets.QMessageBox.Yes
             # Scale ch_data UP and put it in 100-10000 range
             if ch_data_max < 50.0:
                 message = str(
@@ -1964,9 +1907,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.menubar.setEnabled(True)
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% PLOTS
+    # PLOTS
     def plot_rawSignal(self, just_update_selected=False):
         self.plot_rawSignal_SsIndex()
         self.plot_rawSignal_CsIndex()
@@ -2220,9 +2161,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.viewBox_CsPca.autoRange()
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% UNDO/REDO
+    # UNDO/REDO
     def undoRedo_reset(self):
         """
         To make the code fast and efficient, instead of appending and removing from the history at
@@ -2395,9 +2334,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self.plot_cs_pca()
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% SCATTERSELECT
+    # SCATTERSELECT
     def connect_ScatterSelectWidget(self):
         self.ScatterSelectWidget = ScatterSelectWidget(self)
         # Add ScatterSelectWidget as the 2nd (idx=1) widget to layout_grand
@@ -2694,9 +2631,7 @@ class PsortGuiSignals(PsortGuiWidget):
             pass
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% WAVEDISSECT
+    # WAVEDISSECT
     def connect_WaveDissectWidget(self):
         self.WaveDissectWidget = WaveDissectWidget(self)
         # Add WaveDissectWidget as the 3rd (idx=2) widget to layout_grand
@@ -2713,13 +2648,6 @@ class PsortGuiSignals(PsortGuiWidget):
             rateLimit=60,
             slot=self.WaveDissectWidget.popUpPlot_mouseMoved_raw,
         )
-        # self.proxy_MouseMoved_WaveDissectSS = \
-        #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot1.scene().sigMouseMoved, \
-        #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_SS) #J
-        # self.proxy_MouseMoved_WaveDissectCS = \
-        #     pg.SignalProxy(self.WaveDissectWidget.plot_popup_sidePlot2.scene().sigMouseMoved, \
-        #     rateLimit=60, slot=self.WaveDissectWidget.popUpPlot_mouseMoved_CS) #J
-
         self.proxy_MouseClicked_WaveDissectRaw = pg.SignalProxy(
             self.WaveDissectWidget.plot_popup_rawPlot.scene().sigMouseClicked,
             rateLimit=60,
@@ -2820,9 +2748,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.layout_grand.setCurrentIndex(2)
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% SLOTBOUNDARY
+    # SLOTBOUNDARY
     def connect_SlotBoundaryWidget(self):
         self.SlotBoundaryWidget = SlotBoundaryWidget(self)
         # Add SlotBoundaryWidget as the 4th (idx=3) widget to layout_grand
@@ -2917,9 +2843,7 @@ class PsortGuiSignals(PsortGuiWidget):
         )
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% WAVECLUST
+    # WAVECLUST
     def connect_WaveClustWidget(self):
         self.WaveClustWidget = WaveClustWidget(self)
         # Add WaveClustWidget as the 5th widget to layout_grand
@@ -3059,8 +2983,6 @@ class PsortGuiSignals(PsortGuiWidget):
             self.layout_grand.setCurrentIndex(4)
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
     def update_SSPcaNum_comboBx(self):
         if self._workingDataBase["ss_index"].sum() > 1:
             self.comboBx_mainwin_SsPanel_plots_SsPcaPlot_PcaNum1.clear()
@@ -3167,9 +3089,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.comboBx_mainwin_CsPanel_plots_CsPcaPlot_PcaNum2.setCurrentIndex(1)
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% BIND SIGNALS TO database
+    # BIND SIGNALS TO database
     def transfer_data_from_psortDataBase_to_guiSignals(self):
         psortDataBase_currentSlot = self.psortDataBase.get_currentSlotDataBase()
         psortDataBase_topLevel = self.psortDataBase.get_topLevelDataBase()
@@ -3378,8 +3298,3 @@ class PsortGuiSignals(PsortGuiWidget):
         # Due to conflict with onToolbar_slotNumCurrent_ValueChanged
         # this section has been implemented in update_CSPcaNum_comboBx
         return 0
-
-
-## ################################################################################################
-## ################################################################################################
-# %% END OF CODE
