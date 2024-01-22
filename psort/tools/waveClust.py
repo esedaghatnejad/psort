@@ -2829,18 +2829,18 @@ class WaveClustWidget(QWidget):
     ## ################################################################################################
     def popUp_scatterPlot(self):
         self._workingDataBase["popUp_mode"] = np.array(
-            ["raw_signal_manual"], dtype=np.unicode
+            ["raw_signal_manual"], dtype=np.unicode_
         )
         if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             _sign = +1
         if self._workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["csPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             _sign = +1
         self.plot_scatter_popUp()

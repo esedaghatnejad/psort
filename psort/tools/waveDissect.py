@@ -1981,7 +1981,7 @@ class WaveDissectWidget(QWidget):
 
     def align_cs(self, idx):
         if self._workingDataBase["csAlign_mode"] == np.array(
-            ["ss_index"], dtype=np.unicode
+            ["ss_index"], dtype=np.unicode_
         ):
             win_look_before = self._workingDataBase["GLOBAL_CS_ALIGN_SSINDEX_BEFORE"][0]
             window_len_before = int(
@@ -2009,7 +2009,7 @@ class WaveDissectWidget(QWidget):
             _ss_index[cs_ind] = False
 
         elif self._workingDataBase["csAlign_mode"] == np.array(
-            ["ss_temp"], dtype=np.unicode
+            ["ss_temp"], dtype=np.unicode_
         ):
             win_look_before = self._workingDataBase[
                 "GLOBAL_CS_ALIGN_SSTEMPLATE_BEFORE"
@@ -2056,7 +2056,7 @@ class WaveDissectWidget(QWidget):
             _cs_index[cs_ind] = True
 
         elif self._workingDataBase["csAlign_mode"] == np.array(
-            ["cs_temp"], dtype=np.unicode
+            ["cs_temp"], dtype=np.unicode_
         ):
             win_look_before = self._workingDataBase[
                 "GLOBAL_CS_ALIGN_CSTEMPLATE_BEFORE"
@@ -2135,7 +2135,7 @@ class WaveDissectWidget(QWidget):
         if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             ss_ind_search_win = np.argmin(ss_data_search_win)
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             ss_ind_search_win = np.argmax(ss_data_search_win)
 
@@ -2390,13 +2390,13 @@ class WaveDissectWidget(QWidget):
     ## ################################################################################################
     def popUp_rawPlot(self):
         self._workingDataBase["popUp_mode"] = np.array(
-            ["raw_signal_manual"], dtype=np.unicode
+            ["raw_signal_manual"], dtype=np.unicode_
         )
 
         if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             _sign = +1
         self.infLine_rawSignal_SsThresh_popUpPlot.setValue(
@@ -2405,7 +2405,7 @@ class WaveDissectWidget(QWidget):
         if self._workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["csPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             _sign = +1
         self.infLine_rawSignal_CsThresh_popUpPlot.setValue(

@@ -1310,17 +1310,17 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase["csLearnTemp_mode"][0]:
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
             self._workingDataBase["csAlign_mode"] = np.array(
-                ["cs_temp"], dtype=np.unicode
+                ["cs_temp"], dtype=np.unicode_
             )
         elif self._workingDataBase["ssLearnTemp_mode"][0]:
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
             self._workingDataBase["csAlign_mode"] = np.array(
-                ["ss_temp"], dtype=np.unicode
+                ["ss_temp"], dtype=np.unicode_
             )
         else:
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
             self._workingDataBase["csAlign_mode"] = np.array(
-                ["ss_index"], dtype=np.unicode
+                ["ss_index"], dtype=np.unicode_
             )
         return 0
 
@@ -1355,7 +1355,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             _sign = +1
         self.infLine_rawSignal_SsThresh.setValue(
@@ -1372,7 +1372,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
             _sign = +1
         elif self._workingDataBase["csPeak_mode"] == np.array(
-            ["min"], dtype=np.unicode
+            ["min"], dtype=np.unicode_
         ):
             _sign = -1
         self.infLine_rawSignal_CsThresh.setValue(
@@ -1402,7 +1402,7 @@ class PsortGuiSignals(PsortGuiWidget):
             _threshold = np.min(gmm_data[labels == ind_cluster_noise])
             self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((-_threshold) + 1)
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             ind_cluster_noise = np.argmin(centers)
             _threshold = np.max(gmm_data[labels == ind_cluster_noise])
@@ -1429,7 +1429,7 @@ class PsortGuiSignals(PsortGuiWidget):
             _threshold = np.max(gmm_data[labels == ind_cluster_noise])
             self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((+_threshold) + 1)
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["min"], dtype=np.unicode
+            ["min"], dtype=np.unicode_
         ):
             ind_cluster_noise = np.argmax(centers)
             _threshold = np.min(gmm_data[labels == ind_cluster_noise])
@@ -2438,14 +2438,14 @@ class PsortGuiSignals(PsortGuiWidget):
             == 0
         ):
             self._workingDataBase["popUp_mode"] = np.array(
-                ["ss_pca_manual"], dtype=np.unicode
+                ["ss_pca_manual"], dtype=np.unicode_
             )
         elif (
             self.comboBx_mainwin_SsPanel_plots_SsPcaBtn_selectPcaCombo.currentIndex()
             == 1
         ):
             self._workingDataBase["popUp_mode"] = np.array(
-                ["ss_pca_gmm"], dtype=np.unicode
+                ["ss_pca_gmm"], dtype=np.unicode_
             )
             message = (
                 "Specify the number of clusters \n"
@@ -2476,14 +2476,14 @@ class PsortGuiSignals(PsortGuiWidget):
             == 0
         ):
             self._workingDataBase["popUp_mode"] = np.array(
-                ["cs_pca_manual"], dtype=np.unicode
+                ["cs_pca_manual"], dtype=np.unicode_
             )
         elif (
             self.comboBx_mainwin_CsPanel_plots_CsPcaBtn_selectPcaCombo.currentIndex()
             == 1
         ):
             self._workingDataBase["popUp_mode"] = np.array(
-                ["cs_pca_gmm"], dtype=np.unicode
+                ["cs_pca_gmm"], dtype=np.unicode_
             )
             message = (
                 "Specify the number of clusters \n"
@@ -2511,7 +2511,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase["ss_index"].sum() < 2:
             return 0
         self._workingDataBase["popUp_mode"] = np.array(
-            ["ss_wave_manual"], dtype=np.unicode
+            ["ss_wave_manual"], dtype=np.unicode_
         )
         self.scatterSelect_showWidget(True)
         return 0
@@ -2521,7 +2521,7 @@ class PsortGuiSignals(PsortGuiWidget):
         if self._workingDataBase["cs_index"].sum() < 2:
             return 0
         self._workingDataBase["popUp_mode"] = np.array(
-            ["cs_wave_manual"], dtype=np.unicode
+            ["cs_wave_manual"], dtype=np.unicode_
         )
         self.scatterSelect_showWidget(True)
         return 0
@@ -2541,7 +2541,7 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def scatterSelect_task_completed(self):
         if self._workingDataBase["popUp_mode"] == np.array(
-            ["ss_pca_manual"], dtype=np.unicode
+            ["ss_pca_manual"], dtype=np.unicode_
         ):
             self._workingDataBase["ss_pca1_ROI"] = np.append(
                 self.ScatterSelectWidget._workingDataBase["popUp_ROI_x"],
@@ -2563,7 +2563,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_waveform()
             self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase["popUp_mode"] == np.array(
-            ["cs_pca_manual"], dtype=np.unicode
+            ["cs_pca_manual"], dtype=np.unicode_
         ):
             self._workingDataBase["cs_pca1_ROI"] = np.append(
                 self.ScatterSelectWidget._workingDataBase["popUp_ROI_x"],
@@ -2585,7 +2585,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_waveform()
             self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase["popUp_mode"] == np.array(
-            ["ss_wave_manual"], dtype=np.unicode
+            ["ss_wave_manual"], dtype=np.unicode_
         ):
             self._workingDataBase["ss_wave_span_ROI"] = np.append(
                 self.ScatterSelectWidget._workingDataBase["popUp_ROI_x"],
@@ -2619,7 +2619,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_pca()
             self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase["popUp_mode"] == np.array(
-            ["cs_wave_manual"], dtype=np.unicode
+            ["cs_wave_manual"], dtype=np.unicode_
         ):
             self._workingDataBase["cs_wave_span_ROI"] = np.append(
                 self.ScatterSelectWidget._workingDataBase["popUp_ROI_x"],
@@ -2653,7 +2653,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_cs_pca()
             self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase["popUp_mode"] == np.array(
-            ["ss_pca_gmm"], dtype=np.unicode
+            ["ss_pca_gmm"], dtype=np.unicode_
         ):
             self._workingDataBase["ss_pca1_ROI"] = np.append(
                 self.ScatterSelectWidget._workingDataBase["popUp_ROI_x"],
@@ -2672,7 +2672,7 @@ class PsortGuiSignals(PsortGuiWidget):
             self.plot_ss_waveform()
             self.plot_rawSignal(just_update_selected=True)
         elif self._workingDataBase["popUp_mode"] == np.array(
-            ["cs_pca_gmm"], dtype=np.unicode
+            ["cs_pca_gmm"], dtype=np.unicode_
         ):
             self._workingDataBase["cs_pca1_ROI"] = np.append(
                 self.ScatterSelectWidget._workingDataBase["popUp_ROI_x"],
@@ -3242,29 +3242,29 @@ class PsortGuiSignals(PsortGuiWidget):
         )
         # csAlign_mode
         if self._workingDataBase["csAlign_mode"] == np.array(
-            ["ss_index"], dtype=np.unicode
+            ["ss_index"], dtype=np.unicode_
         ):
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(0)
         elif self._workingDataBase["csAlign_mode"] == np.array(
-            ["ss_temp"], dtype=np.unicode
+            ["ss_temp"], dtype=np.unicode_
         ):
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(1)
         elif self._workingDataBase["csAlign_mode"] == np.array(
-            ["cs_temp"], dtype=np.unicode
+            ["cs_temp"], dtype=np.unicode_
         ):
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
         # ssPeak_mode
         if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
         elif self._workingDataBase["ssPeak_mode"] == np.array(
-            ["max"], dtype=np.unicode
+            ["max"], dtype=np.unicode_
         ):
             self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(1)
         # csPeak_mode
         if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
             self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
         elif self._workingDataBase["csPeak_mode"] == np.array(
-            ["min"], dtype=np.unicode
+            ["min"], dtype=np.unicode_
         ):
             self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(1)
         # ssLearnTemp_mode
@@ -3329,15 +3329,15 @@ class PsortGuiSignals(PsortGuiWidget):
         # csAlign_mode
         if self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 0:
             self._workingDataBase["csAlign_mode"] = np.array(
-                ["ss_index"], dtype=np.unicode
+                ["ss_index"], dtype=np.unicode_
             )
         elif self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 1:
             self._workingDataBase["csAlign_mode"] = np.array(
-                ["ss_temp"], dtype=np.unicode
+                ["ss_temp"], dtype=np.unicode_
             )
         elif self.comboBx_mainwin_filterPanel_CsAlign.currentIndex() == 2:
             self._workingDataBase["csAlign_mode"] = np.array(
-                ["cs_temp"], dtype=np.unicode
+                ["cs_temp"], dtype=np.unicode_
             )
         # ssPeak_mode
         if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:

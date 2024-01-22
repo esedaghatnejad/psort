@@ -195,7 +195,7 @@ class PsortDataBase:
             self.init_slotsDataBase_hard(_ch_data, _ch_time, _sample_rate)
             self.set_file_fullPath(file_fullPath)
             self._topLevelDataBase["file_fullPathOriginal"] = np.array(
-                [file_fullPath], dtype=np.unicode
+                [file_fullPath], dtype=np.unicode_
             )
             return 0
 
@@ -204,7 +204,7 @@ class PsortDataBase:
             # check _ch_data_cmn size
             if _ch_data_cmn.size == self._topLevelDataBase["ch_data"].size:
                 self._topLevelDataBase["file_fullPathCommonAvg"] = np.array(
-                    [file_fullPath], dtype=np.unicode
+                    [file_fullPath], dtype=np.unicode_
                 )
                 self._topLevelDataBase["ch_data"] = (
                     self._topLevelDataBase["ch_data"] - _ch_data_cmn
@@ -222,7 +222,7 @@ class PsortDataBase:
         _ch_data = self._topLevelDataBase["ch_data"]
         _ch_time = self._topLevelDataBase["ch_time"]
         self._topLevelDataBase["file_fullPathLfp"] = np.array(
-            [file_fullPath], dtype=np.unicode
+            [file_fullPath], dtype=np.unicode_
         )
         self._topLevelDataBase["isLfpSideloaded"][0] = True
         # check _ch_data_lfp_orig size
@@ -250,13 +250,13 @@ class PsortDataBase:
             file_name_without_ext,
         ) = lib.get_fullPath_components(file_fullPath)
         self._topLevelDataBase["file_fullPath"] = np.array(
-            [file_fullPath], dtype=np.unicode
+            [file_fullPath], dtype=np.unicode_
         )
         self._topLevelDataBase["file_path"] = np.array([file_path], dtype=np.unicode_)
         self._topLevelDataBase["file_name"] = np.array([file_name], dtype=np.unicode_)
         self._topLevelDataBase["file_ext"] = np.array([file_ext], dtype=np.unicode_)
         self._topLevelDataBase["file_name_without_ext"] = np.array(
-            [file_name_without_ext], dtype=np.unicode
+            [file_name_without_ext], dtype=np.unicode_
         )
         return 0
 
