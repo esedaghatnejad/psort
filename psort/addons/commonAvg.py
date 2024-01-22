@@ -267,10 +267,10 @@ class CommonAvgSignals(CommonAvgWidget):
         if self.counter_iteration < self.num_iteration:
             if self.counter_iteration == 0:
                 self._workingDataBase["ch_data_cmn"] = np.zeros(
-                    (ch_data.size), dtype=np.float
+                    (ch_data.size), dtype=float
                 )
                 self._workingDataBase["ch_data_all"] = np.zeros(
-                    (self.num_iteration, ch_data.size), dtype=np.float
+                    (self.num_iteration, ch_data.size), dtype=float
                 )
             self._workingDataBase["ch_data_cmn"] = (
                 self._workingDataBase["ch_data_cmn"] + ch_data

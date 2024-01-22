@@ -113,7 +113,7 @@ def load_file_continuous(file_fullPath):
         ch_time_last_element,
         num=ch_time_size,
         endpoint=True,
-        dtype=np.float,
+        dtype=float,
     )
     if not (ch_time.size == ch_data.size):
         print(
@@ -384,7 +384,7 @@ def inter_spike_interval_from_index(index_bool, sample_rate=None):
         index_value = np.where(index_bool)[0]
     elif index_bool.dtype == int:
         pass
-    elif index_bool.dtype == np.float:
+    elif index_bool.dtype == float:
         print(
             "Warning: <lib.inter_spike_interval_from_index: "
             + "index_bool.dtype should not be float.>"
@@ -407,7 +407,7 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
         index_value = np.where(index_bool)[0]
     elif index_bool.dtype == int:
         pass
-    elif index_bool.dtype == np.float:
+    elif index_bool.dtype == float:
         print(
             "Warning: <lib.inter_spike_interval_from_index: "
             + "index_bool.dtype should not be float.>"
@@ -566,8 +566,8 @@ def mean_std_plus_minus(data):
         return _mean, _mean + _interval, _mean - _interval
     elif data.ndim == 2:
         num_col = data.shape[1]
-        _mean = np.full((num_col), np.NaN, dtype=np.float)
-        _interval = np.full((num_col), np.NaN, dtype=np.float)
+        _mean = np.full((num_col), np.NaN, dtype=float)
+        _interval = np.full((num_col), np.NaN, dtype=float)
         for counter_col in range(num_col):
             _col_data = data[:, counter_col]
             _col_mean = np.mean(_col_data)
