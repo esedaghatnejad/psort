@@ -284,8 +284,8 @@ _workingDataBase = {
     "ss_index_undoRedo": np.zeros((0, 0), dtype=bool),
     "cs_index_slow_undoRedo": np.zeros((0, 0), dtype=bool),
     "cs_index_undoRedo": np.zeros((0, 0), dtype=bool),
-    "index_undoRedo": np.zeros((1), dtype=np.int),
-    "length_undoRedo": np.zeros((1), dtype=np.int),
+    "index_undoRedo": np.zeros((1), dtype=int),
+    "length_undoRedo": np.zeros((1), dtype=int),
     "batch_size_undoRedo": np.full((1), 20, dtype=np.uint32),
     "isLfpSideloaded": np.zeros((1), dtype=bool),
 }

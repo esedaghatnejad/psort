@@ -382,7 +382,7 @@ def inter_spike_interval_from_index(index_bool, sample_rate=None):
         sample_rate = 30000.0  # sample_rate in Hz
     if index_bool.dtype == np.bool:
         index_value = np.where(index_bool)[0]
-    elif index_bool.dtype == np.int:
+    elif index_bool.dtype == int:
         pass
     elif index_bool.dtype == np.float:
         print(
@@ -405,7 +405,7 @@ def instant_firing_rate_from_index(index_bool, sample_rate=None):
         sample_rate = 30000.0  # sample_rate in Hz
     if index_bool.dtype == np.bool:
         index_value = np.where(index_bool)[0]
-    elif index_bool.dtype == np.int:
+    elif index_bool.dtype == int:
         pass
     elif index_bool.dtype == np.float:
         print(
