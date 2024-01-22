@@ -4,53 +4,66 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
-## #############################################################################
-#%% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import *
-import numpy as np
-from copy import deepcopy
-import sys # We need sys so that we can pass argv to QApplication
 import os
+import sys  # We need sys so that we can pass argv to QApplication
+from copy import deepcopy
+
+import numpy as np
+
+## #############################################################################
+# %% IMPORT PACKAGES
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import *
+
 from psort.utils import lib
+
 ## #############################################################################
-#%% CommonAvgDataBase
+# %% CommonAvgDataBase
 _workingDataBase = {
-    'file_fullPath':          np.array([],    dtype=np.unicode),
-    'file_path':              np.array([],    dtype=np.unicode),
-    'file_name':              np.array([],    dtype=np.unicode),
-    'file_ext':               np.array([],    dtype=np.unicode),
-    'file_name_without_ext':  np.array([],    dtype=np.unicode),
-    'ch_data_cmn':            np.zeros((0),   dtype=np.float64),
-    'ch_data_all':            np.zeros((0,0), dtype=np.float64),
-    'ch_time':                np.zeros((0),   dtype=np.float64),
-    'sample_rate':            np.zeros((1),   dtype=np.uint32),
+    "file_fullPath": np.array([], dtype=np.unicode_),
+    "file_path": np.array([], dtype=np.unicode_),
+    "file_name": np.array([], dtype=np.unicode_),
+    "file_ext": np.array([], dtype=np.unicode_),
+    "file_name_without_ext": np.array([], dtype=np.unicode_),
+    "ch_data_cmn": np.zeros((0), dtype=np.float64),
+    "ch_data_all": np.zeros((0, 0), dtype=np.float64),
+    "ch_time": np.zeros((0), dtype=np.float64),
+    "sample_rate": np.zeros((1), dtype=np.uint32),
 }
-_file_keys = ['file_fullPath', 'file_path', 'file_name', \
-             'file_ext', 'file_name_without_ext']
+_file_keys = [
+    "file_fullPath",
+    "file_path",
+    "file_name",
+    "file_ext",
+    "file_name_without_ext",
+]
+
+
 ## #############################################################################
-#%% CommonAvgWidget
+# %% CommonAvgWidget
 class CommonAvgWidget(QMainWindow):
     def __init__(self, parent=None):
         super(CommonAvgWidget, self).__init__(parent)
         self.setWindowTitle("PurkinjeSort Common Average")
 
         self.setStatusBar(QStatusBar(self))
-        self.label_statusBar = QLabel('Text')
+        self.label_statusBar = QLabel("Text")
         lib.setFont(self.label_statusBar)
         self.progress_statusBar = QProgressBar()
-        self.progress_statusBar.setRange(0,1)
-        self.statusBar().addWidget(self.label_statusBar,0)
-        self.statusBar().addWidget(self.progress_statusBar,1)
+        self.progress_statusBar.setRange(0, 1)
+        self.statusBar().addWidget(self.label_statusBar, 0)
+        self.statusBar().addWidget(self.progress_statusBar, 1)
 
         self.layout_grand = QVBoxLayout()
         self.widget_table = QTableWidget()
-        self.widget_table.setRowCount(0) # set row count
-        self.widget_table.setColumnCount(4) # set column count
+        self.widget_table.setRowCount(0)  # set row count
+        self.widget_table.setColumnCount(4)  # set column count
         self.widget_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.widget_table.setSelectionBehavior(QTableView.SelectRows)
         self.widget_table.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.widget_table.setHorizontalHeaderLabels(['Name','Size','SampleRate','Status'])
+        self.widget_table.setHorizontalHeaderLabels(
+            ["Name", "Size", "SampleRate", "Status"]
+        )
 
         self.layout_addRemove = QHBoxLayout()
         self.pushBtn_add = QPushButton("Add")
@@ -77,12 +90,12 @@ class CommonAvgWidget(QMainWindow):
 
         self.pushBtn_start = QPushButton("Start")
         lib.setFont(self.pushBtn_start)
-        self.pushBtn_start.setStyleSheet("Text-align:left");
+        self.pushBtn_start.setStyleSheet("Text-align:left")
         self.pushBtn_start.setEnabled(False)
 
         self.pushBtn_save = QPushButton("Save")
         lib.setFont(self.pushBtn_save)
-        self.pushBtn_save.setStyleSheet("Text-align:left");
+        self.pushBtn_save.setStyleSheet("Text-align:left")
         self.pushBtn_save.setEnabled(False)
 
         self.layout_grand.addWidget(self.widget_table)
@@ -97,8 +110,10 @@ class CommonAvgWidget(QMainWindow):
         self.resize(400, 400)
         self.setCentralWidget(self.widget_grand)
         return None
+
+
 ## #############################################################################
-#%% CommonAvgSignals
+# %% CommonAvgSignals
 class CommonAvgSignals(CommonAvgWidget):
     def __init__(self, parent=None):
         super(CommonAvgSignals, self).__init__(parent)
@@ -107,13 +122,15 @@ class CommonAvgSignals(CommonAvgWidget):
         self.saveData = lib.SaveData()
         self.saveData.return_signal.connect(self.save_process_finished)
         self._workingDataBase = deepcopy(_workingDataBase)
-        self.widget_table.itemSelectionChanged.connect(self.onTable_itemSelectionChanged)
+        self.widget_table.itemSelectionChanged.connect(
+            self.onTable_itemSelectionChanged
+        )
         self.pushBtn_add.pressed.connect(self.onAdd_pressed)
         self.pushBtn_remove.pressed.connect(self.onRemove_pressed)
         self.pushBtn_reset.pressed.connect(self.onReset_pressed)
         self.pushBtn_start.pressed.connect(self.onStart_pressed)
         self.pushBtn_save.pressed.connect(self.onSave_pressed)
-        self.label_statusBar.setText('Add file to the table')
+        self.label_statusBar.setText("Add file to the table")
         self.num_iteration = 0
         self.counter_iteration = 0
         self.lastUsedPath = os.getcwd()
@@ -132,13 +149,13 @@ class CommonAvgSignals(CommonAvgWidget):
         return 0
 
     def onAdd_pressed(self):
-        if self._workingDataBase['file_path'].size > 0:
-            file_path = self._workingDataBase['file_path'][-1]
+        if self._workingDataBase["file_path"].size > 0:
+            file_path = self._workingDataBase["file_path"][-1]
         else:
             file_path = self.lastUsedPath
-        file_fullPath_array, _ = QFileDialog.\
-            getOpenFileNames(self, "Open File", file_path,
-                            filter="Data file (*.mat *.continuous *.h5)")
+        file_fullPath_array, _ = QFileDialog.getOpenFileNames(
+            self, "Open File", file_path, filter="Data file (*.mat *.continuous *.h5)"
+        )
         if len(file_fullPath_array) > 0:
             self.add_file_fullPath_array_to_table(file_fullPath_array)
             self.pushBtn_reset.setEnabled(True)
@@ -150,15 +167,15 @@ class CommonAvgSignals(CommonAvgWidget):
         _currentRow = self.widget_table.currentRow()
         self.widget_table.removeRow(_currentRow)
         for counter_key in range(len(_file_keys)):
-            self._workingDataBase[_file_keys[counter_key]] = \
-                np.delete(self._workingDataBase[_file_keys[counter_key]],
-                            [_currentRow])
+            self._workingDataBase[_file_keys[counter_key]] = np.delete(
+                self._workingDataBase[_file_keys[counter_key]], [_currentRow]
+            )
         return 0
 
     def onReset_pressed(self):
         self.pushBtn_reset.setEnabled(False)
         _rowCount = self.widget_table.rowCount()
-        for counter_row in range(_rowCount-1, -1, -1):
+        for counter_row in range(_rowCount - 1, -1, -1):
             self.widget_table.removeRow(counter_row)
         self._workingDataBase = deepcopy(_workingDataBase)
         self.pushBtn_start.setEnabled(False)
@@ -171,19 +188,19 @@ class CommonAvgSignals(CommonAvgWidget):
         return 0
 
     def onSave_pressed(self):
-        file_path = self._workingDataBase['file_path'][-1]
-        if not(os.path.isdir(file_path)):
+        file_path = self._workingDataBase["file_path"][-1]
+        if not (os.path.isdir(file_path)):
             file_path = os.getcwd()
-        file_fullPath, _ = QFileDialog.\
-            getSaveFileName(self, "Save DataBase", file_path,
-                            filter="h5 Data (*.h5)")
-        if file_fullPath == '':
+        file_fullPath, _ = QFileDialog.getSaveFileName(
+            self, "Save DataBase", file_path, filter="h5 Data (*.h5)"
+        )
+        if file_fullPath == "":
             self.pushBtn_save.setEnabled(False)
             self.pushBtn_save.setEnabled(True)
             return 0
         _, file_path, _, file_ext, _ = lib.get_fullPath_components(file_fullPath)
-        if not(file_ext == '.h5'):
-            file_fullPath = file_fullPath + '.h5'
+        if not (file_ext == ".h5"):
+            file_fullPath = file_fullPath + ".h5"
         if os.path.isdir(file_path):
             self.save_process_start(file_fullPath)
         return 0
@@ -192,43 +209,54 @@ class CommonAvgSignals(CommonAvgWidget):
         rowCount = self.widget_table.rowCount()
         num_files = len(file_fullPath_array)
         for counter_file in range(num_files):
-            self.widget_table.insertRow(rowCount+counter_file)
-            fullPath_components = lib.get_fullPath_components(\
-                file_fullPath_array[counter_file])
+            self.widget_table.insertRow(rowCount + counter_file)
+            fullPath_components = lib.get_fullPath_components(
+                file_fullPath_array[counter_file]
+            )
             for counter_key in range(len(_file_keys)):
-                self._workingDataBase[_file_keys[counter_key]] = \
-                    np.append(self._workingDataBase[_file_keys[counter_key]],
-                                fullPath_components[counter_key])
-            self.widget_table.setItem(rowCount+counter_file, 0,
-                QTableWidgetItem(self._workingDataBase['file_name'][rowCount+counter_file]))
-        self.lastUsedPath = deepcopy(self._workingDataBase['file_path'][-1])
+                self._workingDataBase[_file_keys[counter_key]] = np.append(
+                    self._workingDataBase[_file_keys[counter_key]],
+                    fullPath_components[counter_key],
+                )
+            self.widget_table.setItem(
+                rowCount + counter_file,
+                0,
+                QTableWidgetItem(
+                    self._workingDataBase["file_name"][rowCount + counter_file]
+                ),
+            )
+        self.lastUsedPath = deepcopy(self._workingDataBase["file_path"][-1])
         return 0
 
     def load_process_start(self):
-        self.num_iteration = self._workingDataBase['file_fullPath'].size
+        self.num_iteration = self._workingDataBase["file_fullPath"].size
         self.counter_iteration = 0
         self.compute_cmn_iteration_start()
-        self.label_statusBar.setText('Loading data ...')
-        self.progress_statusBar.setRange(0,0)
+        self.label_statusBar.setText("Loading data ...")
+        self.progress_statusBar.setRange(0, 0)
         self.widget_grand.setEnabled(False)
         return 0
 
     def load_process_finished(self):
         if self.comboBx_avgMode.currentIndex() == 0:
-            self._workingDataBase['ch_data_cmn'] = \
-                self._workingDataBase['ch_data_cmn'] / float(self.num_iteration)
+            self._workingDataBase["ch_data_cmn"] = self._workingDataBase[
+                "ch_data_cmn"
+            ] / float(self.num_iteration)
         elif self.comboBx_avgMode.currentIndex() == 1:
-            self._workingDataBase['ch_data_cmn'] = \
-                np.median(self._workingDataBase['ch_data_all'], axis=0)
-        self.label_statusBar.setText('Loaded data.')
-        self.progress_statusBar.setRange(0,1)
+            self._workingDataBase["ch_data_cmn"] = np.median(
+                self._workingDataBase["ch_data_all"], axis=0
+            )
+        self.label_statusBar.setText("Loaded data.")
+        self.progress_statusBar.setRange(0, 1)
         self.widget_grand.setEnabled(True)
         self.pushBtn_save.setEnabled(True)
         return 0
 
     def compute_cmn_iteration_start(self):
         if self.counter_iteration < self.num_iteration:
-            file_fullPath = self._workingDataBase['file_fullPath'][self.counter_iteration]
+            file_fullPath = self._workingDataBase["file_fullPath"][
+                self.counter_iteration
+            ]
             self.loadData.file_fullPath = file_fullPath
             self.loadData.start()
         else:
@@ -238,43 +266,55 @@ class CommonAvgSignals(CommonAvgWidget):
     def compute_cmn_iteration_finished(self, ch_data, ch_time, sample_rate):
         if self.counter_iteration < self.num_iteration:
             if self.counter_iteration == 0:
-                self._workingDataBase['ch_data_cmn'] = \
-                    np.zeros((ch_data.size), dtype=np.float)
-                self._workingDataBase['ch_data_all'] = \
-                    np.zeros((self.num_iteration, ch_data.size), dtype=np.float)
-            self._workingDataBase['ch_data_cmn'] = \
-                self._workingDataBase['ch_data_cmn'] + ch_data
+                self._workingDataBase["ch_data_cmn"] = np.zeros(
+                    (ch_data.size), dtype=np.float
+                )
+                self._workingDataBase["ch_data_all"] = np.zeros(
+                    (self.num_iteration, ch_data.size), dtype=np.float
+                )
+            self._workingDataBase["ch_data_cmn"] = (
+                self._workingDataBase["ch_data_cmn"] + ch_data
+            )
             if self.comboBx_avgMode.currentIndex() == 1:
-                self._workingDataBase['ch_data_all'][self.counter_iteration,:] = ch_data
-            self._workingDataBase['ch_time'] = ch_time
-            self._workingDataBase['sample_rate'][0] = sample_rate
-            self.widget_table.setItem(self.counter_iteration, 1, QTableWidgetItem(str(ch_data.size)) )
-            self.widget_table.setItem(self.counter_iteration, 2, QTableWidgetItem(str(sample_rate)) )
-            self.widget_table.setItem(self.counter_iteration, 3, QTableWidgetItem('Finished') )
+                self._workingDataBase["ch_data_all"][
+                    self.counter_iteration, :
+                ] = ch_data
+            self._workingDataBase["ch_time"] = ch_time
+            self._workingDataBase["sample_rate"][0] = sample_rate
+            self.widget_table.setItem(
+                self.counter_iteration, 1, QTableWidgetItem(str(ch_data.size))
+            )
+            self.widget_table.setItem(
+                self.counter_iteration, 2, QTableWidgetItem(str(sample_rate))
+            )
+            self.widget_table.setItem(
+                self.counter_iteration, 3, QTableWidgetItem("Finished")
+            )
             self.counter_iteration = self.counter_iteration + 1
             self.compute_cmn_iteration_start()
         return 0
 
     def save_process_start(self, file_fullPath):
         self.saveData.file_fullPath = file_fullPath
-        self.saveData.ch_data = self._workingDataBase['ch_data_cmn']
-        self.saveData.ch_time = self._workingDataBase['ch_time']
-        self.saveData.sample_rate = self._workingDataBase['sample_rate'][0]
+        self.saveData.ch_data = self._workingDataBase["ch_data_cmn"]
+        self.saveData.ch_time = self._workingDataBase["ch_time"]
+        self.saveData.sample_rate = self._workingDataBase["sample_rate"][0]
         self.saveData.start()
-        self.label_statusBar.setText('Saving data ...')
-        self.progress_statusBar.setRange(0,0)
+        self.label_statusBar.setText("Saving data ...")
+        self.progress_statusBar.setRange(0, 0)
         self.widget_grand.setEnabled(False)
         return 0
 
     def save_process_finished(self):
-        self.label_statusBar.setText('Saved data.')
-        self.progress_statusBar.setRange(0,1)
+        self.label_statusBar.setText("Saved data.")
+        self.progress_statusBar.setRange(0, 1)
         self.widget_grand.setEnabled(True)
         self.pushBtn_save.setEnabled(False)
         return 0
 
-if __name__ == '__main__':
-    if sys.flags.interactive != 1 or not hasattr(QtCore, 'PYQT_VERSION'):
+
+if __name__ == "__main__":
+    if sys.flags.interactive != 1 or not hasattr(QtCore, "PYQT_VERSION"):
         cmnAvg_application = QtWidgets.QApplication(sys.argv)
         cmnAvg_widget = CommonAvgSignals()
         cmnAvg_widget.show()

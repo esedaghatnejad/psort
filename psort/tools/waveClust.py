@@ -5,22 +5,23 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Mohammad Amin Fakharian <ma.fakharian@gmail.com>
          Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+import os
+from copy import deepcopy
+
+import numpy as np
+import pyqtgraph as pg
+
 ## #############################################################################
 # %% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QShortcut
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt
-import os
-import pyqtgraph as pg
-import numpy as np
-from copy import deepcopy
-from psort.utils import dictionaries
-from psort.utils import lib
-from psort.utils import signals_lib
-from psort.gui.inputDialog import PsortInputDialog
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QShortcut
+
 from psort.gui.checkListDialog import PsortChecklistDialog
+from psort.gui.inputDialog import PsortInputDialog
+from psort.utils import dictionaries, lib, signals_lib
 
 nanLabel = lib.nanLabel
 
@@ -2830,13 +2831,13 @@ class WaveClustWidget(QWidget):
         self._workingDataBase["popUp_mode"] = np.array(
             ["raw_signal_manual"], dtype=np.unicode
         )
-        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["ssPeak_mode"] == np.array(
             ["max"], dtype=np.unicode
         ):
             _sign = +1
-        if self._workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["csPeak_mode"] == np.array(
             ["max"], dtype=np.unicode

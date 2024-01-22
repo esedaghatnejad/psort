@@ -4,10 +4,11 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+from copy import deepcopy
+
 ## #############################################################################
 # %% IMPORT PACKAGES
 import numpy as np
-from copy import deepcopy
 
 ## #############################################################################
 list_color = [
@@ -178,9 +179,9 @@ _singleSlotDataBase = {
     "cs_pca_bound_max": np.array([+0.0030], dtype=np.float32),
     "cs_pca1_ROI": np.zeros((0), dtype=np.float32),
     "cs_pca2_ROI": np.zeros((0), dtype=np.float32),
-    "ssPeak_mode": np.array(["min"], dtype=np.unicode),
-    "csPeak_mode": np.array(["max"], dtype=np.unicode),
-    "csAlign_mode": np.array(["ss_index"], dtype=np.unicode),
+    "ssPeak_mode": np.array(["min"], dtype=np.unicode_),
+    "csPeak_mode": np.array(["max"], dtype=np.unicode_),
+    "csAlign_mode": np.array(["ss_index"], dtype=np.unicode_),
     "ssLearnTemp_mode": np.array([False], dtype=bool),
     "csLearnTemp_mode": np.array([False], dtype=bool),
 }
@@ -190,13 +191,13 @@ for key in GLOBAL_DICT.keys():
 ## ################################################################################################
 _topLevelDataBase = {
     "PSORT_VERSION": np.array([1, 0, 8], dtype=np.uint32),
-    "file_fullPathOriginal": np.array([""], dtype=np.unicode),
-    "file_fullPathCommonAvg": np.array([""], dtype=np.unicode),
-    "file_fullPath": np.array([""], dtype=np.unicode),
-    "file_path": np.array([""], dtype=np.unicode),
-    "file_name": np.array([""], dtype=np.unicode),
-    "file_ext": np.array([""], dtype=np.unicode),
-    "file_name_without_ext": np.array([""], dtype=np.unicode),
+    "file_fullPathOriginal": np.array([""], dtype=np.unicode_),
+    "file_fullPathCommonAvg": np.array([""], dtype=np.unicode_),
+    "file_fullPath": np.array([""], dtype=np.unicode_),
+    "file_path": np.array([""], dtype=np.unicode_),
+    "file_name": np.array([""], dtype=np.unicode_),
+    "file_ext": np.array([""], dtype=np.unicode_),
+    "file_name_without_ext": np.array([""], dtype=np.unicode_),
     "index_slot_edges": np.zeros((2), dtype=np.uint32),
     "total_slot_num": np.full((1), 1, dtype=np.uint32),
     "current_slot_num": np.zeros((1), dtype=np.uint32),
@@ -267,17 +268,17 @@ _workingDataBase = {
     "cs_similarity_to_cs": np.zeros((0), dtype=np.float32),
     "cs_similarity_to_ss": np.zeros((0), dtype=np.float32),
     "ss_scatter_mat": np.zeros((0, 0), dtype=np.float32),
-    "ss_scatter_list": np.array(["comboBx_list"], dtype=np.unicode),
+    "ss_scatter_list": np.array(["comboBx_list"], dtype=np.unicode_),
     "ss_scatter1": np.zeros((0), dtype=np.float32),
     "ss_scatter2": np.zeros((0), dtype=np.float32),
     "cs_scatter_mat": np.zeros((0, 0), dtype=np.float32),
-    "cs_scatter_list": np.array(["comboBx_list"], dtype=np.unicode),
+    "cs_scatter_list": np.array(["comboBx_list"], dtype=np.unicode_),
     "cs_scatter1": np.zeros((0), dtype=np.float32),
     "cs_scatter2": np.zeros((0), dtype=np.float32),
     "umap_enable": np.array([False], dtype=bool),
     "popUp_ROI_x": np.zeros((0), dtype=np.float32),
     "popUp_ROI_y": np.zeros((0), dtype=np.float32),
-    "popUp_mode": np.array(["ss_pca_manual"], dtype=np.unicode),
+    "popUp_mode": np.array(["ss_pca_manual"], dtype=np.unicode_),
     "flag_index_detection": np.array([True], dtype=bool),
     "flag_tools_prefrences": np.array([False], dtype=bool),
     "ss_index_undoRedo": np.zeros((0, 0), dtype=bool),
@@ -293,8 +294,8 @@ for key in _singleSlotDataBase.keys():
     _workingDataBase[key] = deepcopy(_singleSlotDataBase[key])
 ## ################################################################################################
 _fileDataBase = {
-    "load_file_fullPath": np.array([""], dtype=np.unicode),
-    "save_file_fullPath": np.array([""], dtype=np.unicode),
+    "load_file_fullPath": np.array([""], dtype=np.unicode_),
+    "save_file_fullPath": np.array([""], dtype=np.unicode_),
     "isMainSignal": np.zeros((1), dtype=bool),
     "isCommonAverage": np.zeros((1), dtype=bool),
     "isLfpSignal": np.zeros((1), dtype=bool),

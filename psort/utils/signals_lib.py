@@ -4,21 +4,22 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+from copy import deepcopy
+
 ## #############################################################################
 # %% IMPORT PACKAGES
 import numpy as np
-from copy import deepcopy
-from psort.utils import lib
-from psort.utils import database
+
+from psort.utils import database, lib
 
 
 ## ################################################################################################
 # %% DATA MANAGEMENT
 def resolve_ss_ss_conflicts(_workingDataBase):
     win_look_around = _workingDataBase["GLOBAL_CONFLICT_SS_SS_AROUND"][0]
-    if _workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+    if _workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
         _peakType = "min"
-    elif _workingDataBase["ssPeak_mode"] == np.array(["max"], dtype=np.unicode):
+    elif _workingDataBase["ssPeak_mode"] == np.array(["max"], dtype=np.unicode_):
         _peakType = "max"
     # search .5ms before and .5ms after the SS and select the dominant peak
     window_len = int(win_look_around * _workingDataBase["sample_rate"][0])
@@ -64,9 +65,9 @@ def resolve_ss_ss_conflicts(_workingDataBase):
 
 def resolve_cs_slow_cs_slow_conflicts(_workingDataBase):
     win_look_around = _workingDataBase["GLOBAL_CONFLICT_CSSLOW_CSSLOW_AROUND"][0]
-    if _workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode):
+    if _workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
         _peakType = "max"
-    elif _workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode):
+    elif _workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode_):
         _peakType = "min"
     # search 5ms before and 5ms after the CS_SLOW and select the dominant peak
     window_len = int(win_look_around * _workingDataBase["sample_rate"][0])
@@ -142,9 +143,9 @@ def resolve_cs_cs_conflicts(_workingDataBase):
 
 def resolve_cs_cs_slow_conflicts(_workingDataBase):
     win_look_around = _workingDataBase["GLOBAL_CONFLICT_CS_CSSLOW_AROUND"][0]
-    if _workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode):
+    if _workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
         _peakType = "max"
-    elif _workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode):
+    elif _workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode_):
         _peakType = "min"
     window_len = int(win_look_around * _workingDataBase["sample_rate"][0])
     _data_cs = _workingDataBase["ch_data_cs"]
@@ -302,11 +303,11 @@ def align_cs_wrt_cs_temp(_workingDataBase):
 
 
 def align_cs(_workingDataBase):
-    if _workingDataBase["csAlign_mode"] == np.array(["ss_index"], dtype=np.unicode):
+    if _workingDataBase["csAlign_mode"] == np.array(["ss_index"], dtype=np.unicode_):
         align_cs_wrt_ss_index(_workingDataBase)
-    elif _workingDataBase["csAlign_mode"] == np.array(["ss_temp"], dtype=np.unicode):
+    elif _workingDataBase["csAlign_mode"] == np.array(["ss_temp"], dtype=np.unicode_):
         align_cs_wrt_ss_temp(_workingDataBase)
-    elif _workingDataBase["csAlign_mode"] == np.array(["cs_temp"], dtype=np.unicode):
+    elif _workingDataBase["csAlign_mode"] == np.array(["cs_temp"], dtype=np.unicode_):
         align_cs_wrt_cs_temp(_workingDataBase)
     resolve_cs_cs_conflicts(_workingDataBase)
     resolve_cs_cs_slow_conflicts(_workingDataBase)
@@ -1207,7 +1208,7 @@ def extract_ss_scatter(_workingDataBase):
         comboBx_Items.append("rand num")
         num_D = len(comboBx_Items)
         _workingDataBase["ss_scatter_mat"] = ss_scatter_mat_
-        _workingDataBase["ss_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode)
+        _workingDataBase["ss_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode_)
         if not (_workingDataBase["umap_enable"][0]):
             if 3 <= _workingDataBase["ss_pca1_index"][0] <= 4:
                 _workingDataBase["ss_pca1_index"][0] -= 3
@@ -1235,7 +1236,7 @@ def extract_ss_scatter(_workingDataBase):
         comboBx_Items.append("pca1")
         comboBx_Items.append("pca2")
         _workingDataBase["ss_scatter_mat"] = ss_scatter_mat_
-        _workingDataBase["ss_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode)
+        _workingDataBase["ss_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode_)
         _workingDataBase["ss_scatter1"] = np.zeros((0), dtype=np.float32)
         _workingDataBase["ss_scatter2"] = np.zeros((0), dtype=np.float32)
         # ss_pca1_index
@@ -1310,7 +1311,7 @@ def extract_cs_scatter(_workingDataBase):
         comboBx_Items.append("rand num")
         num_D = len(comboBx_Items)
         _workingDataBase["cs_scatter_mat"] = cs_scatter_mat_
-        _workingDataBase["cs_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode)
+        _workingDataBase["cs_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode_)
         if not (_workingDataBase["umap_enable"][0]):
             if 3 <= _workingDataBase["cs_pca1_index"][0] <= 4:
                 _workingDataBase["cs_pca1_index"][0] -= 3
@@ -1338,7 +1339,7 @@ def extract_cs_scatter(_workingDataBase):
         comboBx_Items.append("pca1")
         comboBx_Items.append("pca2")
         _workingDataBase["cs_scatter_mat"] = cs_scatter_mat_
-        _workingDataBase["cs_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode)
+        _workingDataBase["cs_scatter_list"] = np.array(comboBx_Items, dtype=np.unicode_)
         _workingDataBase["cs_scatter1"] = np.zeros((0), dtype=np.float32)
         _workingDataBase["cs_scatter2"] = np.zeros((0), dtype=np.float32)
         # cs_pca1_index

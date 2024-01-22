@@ -4,33 +4,33 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+import datetime
+import os
+import sys
+import time
+from copy import deepcopy
+
+import decorator
+import numpy as np
+import pyqtgraph as pg
+
 ## ################################################################################################
 ## ################################################################################################
 # %% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import *
-import pyqtgraph as pg
-import numpy as np
-from copy import deepcopy
-import os
-import datetime
-import time
-import sys
-import decorator
-from psort.utils import dictionaries
-from psort.utils import lib
-from psort.utils import signals_lib
-from psort.utils import database
-from psort.utils.database import PsortDataBase
-from psort.gui.widgets import PsortGuiWidget
-from psort.gui.inputDialog import PsortInputDialog
+
 from psort.addons.commonAvg import CommonAvgSignals
+from psort.gui.inputDialog import PsortInputDialog
+from psort.gui.widgets import PsortGuiWidget
 from psort.tools.cellSummary import CellSummarySignals
 from psort.tools.prefrences import EditPrefrencesDialog
 from psort.tools.scatterSelect import ScatterSelectWidget
-from psort.tools.waveDissect import WaveDissectWidget
 from psort.tools.slotBoundary import SlotBoundaryWidget
 from psort.tools.waveClust import WaveClustWidget
+from psort.tools.waveDissect import WaveDissectWidget
+from psort.utils import database, dictionaries, lib, signals_lib
+from psort.utils.database import PsortDataBase
 
 ## ################################################################################################
 ## ################################################################################################
@@ -1290,18 +1290,18 @@ class PsortGuiSignals(PsortGuiWidget):
 
     def onfilterPanel_SsFast_IndexChanged(self):
         if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
-            self._workingDataBase["ssPeak_mode"] = np.array(["min"], dtype=np.unicode)
+            self._workingDataBase["ssPeak_mode"] = np.array(["min"], dtype=np.unicode_)
         elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
-            self._workingDataBase["ssPeak_mode"] = np.array(["max"], dtype=np.unicode)
+            self._workingDataBase["ssPeak_mode"] = np.array(["max"], dtype=np.unicode_)
         self.onRawSignal_SsThresh_ValueChanged()
         self.onRawSignal_SsAutoThresh_Clicked()
         return 0
 
     def onfilterPanel_CsSlow_IndexChanged(self):
         if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
-            self._workingDataBase["csPeak_mode"] = np.array(["max"], dtype=np.unicode)
+            self._workingDataBase["csPeak_mode"] = np.array(["max"], dtype=np.unicode_)
         elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
-            self._workingDataBase["csPeak_mode"] = np.array(["min"], dtype=np.unicode)
+            self._workingDataBase["csPeak_mode"] = np.array(["min"], dtype=np.unicode_)
         self.onRawSignal_CsThresh_ValueChanged()
         self.onRawSignal_CsAutoThresh_Clicked()
         return 0
@@ -1352,7 +1352,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase["ss_threshold"][
             0
         ] = self.txtedit_mainwin_rawSignalPanel_SsThresh.value()
-        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["ssPeak_mode"] == np.array(
             ["max"], dtype=np.unicode
@@ -1369,7 +1369,7 @@ class PsortGuiSignals(PsortGuiWidget):
         self._workingDataBase["cs_threshold"][
             0
         ] = self.txtedit_mainwin_rawSignalPanel_CsThresh.value()
-        if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode):
+        if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
             _sign = +1
         elif self._workingDataBase["csPeak_mode"] == np.array(
             ["min"], dtype=np.unicode
@@ -1397,7 +1397,7 @@ class PsortGuiSignals(PsortGuiWidget):
         labels, centers = lib.GaussianMixture(
             input_data=gmm_data, n_clusters=2, init_val=None, covariance_type="tied"
         )
-        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             ind_cluster_noise = np.argmax(centers)
             _threshold = np.min(gmm_data[labels == ind_cluster_noise])
             self.txtedit_mainwin_rawSignalPanel_SsThresh.setValue((-_threshold) + 1)
@@ -1424,7 +1424,7 @@ class PsortGuiSignals(PsortGuiWidget):
         labels, centers = lib.GaussianMixture(
             input_data=gmm_data, n_clusters=2, init_val=None, covariance_type="tied"
         )
-        if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode):
+        if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
             ind_cluster_noise = np.argmin(centers)
             _threshold = np.max(gmm_data[labels == ind_cluster_noise])
             self.txtedit_mainwin_rawSignalPanel_CsThresh.setValue((+_threshold) + 1)
@@ -3254,14 +3254,14 @@ class PsortGuiSignals(PsortGuiWidget):
         ):
             self.comboBx_mainwin_filterPanel_CsAlign.setCurrentIndex(2)
         # ssPeak_mode
-        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(0)
         elif self._workingDataBase["ssPeak_mode"] == np.array(
             ["max"], dtype=np.unicode
         ):
             self.comboBx_mainwin_filterPanel_SsFast.setCurrentIndex(1)
         # csPeak_mode
-        if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode):
+        if self._workingDataBase["csPeak_mode"] == np.array(["max"], dtype=np.unicode_):
             self.comboBx_mainwin_filterPanel_CsSlow.setCurrentIndex(0)
         elif self._workingDataBase["csPeak_mode"] == np.array(
             ["min"], dtype=np.unicode
@@ -3341,14 +3341,14 @@ class PsortGuiSignals(PsortGuiWidget):
             )
         # ssPeak_mode
         if self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 0:
-            self._workingDataBase["ssPeak_mode"] = np.array(["min"], dtype=np.unicode)
+            self._workingDataBase["ssPeak_mode"] = np.array(["min"], dtype=np.unicode_)
         elif self.comboBx_mainwin_filterPanel_SsFast.currentIndex() == 1:
-            self._workingDataBase["ssPeak_mode"] = np.array(["max"], dtype=np.unicode)
+            self._workingDataBase["ssPeak_mode"] = np.array(["max"], dtype=np.unicode_)
         # csPeak_mode
         if self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 0:
-            self._workingDataBase["csPeak_mode"] = np.array(["max"], dtype=np.unicode)
+            self._workingDataBase["csPeak_mode"] = np.array(["max"], dtype=np.unicode_)
         elif self.comboBx_mainwin_filterPanel_CsSlow.currentIndex() == 1:
-            self._workingDataBase["csPeak_mode"] = np.array(["min"], dtype=np.unicode)
+            self._workingDataBase["csPeak_mode"] = np.array(["min"], dtype=np.unicode_)
         # ssLearnTemp_mode
         self._workingDataBase["ssLearnTemp_mode"][
             0

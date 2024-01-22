@@ -6,18 +6,20 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
          Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
          Mohammad Amin Fakharian <ma.fakharian@gmail.com>
 """
+import os
+
+import numpy as np
+import pyqtgraph as pg
+
 ## #############################################################################
 # %% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtGui, QtCore
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QShortcut
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt
-import os
-import pyqtgraph as pg
-import numpy as np
-from psort.utils import lib
-from psort.utils import signals_lib
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QShortcut
+
+from psort.utils import lib, signals_lib
 
 
 ## #############################################################################
@@ -2130,7 +2132,7 @@ class WaveDissectWidget(QWidget):
         )
         ss_data_search_win = _data_ss[search_win_inds]
 
-        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             ss_ind_search_win = np.argmin(ss_data_search_win)
         elif self._workingDataBase["ssPeak_mode"] == np.array(
             ["max"], dtype=np.unicode
@@ -2391,7 +2393,7 @@ class WaveDissectWidget(QWidget):
             ["raw_signal_manual"], dtype=np.unicode
         )
 
-        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["ssPeak_mode"] == np.array(
             ["max"], dtype=np.unicode
@@ -2400,7 +2402,7 @@ class WaveDissectWidget(QWidget):
         self.infLine_rawSignal_SsThresh_popUpPlot.setValue(
             self._workingDataBase["ss_threshold"][0] * _sign
         )
-        if self._workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode):
+        if self._workingDataBase["csPeak_mode"] == np.array(["min"], dtype=np.unicode_):
             _sign = -1
         elif self._workingDataBase["csPeak_mode"] == np.array(
             ["max"], dtype=np.unicode

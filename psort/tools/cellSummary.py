@@ -4,24 +4,26 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
-## #############################################################################
-# %% IMPORT PACKAGES
-from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtWidgets import *
+import os
+import sys  # We need sys so that we can pass argv to QApplication
+from copy import deepcopy
+
+import numpy as np
 import pyqtgraph as pg
 import pyqtgraph.exporters
-import numpy as np
-from copy import deepcopy
-import sys  # We need sys so that we can pass argv to QApplication
-import os
-from psort.utils import lib
-from psort.utils import signals_lib
+
+## #############################################################################
+# %% IMPORT PACKAGES
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import *
+
+from psort.utils import lib, signals_lib
 
 ## #############################################################################
 # %% CellSummaryDataBase
 _workingDataBase = {
-    "file_name": np.array([""], dtype=np.unicode),
-    "file_path": np.array([""], dtype=np.unicode),
+    "file_name": np.array([""], dtype=np.unicode_),
+    "file_path": np.array([""], dtype=np.unicode_),
     "index_slot_edges": np.zeros((30), dtype=np.uint32),
     "total_slot_num": np.full((1), 30, dtype=np.uint8),
     "current_slot_num": np.zeros((1), dtype=np.uint8),

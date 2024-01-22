@@ -4,16 +4,15 @@
 Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 @author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
 """
+import os
+from copy import deepcopy
+
 ## #############################################################################
 # %% IMPORT PACKAGES
 import numpy as np
-from copy import deepcopy
-import os
-from psort.dependencies import deepdish_package
-from psort.dependencies import pymatreader_package
-from psort.dependencies import openephys_package
-from psort.utils import dictionaries
-from psort.utils import lib
+
+from psort.dependencies import deepdish_package, openephys_package, pymatreader_package
+from psort.utils import dictionaries, lib
 
 
 class PsortDataBase:
@@ -251,9 +250,9 @@ class PsortDataBase:
         self._topLevelDataBase["file_fullPath"] = np.array(
             [file_fullPath], dtype=np.unicode
         )
-        self._topLevelDataBase["file_path"] = np.array([file_path], dtype=np.unicode)
-        self._topLevelDataBase["file_name"] = np.array([file_name], dtype=np.unicode)
-        self._topLevelDataBase["file_ext"] = np.array([file_ext], dtype=np.unicode)
+        self._topLevelDataBase["file_path"] = np.array([file_path], dtype=np.unicode_)
+        self._topLevelDataBase["file_name"] = np.array([file_name], dtype=np.unicode_)
+        self._topLevelDataBase["file_ext"] = np.array([file_ext], dtype=np.unicode_)
         self._topLevelDataBase["file_name_without_ext"] = np.array(
             [file_name_without_ext], dtype=np.unicode
         )
