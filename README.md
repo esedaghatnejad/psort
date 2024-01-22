@@ -77,26 +77,13 @@ Remove the `psort` env if you already have created one. If this is your first ti
 
 `conda env remove -n psort`
 
-Make a new environment called `psort` and install python 3.7 inside of it.
+Make a new environment called `psort` and install python 3.10 and necessary packages inside of it.
 
-`conda create -n psort python=3.10`
+`conda env create -f environment.yml`
 
 Activate the `psort` env.
 
 `conda activate psort`
-
-We will now install necessary packages. This is a one-time action.
-```sh
-conda install pyqt
-conda install pyqtgraph
-conda install decorator
-conda install numba
-conda install umap-learn
-conda install pytables
-conda install scikit-learn
-conda install matplotlib
-conda install conda-forge::python-neo
-```
 
 Press ‘y’ and hit **Enter** when asked for.
 
