@@ -7,11 +7,13 @@ Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
 import os
 from copy import deepcopy
 
+import deepdish
+
 ## #############################################################################
 # %% IMPORT PACKAGES
 import numpy as np
 
-from psort.dependencies import deepdish_package, openephys_package, pymatreader_package
+from psort.dependencies import openephys_package, pymatreader_package
 from psort.utils import dictionaries, lib
 
 
