@@ -1,26 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
 from copy import deepcopy
 
 import numpy as np
 import pyqtgraph as pg
-
-## #############################################################################
-# %% IMPORT PACKAGES
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
 
 from psort.utils import lib
 
 
-## #############################################################################
-# %% CellSummaryWidget
-class SlotBoundaryWidget(QWidget):
+# SlotBoundaryWidget
+class SlotBoundaryWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(SlotBoundaryWidget, self).__init__(parent)
         self._workingDataBase = {
@@ -38,66 +27,69 @@ class SlotBoundaryWidget(QWidget):
         self.init_slotBoundary_plot()
         return None
 
-    ## #############################################################################
-    # %% build_rawPlot_popup_Widget
+    # build_rawPlot_popup_Widget
     def build_slotBoundary_Widget(self):
-        self.layout_slotBoundary = QVBoxLayout()
-        self.layout_slotBoundary_OkCancel = QHBoxLayout()
-        self.layout_slotBoundary_toolbar = QHBoxLayout()
+        self.layout_slotBoundary = QtWidgets.QVBoxLayout()
+        self.layout_slotBoundary_OkCancel = QtWidgets.QHBoxLayout()
+        self.layout_slotBoundary_toolbar = QtWidgets.QHBoxLayout()
         # Cancel push button for closing the window and terminating the process
-        self.pushBtn_slotBoundary_cancel = QPushButton("Cancel")
+        self.pushBtn_slotBoundary_cancel = QtWidgets.QPushButton("Cancel")
         lib.setFont(self.pushBtn_slotBoundary_cancel)
-        self.pushBtn_slotBoundary_ok = QPushButton("OK")
+        self.pushBtn_slotBoundary_ok = QtWidgets.QPushButton("OK")
         lib.setFont(self.pushBtn_slotBoundary_ok)
         self.layout_slotBoundary_OkCancel.addWidget(self.pushBtn_slotBoundary_cancel)
         self.layout_slotBoundary_OkCancel.addWidget(self.pushBtn_slotBoundary_ok)
         # separator line
         self.line_slotBoundary_h0 = QtWidgets.QFrame()
-        self.line_slotBoundary_h0.setFrameShape(QFrame.HLine)
-        self.line_slotBoundary_h0.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_h0.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_slotBoundary_h0.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_slotBoundary_h1 = QtWidgets.QFrame()
-        self.line_slotBoundary_h1.setFrameShape(QFrame.HLine)
-        self.line_slotBoundary_h1.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_h1.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_slotBoundary_h1.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_slotBoundary_v0 = QtWidgets.QFrame()
-        self.line_slotBoundary_v0.setFrameShape(QFrame.VLine)
-        self.line_slotBoundary_v0.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_v0.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_slotBoundary_v0.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_slotBoundary_v1 = QtWidgets.QFrame()
-        self.line_slotBoundary_v1.setFrameShape(QFrame.VLine)
-        self.line_slotBoundary_v1.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_v1.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_slotBoundary_v1.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_slotBoundary_v2 = QtWidgets.QFrame()
-        self.line_slotBoundary_v2.setFrameShape(QFrame.VLine)
-        self.line_slotBoundary_v2.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_v2.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_slotBoundary_v2.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_slotBoundary_v3 = QtWidgets.QFrame()
-        self.line_slotBoundary_v3.setFrameShape(QFrame.VLine)
-        self.line_slotBoundary_v3.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_v3.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_slotBoundary_v3.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_slotBoundary_v4 = QtWidgets.QFrame()
-        self.line_slotBoundary_v4.setFrameShape(QFrame.VLine)
-        self.line_slotBoundary_v4.setFrameShadow(QFrame.Sunken)
+        self.line_slotBoundary_v4.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_slotBoundary_v4.setFrameShadow(QtWidgets.QFrame.Sunken)
         # toolbar
-        self.label_slotBoundary_numSlots = QLabel("Number of slots:")
+        self.label_slotBoundary_numSlots = QtWidgets.QLabel("Number of slots:")
         lib.setFont(self.label_slotBoundary_numSlots)
-        self.spinBx_slotBoundary_numSlots = QSpinBox()
+        self.spinBx_slotBoundary_numSlots = QtWidgets.QSpinBox()
         self.spinBx_slotBoundary_numSlots.setKeyboardTracking(False)
         self.spinBx_slotBoundary_numSlots.setMinimum(1)
         self.spinBx_slotBoundary_numSlots.setMaximum(120)
         self.spinBx_slotBoundary_numSlots.setValue(30)
         lib.setFont(self.spinBx_slotBoundary_numSlots)
-        self.pushBtn_slotBoundary_addSlot = QPushButton("Add line at click")
+        self.pushBtn_slotBoundary_addSlot = QtWidgets.QPushButton("Add line at click")
         lib.setFont(self.pushBtn_slotBoundary_addSlot)
         self.pushBtn_slotBoundary_addSlot.setCheckable(True)
         self.pushBtn_slotBoundary_addSlot.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "crosshair.png"))
         )
-        self.label_slotBoundary_description = QLabel(
+        self.label_slotBoundary_description = QtWidgets.QLabel(
             "Drag line out of boundries to delete."
         )
         lib.setFont(self.label_slotBoundary_description)
-        self.label_slotBoundary_resetModeDescription = QLabel("Restart mode: ")
+        self.label_slotBoundary_resetModeDescription = QtWidgets.QLabel(
+            "Restart mode: "
+        )
         lib.setFont(self.label_slotBoundary_resetModeDescription)
-        self.comboBx_slotBoundary_restartMode = QComboBox()
+        self.comboBx_slotBoundary_restartMode = QtWidgets.QComboBox()
         self.comboBx_slotBoundary_restartMode.addItems(["Hard restart", "Soft restart"])
         lib.setFont(self.comboBx_slotBoundary_restartMode)
-        self.label_slotBoundary_duration = QLabel(f"Avg slot duration: {10}s.")
+        self.label_slotBoundary_duration = QtWidgets.QLabel(
+            f"Avg slot duration: {10}s."
+        )
         lib.setFont(self.label_slotBoundary_duration)
         self.layout_slotBoundary_toolbar.addWidget(self.label_slotBoundary_numSlots)
         self.layout_slotBoundary_toolbar.addWidget(self.spinBx_slotBoundary_numSlots)

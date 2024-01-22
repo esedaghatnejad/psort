@@ -1,27 +1,18 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
 from copy import deepcopy
 
 import numpy as np
 import pyqtgraph as pg
 
-## #############################################################################
-# %% IMPORT PACKAGES
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import *
+# IMPORT PACKAGES
+from PyQt5 import QtCore, QtWidgets
 
 from psort.gui.inputDialog import PsortInputDialog
 from psort.utils import dictionaries, lib
 
 
-## #############################################################################
-# %% ScatterSelectWidget
-class ScatterSelectWidget(QWidget):
+# ScatterSelectWidget
+class ScatterSelectWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(ScatterSelectWidget, self).__init__(parent)
         self._workingDataBase = {}
@@ -32,22 +23,21 @@ class ScatterSelectWidget(QWidget):
         self.init_scatterSelect_plot()
         return None
 
-    ## #############################################################################
-    # %% build Widget
+    # build Widget
     def build_scatterSelect_Widget(self):
-        self.layout_scatterSelect = QVBoxLayout()
-        self.layout_scatterSelect_Btn = QHBoxLayout()
+        self.layout_scatterSelect = QtWidgets.QVBoxLayout()
+        self.layout_scatterSelect_Btn = QtWidgets.QHBoxLayout()
         # Cancel push button for closing the window and terminating the process
-        self.pushBtn_scatterSelect_cancel = QPushButton("Cancel")
+        self.pushBtn_scatterSelect_cancel = QtWidgets.QPushButton("Cancel")
         lib.setFont(self.pushBtn_scatterSelect_cancel)
-        self.pushBtn_scatterSelect_ok = QPushButton("OK")
+        self.pushBtn_scatterSelect_ok = QtWidgets.QPushButton("OK")
         lib.setFont(self.pushBtn_scatterSelect_ok)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_cancel)
         self.layout_scatterSelect_Btn.addWidget(self.pushBtn_scatterSelect_ok)
         # Housekeeping items
         self.line_scatterPlot_popup_h0 = QtWidgets.QFrame()
-        self.line_scatterPlot_popup_h0.setFrameShape(QFrame.HLine)
-        self.line_scatterPlot_popup_h0.setFrameShadow(QFrame.Sunken)
+        self.line_scatterPlot_popup_h0.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_scatterPlot_popup_h0.setFrameShadow(QtWidgets.QFrame.Sunken)
         # plot
         self.plot_scatterSelect_mainPlot = pg.PlotWidget()
         lib.set_plotWidget(self.plot_scatterSelect_mainPlot)
@@ -85,17 +75,6 @@ class ScatterSelectWidget(QWidget):
             symbolBrush=(0, 0, 0, 255),
             symbolPen=None,
         )
-        # cross hair
-        # self.infLine_scatterSelectPlot_vLine = \
-        #     pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
-        # self.plot_scatterSelect_mainPlot.\
-        #     addItem(self.infLine_scatterSelectPlot_vLine, ignoreBounds=True)
-        # self.infLine_scatterSelectPlot_hLine = \
-        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
-        # self.plot_scatterSelect_mainPlot.\
-        #     addItem(self.infLine_scatterSelectPlot_hLine, ignoreBounds=True)
         # scatterSelect ROI
         self.pltData_scatterSelectPlot_ROI = self.plot_scatterSelect_mainPlot.plot(
             np.zeros((0)),
@@ -149,14 +128,6 @@ class ScatterSelectWidget(QWidget):
         self.viewBox_scatterSelectPlot.autoRange()
         return 0
 
-    # def scatterSelect_mouseMoved(self, evt):
-    #     pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-    #     if self.plot_scatterSelect_mainPlot.sceneBoundingRect().contains(pos):
-    #         mousePoint = self.viewBox_scatterSelectPlot.mapSceneToView(pos)
-    #         self.infLine_scatterSelectPlot_vLine.setPos(mousePoint.x())
-    #         self.infLine_scatterSelectPlot_hLine.setPos(mousePoint.y())
-    #     return 0
-
     def scatterSelect_mouseClicked(self, evt):
         if evt[0].button() == QtCore.Qt.LeftButton:
             pos = evt[0].scenePos()
@@ -199,7 +170,6 @@ class ScatterSelectWidget(QWidget):
 
     def set_chData(self):
         if "ss_pca" in self._workingDataBase["popUp_mode"][0]:
-            ######################################################################
             # onSsPanel_selectPcaData_Clicked
             self.pltData_scatterSelectPlot.setData(
                 self._workingDataBase["ss_scatter1"],
@@ -225,7 +195,6 @@ class ScatterSelectWidget(QWidget):
                 "Y: SS_PCA2(au) | X: SS_PCA1(au)", color="k", size="12"
             )
         elif "cs_pca" in self._workingDataBase["popUp_mode"][0]:
-            ######################################################################
             # onCsPanel_selectPcaData_Clicked
             self.pltData_scatterSelectPlot.setData(
                 self._workingDataBase["cs_scatter1"],
@@ -251,7 +220,6 @@ class ScatterSelectWidget(QWidget):
                 "Y: CS_PCA2(au) | X: CS_PCA1(au)", color="k", size="12"
             )
         elif "ss_wave" in self._workingDataBase["popUp_mode"][0]:
-            ######################################################################
             # onSsPanel_selectWave_Clicked
             nan_array = np.full(
                 (self._workingDataBase["ss_wave"].shape[0]), np.NaN
@@ -287,7 +255,6 @@ class ScatterSelectWidget(QWidget):
                 "Y: SS_Waveform(uV) | X: Time(ms)", color="k", size="12"
             )
         elif "cs_wave" in self._workingDataBase["popUp_mode"][0]:
-            ######################################################################
             # onCsPanel_selectWave_Clicked
             nan_array = np.full(
                 (self._workingDataBase["cs_wave"].shape[0]), np.NaN
