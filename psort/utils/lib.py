@@ -380,7 +380,7 @@ def find_peaks(data, threshold=None, peakType=None):
 def inter_spike_interval_from_index(index_bool, sample_rate=None):
     if sample_rate is None:
         sample_rate = 30000.0  # sample_rate in Hz
-    if index_bool.dtype == np.bool:
+    if index_bool.dtype == bool:
         index_value = np.where(index_bool)[0]
     elif index_bool.dtype == int:
         pass
@@ -403,7 +403,7 @@ def inter_spike_interval_from_index(index_bool, sample_rate=None):
 def instant_firing_rate_from_index(index_bool, sample_rate=None):
     if sample_rate is None:
         sample_rate = 30000.0  # sample_rate in Hz
-    if index_bool.dtype == np.bool:
+    if index_bool.dtype == bool:
         index_value = np.where(index_bool)[0]
     elif index_bool.dtype == int:
         pass
@@ -452,14 +452,14 @@ def cross_probability(
             + "size of spike1 and spike2 should be the same.>",
             file=sys.stderr,
         )
-    if spike1_bool.dtype != np.bool:
+    if spike1_bool.dtype != bool:
         print(
-            "Error: <lib.cross_probability: spike1 should be np.bool array.>",
+            "Error: <lib.cross_probability: spike1 should be bool array.>",
             file=sys.stderr,
         )
-    if spike2_bool.dtype != np.bool:
+    if spike2_bool.dtype != bool:
         print(
-            "Error: <lib.cross_probability: spike2 should be np.bool array.>",
+            "Error: <lib.cross_probability: spike2 should be bool array.>",
             file=sys.stderr,
         )
     spike1_time = np.where(spike1_bool)[0] / float(sample_rate)
@@ -536,7 +536,7 @@ def extract_pca(waveform):
 
 def inpolygon(xq, yq, xv, yv):
     """
-    returns np.bool array indicating if the query points specified by xq and yq
+    returns bool array indicating if the query points specified by xq and yq
     are inside of the polygon area defined by xv and yv.
     xv: np.array([xv1, xv2, xv3, ..., xvN, xv1])
     yv: np.array([yv1, yv2, yv3, ..., yvN, yv1])
