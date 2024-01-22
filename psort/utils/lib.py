@@ -17,6 +17,7 @@ import pkg_resources
 import pyqtgraph as pg
 import scipy.stats
 from matplotlib import path
+from neo.io import spike2io
 from numba import jit
 
 ## #############################################################################
@@ -29,7 +30,6 @@ from sklearn.decomposition import PCA
 from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 
 from psort.dependencies import openephys_package, pymatreader_package
-from psort.dependencies.neo_package import spike2io
 
 installed_pkg = {pkg.key for pkg in pkg_resources.working_set}
 
