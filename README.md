@@ -71,19 +71,27 @@ Download the most recent version of P-sort from *GitHub*. Place it in a designat
 
 Activate the base environment. Usually the Anaconda opens in `(base)` env by default and you do not need to do this.
 
-`conda activate base`
+```sh
+conda activate base
+```
 
 Remove the `psort` env if you already have created one. If this is your first time, skip this step.
 
-`conda env remove -n psort`
+```sh
+conda env remove -n psort
+```
 
 Make a new environment called `psort` and install python 3.10 and necessary packages inside of it.
 
-`conda env create -f environment.yml`
+```sh
+conda env create -f environment.yml
+```
 
 Activate the `psort` env.
 
-`conda activate psort`
+```sh
+conda activate psort
+```
 
 Press ‘y’ and hit **Enter** when asked for.
 
@@ -94,7 +102,9 @@ Run **Anaconda Prompt** from **Start Menu** and navigate to P-sort folder. In *M
 
 Anaconda Prompt usually opens in the `base` env. You need to activate the `psort` env, first.
 
-`conda activate psort`
+```sh
+conda activate psort
+```
 
 Since P-sort is a Python package you have 2 options to run the code.
 
@@ -104,25 +114,31 @@ Since P-sort is a Python package you have 2 options to run the code.
 ## Install and Run P-sort
 Navigate to P-sort folder where `setup.py` is located. and then install `psort`:
 
-`python setup.py install`
+```sh
+python3 setup.py install
+```
 
 This command will install the `psort package` in the `conda library` and make it available for further use. After this installation, any time that you open the **Anaconda Prompt** (or **Terminal**), regardless of your current directory, you can activate the `psort` env and then by simply typing `psort` the program will run.
-```
+
+```sh
 conda activate psort
 psort
 ```
 
 **Note:** if you want to upgrade the version of the P-sort, make sure to first uninstall the current version, and then attempt to install the new version. For uninstalling the current version type:
 
-`pip uninstall psort`
+```sh
+pip3 uninstall psort
+```
 
 Press ‘y’ and hit **Enter** when asked for.
 
 ## Run P-sort from the Source Code
 To run the P-sort from the source code you need to always navigate to P-sort folder where `setup.py` is located, and then type the following command to run the software.
-```
+
+```sh
 conda activate psort
-python -m psort
+python3 -m psort
 ```
 
 # Supported File Formats
@@ -146,7 +162,8 @@ or instead of `ch_info.header.sampleRate` you can simply have a variable named `
 # Working with Psort File
 `.psort` file is just a `.h5` file under the hood and you can work with it in many languages.
 For **Python**, I suggest reading the file using `Deepdish` package. Here is how to extract spike times:
-```
+
+```python
 psort_file_address = "./data/file_id.psort"
 grandDataBase = deepdish.io.load(psort_file_address)
 topLevelDataBase = grandDataBase[-1]
@@ -158,7 +175,8 @@ cs_time = ch_time[cs_index]
 ```
 
 For working with the `.psort` file in `Matlab` you can use the codes that are provided in the `matlab_codes` folder.
-```
+
+```matlab
 psort_file_address = './data/file_id.psort';
 grandDataBase = Psort_read_psort(psort_file_address);
 ch_time = double(grandDataBase.topLevel_data.ch_time);
