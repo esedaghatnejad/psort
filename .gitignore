@@ -2,4 +2,6 @@
 *.pyc
 .ipynb_checkpoints
 .DS_Store
-
+build/
+dist/
+psort.egg-info/
