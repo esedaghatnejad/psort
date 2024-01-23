@@ -1,23 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Mohammad Amin Fakharian <ma.fakharian@gmail.com>
-         Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 import os
 from copy import deepcopy
 
 import numpy as np
 import pyqtgraph as pg
 
-## #############################################################################
-# %% IMPORT PACKAGES
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QShortcut
 
 from psort.gui.checkListDialog import PsortChecklistDialog
 from psort.gui.inputDialog import PsortInputDialog
@@ -26,11 +14,8 @@ from psort.utils import dictionaries, lib, signals_lib
 nanLabel = lib.nanLabel
 
 
-# import warnings
-# warnings.simplefilter('error', RuntimeWarning)
-## #############################################################################
-# %% CellSummaryWidget
-class WaveClustWidget(QWidget):
+# WaveClustWidget
+class WaveClustWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(WaveClustWidget, self).__init__(parent)
         self._workingDataBase = {}
@@ -67,55 +52,54 @@ class WaveClustWidget(QWidget):
         self.connect_scatterPlot_popup_signals()
         return None
 
-    ## #############################################################################
-    # %% build_scatterPlot_popup_Widget
+    # build_scatterPlot_popup_Widget
     def build_scatterPlot_popup_Widget(self):
-        self.layout_scatterPlot_popup = QVBoxLayout()
-        self.layout_scatterPlot_popup_Btn = QHBoxLayout()
-        self.layout_scatterPlot_popup_actionBtn = QHBoxLayout()
+        self.layout_scatterPlot_popup = QtWidgets.QVBoxLayout()
+        self.layout_scatterPlot_popup_Btn = QtWidgets.QHBoxLayout()
+        self.layout_scatterPlot_popup_actionBtn = QtWidgets.QHBoxLayout()
 
-        self.layout_scatterPlot_popup_belowMainBtn_vdivider = QSplitter(Qt.Vertical)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider = QtWidgets.QSplitter(Qt.Vertical)
         self.layout_scatterPlot_popup_belowMainBtn_vdivider.setChildrenCollapsible(
             False
         )
-        self.layout_scatterPlot_popup_belowMainBtn_vdivider1 = QSplitter(Qt.Vertical)
+        self.layout_scatterPlot_popup_belowMainBtn_vdivider1 = QtWidgets.QSplitter(Qt.Vertical)
         self.layout_scatterPlot_popup_belowMainBtn_vdivider1.setChildrenCollapsible(
             False
         )
 
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider = QSplitter(Qt.Horizontal)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider = QtWidgets.QSplitter(Qt.Horizontal)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider.setChildrenCollapsible(
             False
         )
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider1 = QSplitter(Qt.Horizontal)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider1 = QtWidgets.QSplitter(Qt.Horizontal)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider1.setChildrenCollapsible(
             False
         )
-        self.layout_scatterPlot_popup_belowMainBtn_hdivider2 = QSplitter(Qt.Horizontal)
+        self.layout_scatterPlot_popup_belowMainBtn_hdivider2 = QtWidgets.QSplitter(Qt.Horizontal)
         self.layout_scatterPlot_popup_belowMainBtn_hdivider2.setChildrenCollapsible(
             False
         )
 
-        self.layout_scatterPlot_popup_clust = QGridLayout()
-        self.layout_scatterPlot_popup_spike = QGridLayout()
-        self.layout_scatterPlot_popup_label = QGridLayout()
+        self.layout_scatterPlot_popup_clust = QtWidgets.QGridLayout()
+        self.layout_scatterPlot_popup_spike = QtWidgets.QGridLayout()
+        self.layout_scatterPlot_popup_label = QtWidgets.QGridLayout()
         # Method
-        self.layout_scatterPlot_popup_mode0 = QHBoxLayout()
-        self.layout_scatterPlot_popup_mode5 = QHBoxLayout()
+        self.layout_scatterPlot_popup_mode0 = QtWidgets.QHBoxLayout()
+        self.layout_scatterPlot_popup_mode5 = QtWidgets.QHBoxLayout()
         # Spike of Interest
-        self.layout_scatterPlot_popup_mode1 = QHBoxLayout()
+        self.layout_scatterPlot_popup_mode1 = QtWidgets.QHBoxLayout()
         # SS Label of Interest
-        self.layout_scatterPlot_popup_mode2 = QHBoxLayout()
+        self.layout_scatterPlot_popup_mode2 = QtWidgets.QHBoxLayout()
         # CS Label of Interest
-        self.layout_scatterPlot_popup_mode3 = QHBoxLayout()
+        self.layout_scatterPlot_popup_mode3 = QtWidgets.QHBoxLayout()
         # Next Prev Clust
-        self.layout_scatterPlot_popup_mode4 = QHBoxLayout()
+        self.layout_scatterPlot_popup_mode4 = QtWidgets.QHBoxLayout()
 
         # Main buttons
         # Cancel push button for closing the window and terminating the process
-        self.pushBtn_scatterPlot_popup_cancel = QPushButton("Cancel")
+        self.pushBtn_scatterPlot_popup_cancel = QtWidgets.QPushButton("Cancel")
         lib.setFont(self.pushBtn_scatterPlot_popup_cancel)
-        self.pushBtn_scatterPlot_popup_ok = QPushButton("OK")
+        self.pushBtn_scatterPlot_popup_ok = QtWidgets.QPushButton("OK")
         lib.setFont(self.pushBtn_scatterPlot_popup_ok)
 
         # Action widgets
@@ -126,7 +110,7 @@ class WaveClustWidget(QWidget):
             from www.flaticon.com
         """
         icon_size = 30
-        self.pushBtn_scatterPlot_popup_select = QPushButton("Select spikes")
+        self.pushBtn_scatterPlot_popup_select = QtWidgets.QPushButton("Select spikes")
         lib.setFont(self.pushBtn_scatterPlot_popup_select, color="black")
         self.pushBtn_scatterPlot_popup_select.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "select.png"))
@@ -134,7 +118,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_select.setToolTip(
             "<b>S</b>elect spikes in<br>the region of interest"
         )
-        self.pushBtn_scatterPlot_popup_clear = QPushButton("Clear ROI")
+        self.pushBtn_scatterPlot_popup_clear = QtWidgets.QPushButton("Clear ROI")
         lib.setFont(self.pushBtn_scatterPlot_popup_clear, color="black")
         self.pushBtn_scatterPlot_popup_clear.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "clear.png"))
@@ -142,7 +126,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_clear.setToolTip(
             "<b>C</b>lear the regions<br>of interest"
         )
-        self.pushBtn_scatterPlot_popup_delete = QPushButton("Delete spikes")
+        self.pushBtn_scatterPlot_popup_delete = QtWidgets.QPushButton("Delete spikes")
         lib.setFont(self.pushBtn_scatterPlot_popup_delete, color="black")
         self.pushBtn_scatterPlot_popup_delete.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "delete.png"))
@@ -150,7 +134,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_delete.setToolTip(
             "<b>D</b>elete the selected spikes"
         )
-        self.pushBtn_scatterPlot_popup_move = QPushButton("Move spikes")
+        self.pushBtn_scatterPlot_popup_move = QtWidgets.QPushButton("Move spikes")
         lib.setFont(self.pushBtn_scatterPlot_popup_move, color="black")
         self.pushBtn_scatterPlot_popup_move.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "move.png"))
@@ -158,12 +142,12 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_move.setToolTip(
             "<b>M</b>ove the selected<br>spikes to different<br>type"
         )
-        self.comboBx_scatterPlot_popup_spike_mode = QComboBox()
+        self.comboBx_scatterPlot_popup_spike_mode = QtWidgets.QComboBox()
         self.comboBx_scatterPlot_popup_spike_mode.addItems(["CS", "SS"])
         lib.setFont(self.comboBx_scatterPlot_popup_spike_mode, color="black")
-        self.label_scatterPlot_popup_spike_of_interest = QLabel("Current mode: ")
+        self.label_scatterPlot_popup_spike_of_interest = QtWidgets.QLabel("Current mode: ")
         lib.setFont(self.label_scatterPlot_popup_spike_of_interest, color="black")
-        self.pushBtn_scatterPlot_popup_setlabel = QPushButton("Set label")
+        self.pushBtn_scatterPlot_popup_setlabel = QtWidgets.QPushButton("Set label")
         lib.setFont(self.pushBtn_scatterPlot_popup_setlabel, color="black")
         self.pushBtn_scatterPlot_popup_setlabel.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "pin.png"))
@@ -172,7 +156,7 @@ class WaveClustWidget(QWidget):
             "Set the <b>L</b>abel of selected spikes"
         )
 
-        self.comboBx_scatterPlot_popup_method = QComboBox()
+        self.comboBx_scatterPlot_popup_method = QtWidgets.QComboBox()
         self.comboBx_scatterPlot_popup_method.addItems(["GMM", "Outlier"])
         # self.comboBx_scatterPlot_popup_method.addItems(["GMM", "Outlier", "Isolation-score"])
         if lib.is_isosplit_available:
@@ -181,10 +165,10 @@ class WaveClustWidget(QWidget):
             self.comboBx_scatterPlot_popup_method.addItems(["HDBScan"])
         lib.setFont(self.comboBx_scatterPlot_popup_method, color="black")
 
-        self.label_scatterPlot_popup_method = QLabel("Method: ")
+        self.label_scatterPlot_popup_method = QtWidgets.QLabel("Method: ")
         lib.setFont(self.label_scatterPlot_popup_method, color="black")
 
-        self.pushBtn_scatterPlot_popup_applymethod = QPushButton("Apply")
+        self.pushBtn_scatterPlot_popup_applymethod = QtWidgets.QPushButton("Apply")
         lib.setFont(self.pushBtn_scatterPlot_popup_applymethod, color="black")
         self.pushBtn_scatterPlot_popup_applymethod.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "apply.png"))
@@ -194,40 +178,40 @@ class WaveClustWidget(QWidget):
         )
         self.pushBtn_scatterPlot_popup_applymethod.setCheckable(True)
 
-        self.pushBtn_scatterPlot_popup_reset = QPushButton("Reset labels")
+        self.pushBtn_scatterPlot_popup_reset = QtWidgets.QPushButton("Reset labels")
         lib.setFont(self.pushBtn_scatterPlot_popup_reset, color="black")
         self.pushBtn_scatterPlot_popup_reset.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "reset.png"))
         )
         self.pushBtn_scatterPlot_popup_reset.setToolTip("<b>R</b>eset")
 
-        self.pushBtn_scatterPlot_popup_selectatt = QPushButton("Features")
+        self.pushBtn_scatterPlot_popup_selectatt = QtWidgets.QPushButton("Features")
         lib.setFont(self.pushBtn_scatterPlot_popup_selectatt, color="black")
         self.pushBtn_scatterPlot_popup_selectatt.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "list.png"))
         )
         self.pushBtn_scatterPlot_popup_selectatt.setToolTip("<b>F</b>eature Selection")
 
-        self.comboBx_scatterPlot_popup_ss_label = QComboBox()
+        self.comboBx_scatterPlot_popup_ss_label = QtWidgets.QComboBox()
         self.comboBx_scatterPlot_popup_ss_label.addItems(["0"])
         lib.setFont(self.comboBx_scatterPlot_popup_ss_label, color="black")
-        self.label_scatterPlot_popup_ss_label = QLabel("Current SS cluster: ")
+        self.label_scatterPlot_popup_ss_label = QtWidgets.QLabel("Current SS cluster: ")
         lib.setFont(self.label_scatterPlot_popup_ss_label, color="black")
 
-        self.comboBx_scatterPlot_popup_cs_label = QComboBox()
+        self.comboBx_scatterPlot_popup_cs_label = QtWidgets.QComboBox()
         self.comboBx_scatterPlot_popup_cs_label.addItems(["0"])
         lib.setFont(self.comboBx_scatterPlot_popup_cs_label, color="black")
-        self.label_scatterPlot_popup_cs_label = QLabel("Current CS cluster: ")
+        self.label_scatterPlot_popup_cs_label = QtWidgets.QLabel("Current CS cluster: ")
         lib.setFont(self.label_scatterPlot_popup_cs_label, color="black")
 
-        self.pushBtn_scatterPlot_popup_select_clust = QPushButton("Select")
+        self.pushBtn_scatterPlot_popup_select_clust = QtWidgets.QPushButton("Select")
         lib.setFont(self.pushBtn_scatterPlot_popup_select_clust, color="black")
         self.pushBtn_scatterPlot_popup_select_clust.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "select.png"))
         )
         self.pushBtn_scatterPlot_popup_select_clust.setToolTip("S<b>e</b>lect Cluster")
 
-        self.pushBtn_scatterPlot_popup_prev_clust = QPushButton("Prev")
+        self.pushBtn_scatterPlot_popup_prev_clust = QtWidgets.QPushButton("Prev")
         lib.setFont(self.pushBtn_scatterPlot_popup_prev_clust, color="black")
         self.pushBtn_scatterPlot_popup_prev_clust.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "previous_spike.png"))
@@ -238,7 +222,7 @@ class WaveClustWidget(QWidget):
         self.pushBtn_scatterPlot_popup_prev_clust.setAutoRepeat(
             True
         )  # allow holding button
-        self.pushBtn_scatterPlot_popup_next_clust = QPushButton("Next")
+        self.pushBtn_scatterPlot_popup_next_clust = QtWidgets.QPushButton("Next")
         lib.setFont(self.pushBtn_scatterPlot_popup_next_clust, color="black")
         self.pushBtn_scatterPlot_popup_next_clust.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "next_spike.png"))
@@ -252,26 +236,20 @@ class WaveClustWidget(QWidget):
 
         # Housekeeping items
         self.line_scatterPlot_popup_h0 = QtWidgets.QFrame()
-        self.line_scatterPlot_popup_h0.setFrameShape(QFrame.HLine)
-        self.line_scatterPlot_popup_h0.setFrameShadow(QFrame.Sunken)
+        self.line_scatterPlot_popup_h0.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_scatterPlot_popup_h0.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_scatterPlot_popup_h1 = QtWidgets.QFrame()
-        self.line_scatterPlot_popup_h1.setFrameShape(QFrame.HLine)
-        self.line_scatterPlot_popup_h1.setFrameShadow(QFrame.Sunken)
+        self.line_scatterPlot_popup_h1.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_scatterPlot_popup_h1.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_scatterPlot_popup_v0 = QtWidgets.QFrame()
-        self.line_scatterPlot_popup_v0.setFrameShape(QFrame.VLine)
-        self.line_scatterPlot_popup_v0.setFrameShadow(QFrame.Sunken)
+        self.line_scatterPlot_popup_v0.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_scatterPlot_popup_v0.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_scatterPlot_popup_v1 = QtWidgets.QFrame()
-        self.line_scatterPlot_popup_v1.setFrameShape(QFrame.VLine)
-        self.line_scatterPlot_popup_v1.setFrameShadow(QFrame.Sunken)
+        self.line_scatterPlot_popup_v1.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_scatterPlot_popup_v1.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_scatterPlot_popup_v2 = QtWidgets.QFrame()
-        self.line_scatterPlot_popup_v2.setFrameShape(QFrame.VLine)
-        self.line_scatterPlot_popup_v2.setFrameShadow(QFrame.Sunken)
-        # self.line_scatterPlot_popup_v3 = QtWidgets.QFrame()
-        # self.line_scatterPlot_popup_v3.setFrameShape(QFrame.VLine)
-        # self.line_scatterPlot_popup_v3.setFrameShadow(QFrame.Sunken)
-        # self.line_scatterPlot_popup_v4 = QtWidgets.QFrame()
-        # self.line_scatterPlot_popup_v4.setFrameShape(QFrame.VLine)
-        # self.line_scatterPlot_popup_v4.setFrameShadow(QFrame.Sunken)
+        self.line_scatterPlot_popup_v2.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_scatterPlot_popup_v2.setFrameShadow(QtWidgets.QFrame.Sunken)
 
         # plots
         self.plot_popup_scatter = pg.PlotWidget()
@@ -308,10 +286,10 @@ class WaveClustWidget(QWidget):
         )
 
         # Scatter Plot
-        self.widget_popup_scatterPlot = QWidget()
-        self.layout_popup_scatterPlot = QVBoxLayout()
-        self.layout_popup_scatterPlot_PcaNum = QHBoxLayout()
-        self.widget_popup_scatterPlot_PcaNum = QWidget()
+        self.widget_popup_scatterPlot = QtWidgets.QWidget()
+        self.layout_popup_scatterPlot = QtWidgets.QVBoxLayout()
+        self.layout_popup_scatterPlot_PcaNum = QtWidgets.QHBoxLayout()
+        self.widget_popup_scatterPlot_PcaNum = QtWidgets.QWidget()
         self.widget_popup_scatterPlot_PcaNum.setAutoFillBackground(True)
         palette = self.widget_popup_scatterPlot_PcaNum.palette()
         palette.setColor(QtGui.QPalette.Window, QtGui.QColor(255, 255, 255, 255))
@@ -319,17 +297,17 @@ class WaveClustWidget(QWidget):
         self.widget_popup_scatterPlot_PcaNum.setLayout(
             self.layout_popup_scatterPlot_PcaNum
         )
-        self.comboBx_popup_scatterPlot_PcaNum1 = QComboBox()
+        self.comboBx_popup_scatterPlot_PcaNum1 = QtWidgets.QComboBox()
         self.comboBx_popup_scatterPlot_PcaNum1.addItems(["umap1", "umap2"])
         self.comboBx_popup_scatterPlot_PcaNum1.setCurrentIndex(0)
         lib.setFont(self.comboBx_popup_scatterPlot_PcaNum1, color="black")
-        self.comboBx_popup_scatterPlot_PcaNum2 = QComboBox()
+        self.comboBx_popup_scatterPlot_PcaNum2 = QtWidgets.QComboBox()
         self.comboBx_popup_scatterPlot_PcaNum2.addItems(["umap1", "umap2"])
         self.comboBx_popup_scatterPlot_PcaNum2.setCurrentIndex(1)
         lib.setFont(self.comboBx_popup_scatterPlot_PcaNum2, color="black")
-        self.txtlabel_popup_scatterPlot_PcaNum1 = QLabel("| X: ")
+        self.txtlabel_popup_scatterPlot_PcaNum1 = QtWidgets.QLabel("| X: ")
         lib.setFont(self.txtlabel_popup_scatterPlot_PcaNum1, color="black")
-        self.txtlabel_popup_scatterPlot_PcaNum2 = QLabel(" Y: ")
+        self.txtlabel_popup_scatterPlot_PcaNum2 = QtWidgets.QLabel(" Y: ")
         lib.setFont(self.txtlabel_popup_scatterPlot_PcaNum2, color="black")
         self.layout_popup_scatterPlot_PcaNum.addWidget(
             self.txtlabel_popup_scatterPlot_PcaNum2
@@ -555,79 +533,77 @@ class WaveClustWidget(QWidget):
         self.setLayout(self.layout_scatterPlot_popup)
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% KEYBOARD SHORTCUT
+    # KEYBOARD SHORTCUT
     def init_scatterPlot_popup_shortcut(self):
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_A,
             self.pushBtn_scatterPlot_popup_applymethod,
             self.pushBtn_scatterPlot_popup_applymethod.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_R,
             self.pushBtn_scatterPlot_popup_reset,
             self.pushBtn_scatterPlot_popup_reset.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_F,
             self.pushBtn_scatterPlot_popup_selectatt,
             self.pushBtn_scatterPlot_popup_selectatt.animateClick,
         )
 
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_S,
             self.pushBtn_scatterPlot_popup_select,
             self.pushBtn_scatterPlot_popup_select.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_C,
             self.pushBtn_scatterPlot_popup_clear,
             self.pushBtn_scatterPlot_popup_clear.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_D,
             self.pushBtn_scatterPlot_popup_delete,
             self.pushBtn_scatterPlot_popup_delete.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_M,
             self.pushBtn_scatterPlot_popup_move,
             self.pushBtn_scatterPlot_popup_move.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_L,
             self.pushBtn_scatterPlot_popup_setlabel,
             self.pushBtn_scatterPlot_popup_setlabel.animateClick,
         )
 
-        self.pick_CS = QShortcut(Qt.Key_Up, self)
+        self.pick_CS = QtWidgets.QShortcut(Qt.Key_Up, self)
         self.pick_CS.activated.connect(
             self.comboBx_scatterPlot_popup_spike_mode_cs_shortcut
         )
-        self.pick_SS = QShortcut(Qt.Key_Down, self)
+        self.pick_SS = QtWidgets.QShortcut(Qt.Key_Down, self)
         self.pick_SS.activated.connect(
             self.comboBx_scatterPlot_popup_spike_mode_ss_shortcut
         )
 
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Left,
             self.pushBtn_scatterPlot_popup_prev_clust,
             self.pushBtn_scatterPlot_popup_prev_clust.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Right,
             self.pushBtn_scatterPlot_popup_next_clust,
             self.pushBtn_scatterPlot_popup_next_clust.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_E,
             self.pushBtn_scatterPlot_popup_select_clust,
             self.pushBtn_scatterPlot_popup_select_clust.animateClick,
         )
         return 0
 
-    # %% INIT
+    # INIT
     def init_scatterPlot_popup_plot(self):
         self.which_plot_active = 0
         # 0: scatter
@@ -870,7 +846,7 @@ class WaveClustWidget(QWidget):
         self.viewBox_csxprob_popUpPlot.autoRange()
         return 0
 
-    # %% CONNECT SIGNALS
+    # CONNECT SIGNALS
     def connect_scatterPlot_popup_signals(self):
         self.pushBtn_scatterPlot_popup_applymethod.clicked.connect(
             self.pushBtn_scatterPlot_popup_applymethod_Clicked
@@ -933,8 +909,7 @@ class WaveClustWidget(QWidget):
 
         return 0
 
-    # %% SIGNAL
-
+    # SIGNALS
     def pushBtn_waveClust_Clicked(self):
         if self._localDataBase["is_ss"]:
             current_pca_bound_min_key = "ss_pca_bound_min"
@@ -2057,12 +2032,10 @@ class WaveClustWidget(QWidget):
 
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
     # Instead of the copy of the functions, better to pass into a function which plot to be plotted
     # Need to make change to deepcopy the data
-
-    # %% FUNCTIONS
+    
+    # FUNCTIONS
     def make_ss_label_list(self):
         self.comboBx_scatterPlot_popup_ss_label.clear()
 
@@ -2825,8 +2798,6 @@ class WaveClustWidget(QWidget):
 
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
     def popUp_scatterPlot(self):
         self._workingDataBase["popUp_mode"] = np.array(
             ["raw_signal_manual"], dtype=np.unicode_
