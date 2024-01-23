@@ -161,9 +161,10 @@ or instead of `ch_info.header.sampleRate` you can simply have a variable named `
 
 # Working with Psort File
 `.psort` file is just a `.h5` file under the hood and you can work with it in many languages.
-For **Python**, I suggest reading the file using `Deepdish` package. Here is how to extract spike times:
+For **Python**, I suggest reading the file using `deepdish` package (take a look at `psort/utils/lib.py` for further info). Here is how to extract spike times:
 
 ```python
+from psort.dependencies import deepdish_package as deepdish
 psort_file_address = "./data/file_id.psort"
 grandDataBase = deepdish.io.load(psort_file_address)
 topLevelDataBase = grandDataBase[-1]

@@ -3,7 +3,6 @@ from copy import deepcopy
 
 import numpy as np
 
-from psort.dependencies import deepdish_package as deepdish
 from psort.utils import dictionaries, lib
 
 
