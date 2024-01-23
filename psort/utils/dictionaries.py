@@ -1,16 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 from copy import deepcopy
 
-## #############################################################################
-# %% IMPORT PACKAGES
 import numpy as np
 
-## #############################################################################
+## ################################################################################################
 list_color = [
     "k",
     "b",
@@ -41,7 +33,7 @@ list_color = [
     "m",
     "y",
 ]
-## #############################################################################
+## ################################################################################################
 GLOBAL_DICT = {
     # second, default is 0.002s  or 2ms
     "GLOBAL_WAVE_PLOT_SS_BEFORE": np.array([0.002], dtype=np.float32),

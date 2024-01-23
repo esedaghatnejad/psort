@@ -1,30 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Jay Pi <jay.s.314159@gmail.com>
-         Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-         Mohammad Amin Fakharian <ma.fakharian@gmail.com>
-"""
 import os
 
 import numpy as np
 import pyqtgraph as pg
-
-## #############################################################################
-# %% IMPORT PACKAGES
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import *
-from PyQt5.QtWidgets import QShortcut
 
 from psort.utils import lib, signals_lib
 
 
-## #############################################################################
-# %% CellSummaryWidget
-class WaveDissectWidget(QWidget):
+# WaveDissectWidget
+class WaveDissectWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(WaveDissectWidget, self).__init__(parent)
         self._workingDataBase = {}
@@ -36,33 +21,36 @@ class WaveDissectWidget(QWidget):
 
         return None
 
-    ## #############################################################################
-    # %% build_rawPlot_popup_Widget
+    # build_rawPlot_popup_Widget
     def build_rawPlot_popup_Widget(self):
-        self.layout_rawPlot_popup = QVBoxLayout()
-        self.layout_rawPlot_popup_Btn = QHBoxLayout()
-        self.layout_rawPlot_popup_actionBtn = QHBoxLayout()
-        self.layoutWidget_rawPlot_popup_belowMainBtn = QSplitter(Qt.Horizontal)
+        self.layout_rawPlot_popup = QtWidgets.QVBoxLayout()
+        self.layout_rawPlot_popup_Btn = QtWidgets.QHBoxLayout()
+        self.layout_rawPlot_popup_actionBtn = QtWidgets.QHBoxLayout()
+        self.layoutWidget_rawPlot_popup_belowMainBtn = QtWidgets.QSplitter(
+            Qt.Horizontal
+        )
         self.layoutWidget_rawPlot_popup_belowMainBtn.setChildrenCollapsible(False)
-        self.layoutWidget_rawPlot_popup_belowMainBtn_waveform = QSplitter(Qt.Vertical)
+        self.layoutWidget_rawPlot_popup_belowMainBtn_waveform = QtWidgets.QSplitter(
+            Qt.Vertical
+        )
         self.layoutWidget_rawPlot_popup_belowMainBtn_waveform.setChildrenCollapsible(
             False
         )
 
-        self.layout_rawPlot_popup_nextPrev = QGridLayout()
-        self.layout_rawPlot_popup_spike = QGridLayout()
-        self.layout_rawPlot_popup_mode = QGridLayout()
-        self.layout_rawPlot_popup_modeCombo = QHBoxLayout()
-        self.layout_rawPlot_popup_zoom = QGridLayout()
-        self.layout_rawPlot_popup_xAxis = QHBoxLayout()
-        self.layout_rawPlot_popup_yAxis = QHBoxLayout()
-        self.layout_rawPlot_popup_axes = QVBoxLayout()
+        self.layout_rawPlot_popup_nextPrev = QtWidgets.QGridLayout()
+        self.layout_rawPlot_popup_spike = QtWidgets.QGridLayout()
+        self.layout_rawPlot_popup_mode = QtWidgets.QGridLayout()
+        self.layout_rawPlot_popup_modeCombo = QtWidgets.QHBoxLayout()
+        self.layout_rawPlot_popup_zoom = QtWidgets.QGridLayout()
+        self.layout_rawPlot_popup_xAxis = QtWidgets.QHBoxLayout()
+        self.layout_rawPlot_popup_yAxis = QtWidgets.QHBoxLayout()
+        self.layout_rawPlot_popup_axes = QtWidgets.QVBoxLayout()
 
         # Main buttons
         # Cancel push button for closing the window and terminating the process
-        self.pushBtn_rawPlot_popup_cancel = QPushButton("Cancel")
+        self.pushBtn_rawPlot_popup_cancel = QtWidgets.QPushButton("Cancel")
         lib.setFont(self.pushBtn_rawPlot_popup_cancel)
-        self.pushBtn_rawPlot_popup_ok = QPushButton("OK")
+        self.pushBtn_rawPlot_popup_ok = QtWidgets.QPushButton("OK")
         lib.setFont(self.pushBtn_rawPlot_popup_ok)
 
         # Action widgets
@@ -73,7 +61,7 @@ class WaveDissectWidget(QWidget):
             from www.flaticon.com
         """
         icon_size = 30
-        self.pushBtn_rawPlot_popup_select = QPushButton("Select spikes")
+        self.pushBtn_rawPlot_popup_select = QtWidgets.QPushButton("Select spikes")
         lib.setFont(self.pushBtn_rawPlot_popup_select, color="black")
         self.pushBtn_rawPlot_popup_select.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "select.png"))
@@ -81,7 +69,7 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_select.setToolTip(
             "<b>S</b>elect spikes in<br>the region of interest"
         )
-        self.pushBtn_rawPlot_popup_clear = QPushButton("Clear ROI")
+        self.pushBtn_rawPlot_popup_clear = QtWidgets.QPushButton("Clear ROI")
         lib.setFont(self.pushBtn_rawPlot_popup_clear, color="black")
         self.pushBtn_rawPlot_popup_clear.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "clear.png"))
@@ -89,7 +77,7 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_clear.setToolTip(
             "<b>C</b>lear the regions<br>of interest"
         )
-        self.pushBtn_rawPlot_popup_delete = QPushButton("Delete spikes")
+        self.pushBtn_rawPlot_popup_delete = QtWidgets.QPushButton("Delete spikes")
         lib.setFont(self.pushBtn_rawPlot_popup_delete, color="black")
         self.pushBtn_rawPlot_popup_delete.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "delete.png"))
@@ -97,7 +85,7 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_delete.setToolTip(
             "<b>D</b>elete the selected spikes"
         )
-        self.pushBtn_rawPlot_popup_move = QPushButton("Move spikes")
+        self.pushBtn_rawPlot_popup_move = QtWidgets.QPushButton("Move spikes")
         lib.setFont(self.pushBtn_rawPlot_popup_move, color="black")
         self.pushBtn_rawPlot_popup_move.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "move.png"))
@@ -105,7 +93,7 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_move.setToolTip(
             "<b>M</b>ove the selected<br>spikes to different<br>type"
         )
-        self.pushBtn_rawPlot_popup_prev_spike = QPushButton("Prev spike")
+        self.pushBtn_rawPlot_popup_prev_spike = QtWidgets.QPushButton("Prev spike")
         lib.setFont(self.pushBtn_rawPlot_popup_prev_spike, color="black")
         self.pushBtn_rawPlot_popup_prev_spike.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "previous_spike.png"))
@@ -116,7 +104,7 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_prev_spike.setAutoRepeat(
             True
         )  # allow holding button
-        self.pushBtn_rawPlot_popup_next_spike = QPushButton("Next spike")
+        self.pushBtn_rawPlot_popup_next_spike = QtWidgets.QPushButton("Next spike")
         lib.setFont(self.pushBtn_rawPlot_popup_next_spike, color="black")
         self.pushBtn_rawPlot_popup_next_spike.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "next_spike.png"))
@@ -127,31 +115,31 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_next_spike.setAutoRepeat(
             True
         )  # allow holding button
-        self.pushBtn_rawPlot_popup_addspike = QPushButton("Add spike")
+        self.pushBtn_rawPlot_popup_addspike = QtWidgets.QPushButton("Add spike")
         lib.setFont(self.pushBtn_rawPlot_popup_addspike, color="black")
         self.pushBtn_rawPlot_popup_addspike.setCheckable(True)
         self.pushBtn_rawPlot_popup_addspike.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "crosshair.png"))
         )
         self.pushBtn_rawPlot_popup_addspike.setToolTip("Mark spike manually<br><b>(X)")
-        self.checkBx_rawPlot_popup_alignment = QCheckBox("Auto align")
+        self.checkBx_rawPlot_popup_alignment = QtWidgets.QCheckBox("Auto align")
         lib.setFont(self.checkBx_rawPlot_popup_alignment, color="black")
         self.checkBx_rawPlot_popup_alignment.setChecked(True)
-        self.pushBtn_rawPlot_popup_zoom_out = QPushButton("Zoom out")
+        self.pushBtn_rawPlot_popup_zoom_out = QtWidgets.QPushButton("Zoom out")
         lib.setFont(self.pushBtn_rawPlot_popup_zoom_out, color="black")
         self.pushBtn_rawPlot_popup_zoom_out.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "zoom_out.png"))
         )
         self.pushBtn_rawPlot_popup_zoom_out.setToolTip("Zoom out<br><b>(A)")
-        self.pushBtn_rawPlot_popup_zoom_in = QPushButton("Zoom in")
+        self.pushBtn_rawPlot_popup_zoom_in = QtWidgets.QPushButton("Zoom in")
         lib.setFont(self.pushBtn_rawPlot_popup_zoom_in, color="black")
         self.pushBtn_rawPlot_popup_zoom_in.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "zoom_in.png"))
         )
         self.pushBtn_rawPlot_popup_zoom_in.setToolTip("<b>Z</b>oom in")
-        self.checkBx_rawPlot_popup_zoom_hold = QCheckBox("Auto zoom")
+        self.checkBx_rawPlot_popup_zoom_hold = QtWidgets.QCheckBox("Auto zoom")
         lib.setFont(self.checkBx_rawPlot_popup_zoom_hold, color="black")
-        self.pushBtn_rawPlot_popup_zoom_getRange = QPushButton("Get range")
+        self.pushBtn_rawPlot_popup_zoom_getRange = QtWidgets.QPushButton("Get range")
         lib.setFont(self.pushBtn_rawPlot_popup_zoom_getRange, color="black")
         self.pushBtn_rawPlot_popup_zoom_getRange.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "range.png"))
@@ -159,7 +147,7 @@ class WaveDissectWidget(QWidget):
         self.pushBtn_rawPlot_popup_zoom_getRange.setToolTip(
             "<b>G</b>et zoom range<br>from current plot"
         )
-        self.pushBtn_rawPlot_popup_prev_window = QPushButton("Pan back")
+        self.pushBtn_rawPlot_popup_prev_window = QtWidgets.QPushButton("Pan back")
         lib.setFont(self.pushBtn_rawPlot_popup_prev_window, color="black")
         self.pushBtn_rawPlot_popup_prev_window.setIcon(
             QtGui.QIcon(
@@ -170,7 +158,7 @@ class WaveDissectWidget(QWidget):
             "Move to the previous<br>time window<br><b>(Q)"
         )
         self.pushBtn_rawPlot_popup_prev_window.setAutoRepeat(True)
-        self.pushBtn_rawPlot_popup_next_window = QPushButton("Pan next")
+        self.pushBtn_rawPlot_popup_next_window = QtWidgets.QPushButton("Pan next")
         lib.setFont(self.pushBtn_rawPlot_popup_next_window, color="black")
         self.pushBtn_rawPlot_popup_next_window.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "next_window.png"))
@@ -179,34 +167,36 @@ class WaveDissectWidget(QWidget):
             "Move to the next<br>time window<br><b>(E)"
         )
         self.pushBtn_rawPlot_popup_next_window.setAutoRepeat(True)
-        self.slider_rawPlot_popup_x_zoom_level = QSlider(QtCore.Qt.Horizontal)
+        self.slider_rawPlot_popup_x_zoom_level = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.slider_rawPlot_popup_x_zoom_level.setMaximum(1000)
         self.slider_rawPlot_popup_x_zoom_level.setMinimum(1)
         self.slider_rawPlot_popup_x_zoom_level.setValue(20)
-        self.spinBx_rawPlot_popup_x_zoom_level_indicator = QSpinBox()
+        self.spinBx_rawPlot_popup_x_zoom_level_indicator = QtWidgets.QSpinBox()
         self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(1, 1000)
         self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(20)
-        self.label_rawPlot_popup_x_zoom = QLabel("X-axis range:")
+        self.label_rawPlot_popup_x_zoom = QtWidgets.QLabel("X-axis range:")
         lib.setFont(self.label_rawPlot_popup_x_zoom, color="black")
-        self.label_rawPlot_popup_x_zoom_unit = QLabel(" ms ")
+        self.label_rawPlot_popup_x_zoom_unit = QtWidgets.QLabel(" ms ")
         lib.setFont(self.label_rawPlot_popup_x_zoom_unit, color="black")
-        self.slider_rawPlot_popup_y_zoom_level = QSlider(QtCore.Qt.Horizontal)
+        self.slider_rawPlot_popup_y_zoom_level = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.slider_rawPlot_popup_y_zoom_level.setMaximum(1000)
         self.slider_rawPlot_popup_y_zoom_level.setMinimum(1)
         self.slider_rawPlot_popup_y_zoom_level.setValue(500)
-        self.spinBx_rawPlot_popup_y_zoom_level_indicator = QSpinBox()
+        self.spinBx_rawPlot_popup_y_zoom_level_indicator = QtWidgets.QSpinBox()
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setRange(1, 1000)
         self.spinBx_rawPlot_popup_y_zoom_level_indicator.setValue(500)
-        self.label_rawPlot_popup_y_zoom = QLabel("Y-axis range:")
+        self.label_rawPlot_popup_y_zoom = QtWidgets.QLabel("Y-axis range:")
         lib.setFont(self.label_rawPlot_popup_y_zoom, color="black")
-        self.label_rawPlot_popup_y_zoom_unit = QLabel(" uV ")
+        self.label_rawPlot_popup_y_zoom_unit = QtWidgets.QLabel(" uV ")
         lib.setFont(self.label_rawPlot_popup_y_zoom_unit, color="black")
-        self.comboBx_rawPlot_popup_spike_of_interest = QComboBox()
+        self.comboBx_rawPlot_popup_spike_of_interest = QtWidgets.QComboBox()
         self.comboBx_rawPlot_popup_spike_of_interest.addItems(["CS", "SS"])
         lib.setFont(self.comboBx_rawPlot_popup_spike_of_interest, color="black")
-        self.label_rawPlot_popup_spike_of_interest = QLabel("Current mode: ")
+        self.label_rawPlot_popup_spike_of_interest = QtWidgets.QLabel("Current mode: ")
         lib.setFont(self.label_rawPlot_popup_spike_of_interest, color="black")
-        self.pushBtn_rawPlot_popup_find_other_spike = QPushButton("Toggle mode")
+        self.pushBtn_rawPlot_popup_find_other_spike = QtWidgets.QPushButton(
+            "Toggle mode"
+        )
         lib.setFont(self.pushBtn_rawPlot_popup_find_other_spike, color="black")
         self.pushBtn_rawPlot_popup_find_other_spike.setIcon(
             QtGui.QIcon(os.path.join(lib.PROJECT_FOLDER, "icons", "toggle.png"))
@@ -217,26 +207,26 @@ class WaveDissectWidget(QWidget):
 
         # Housekeeping items
         self.line_rawPlot_popup_h0 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_h0.setFrameShape(QFrame.HLine)
-        self.line_rawPlot_popup_h0.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_h0.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_rawPlot_popup_h0.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_rawPlot_popup_h1 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_h1.setFrameShape(QFrame.HLine)
-        self.line_rawPlot_popup_h1.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_h1.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line_rawPlot_popup_h1.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_rawPlot_popup_v0 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_v0.setFrameShape(QFrame.VLine)
-        self.line_rawPlot_popup_v0.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_v0.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_rawPlot_popup_v0.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_rawPlot_popup_v1 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_v1.setFrameShape(QFrame.VLine)
-        self.line_rawPlot_popup_v1.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_v1.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_rawPlot_popup_v1.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_rawPlot_popup_v2 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_v2.setFrameShape(QFrame.VLine)
-        self.line_rawPlot_popup_v2.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_v2.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_rawPlot_popup_v2.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_rawPlot_popup_v3 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_v3.setFrameShape(QFrame.VLine)
-        self.line_rawPlot_popup_v3.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_v3.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_rawPlot_popup_v3.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_rawPlot_popup_v4 = QtWidgets.QFrame()
-        self.line_rawPlot_popup_v4.setFrameShape(QFrame.VLine)
-        self.line_rawPlot_popup_v4.setFrameShadow(QFrame.Sunken)
+        self.line_rawPlot_popup_v4.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_rawPlot_popup_v4.setFrameShadow(QtWidgets.QFrame.Sunken)
         # Waveform plots
         self.plot_popup_rawPlot = pg.PlotWidget()
         self.plot_popup_sidePlot1 = pg.PlotWidget()
@@ -405,97 +395,94 @@ class WaveDissectWidget(QWidget):
         self.setLayout(self.layout_rawPlot_popup)
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
-    # %% KEYBOARD SHORTCUT
+    # KEYBOARD SHORTCUT
     def init_rawPlot_popup_shortcut(self):
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_S,
             self.pushBtn_rawPlot_popup_select,
             self.pushBtn_rawPlot_popup_select.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_C,
             self.pushBtn_rawPlot_popup_clear,
             self.pushBtn_rawPlot_popup_clear.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_D,
             self.pushBtn_rawPlot_popup_delete,
             self.pushBtn_rawPlot_popup_delete.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_M,
             self.pushBtn_rawPlot_popup_move,
             self.pushBtn_rawPlot_popup_move.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Left,
             self.pushBtn_rawPlot_popup_prev_spike,
             self.pushBtn_rawPlot_popup_prev_spike.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Right,
             self.pushBtn_rawPlot_popup_next_spike,
             self.pushBtn_rawPlot_popup_next_spike.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_A,
             self.pushBtn_rawPlot_popup_zoom_out,
             self.pushBtn_rawPlot_popup_zoom_out.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Z,
             self.pushBtn_rawPlot_popup_zoom_in,
             self.pushBtn_rawPlot_popup_zoom_in.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Q,
             self.pushBtn_rawPlot_popup_prev_window,
             self.pushBtn_rawPlot_popup_prev_window.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_E,
             self.pushBtn_rawPlot_popup_next_window,
             self.pushBtn_rawPlot_popup_next_window.animateClick,
         )
-        # QShortcut(Qt.Key_R, self.pushBtn_mainwin_filterPanel_plots_rawSignalBtn, self.pushBtn_mainwin_filterPanel_plots_rawSignalBtn.animateClick)
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Up,
             self.pushBtn_rawPlot_popup_find_other_spike,
             self.pushBtn_rawPlot_popup_find_other_spike.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_Down,
             self.pushBtn_rawPlot_popup_find_other_spike,
             self.pushBtn_rawPlot_popup_find_other_spike.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_W,
             self.pushBtn_rawPlot_popup_find_other_spike,
             self.pushBtn_rawPlot_popup_find_other_spike.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_G,
             self.pushBtn_rawPlot_popup_zoom_getRange,
             self.pushBtn_rawPlot_popup_zoom_getRange.animateClick,
         )
-        QShortcut(
+        QtWidgets.QShortcut(
             Qt.Key_X,
             self.pushBtn_rawPlot_popup_addspike,
             self.pushBtn_rawPlot_popup_addspike.animateClick,
         )
-        self.pick_CS = QShortcut(Qt.Key_1, self)
+        self.pick_CS = QtWidgets.QShortcut(Qt.Key_1, self)
         self.pick_CS.activated.connect(
             self.comboBx_rawPlot_popup_spike_of_interest_CS_shortcut
         )
-        self.pick_SS = QShortcut(Qt.Key_2, self)
+        self.pick_SS = QtWidgets.QShortcut(Qt.Key_2, self)
         self.pick_SS.activated.connect(
             self.comboBx_rawPlot_popup_spike_of_interest_SS_shortcut
         )
         return 0
 
-    # %% INIT
+    # INIT
     def init_rawPlot_popup_var(self):
         self.x_zoom_level = 20  # initialize zoom level (ms)
         self.y_zoom_level = 500  # (uV)
@@ -622,16 +609,10 @@ class WaveDissectWidget(QWidget):
         self.infLine_popUpPlot_vLine = pg.InfiniteLine(
             pos=0.0, angle=90, pen=(255, 0, 255, 255), movable=False, hoverPen="g"
         )
-        # self.infLine_popUpPlot_hLine = \
-        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
         self.plot_popup_rawPlot.addItem(self.infLine_popUpPlot_vLine, ignoreBounds=True)
-        # self.plot_popup_rawPlot.\
-        #     addItem(self.infLine_popUpPlot_hLine, ignoreBounds=True)
         # Viewbox
         self.viewBox_rawSignal_popUpPlot = self.plot_popup_rawPlot.getViewBox()
         self.viewBox_rawSignal_popUpPlot.autoRange()
-
         # Sideplot 1 - ssWave
         self.pltData_SsWave_rawSignal_sidePlot1_popUpPlot = (
             self.plot_popup_sidePlot1.plot(
@@ -695,19 +676,6 @@ class WaveDissectWidget(QWidget):
             symbolBrush=None,
             symbolPen=None,
         )
-        # Adding crosshair
-        # cross hair
-        # self.infLine_popUpPlot_vLine_SS = \
-        #     pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
-        # self.infLine_popUpPlot_hLine_SS = \
-        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
-        # self.plot_popup_sidePlot1.\
-        #     addItem(self.infLine_popUpPlot_vLine_SS, ignoreBounds=True)
-        # self.plot_popup_sidePlot1.\
-        #     addItem(self.infLine_popUpPlot_hLine_SS, ignoreBounds=True)
-
         # Sideplot 2 - csWave
         self.pltData_CsWave_rawSignal_sidePlot2_popUpPlot = (
             self.plot_popup_sidePlot2.plot(
@@ -772,23 +740,9 @@ class WaveDissectWidget(QWidget):
             symbolBrush=None,
             symbolPen=None,
         )
-
-        # Adding crosshair
-        # cross hair
-        # self.infLine_popUpPlot_vLine_CS = \
-        #     pg.InfiniteLine(pos=0., angle=90, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
-        # self.infLine_popUpPlot_hLine_CS = \
-        #     pg.InfiniteLine(pos=0., angle=0, pen=(255,0,255,255),
-        #                 movable=False, hoverPen='g')
-        # self.plot_popup_sidePlot2.\
-        #     addItem(self.infLine_popUpPlot_vLine_CS, ignoreBounds=True)
-        # self.plot_popup_sidePlot2.\
-        #     addItem(self.infLine_popUpPlot_hLine_CS, ignoreBounds=True)
-
         return 0
 
-    # %% CONNECT SIGNALS
+    # CONNECT SIGNALS
     def connect_rawPlot_popup_signals(self):
         self.pushBtn_rawPlot_popup_select.clicked.connect(
             self.pushBtn_rawPlot_popup_select_Clicked
@@ -846,22 +800,13 @@ class WaveDissectWidget(QWidget):
         )
         return 0
 
-    # %% SIGNAL
-
+    # SIGNALS
     def pushBtn_waveDissect_Clicked(self, y_zoom_level=1000, spike_of_interest="CS"):
         self.pltData_rawSignal_indexSelectedView_popUpPlot.clear()
         self.pltData_CsWaveSelectedView_rawSignal_sidePlot2_popUpPlot.clear()
         self.pltData_SsWaveSelectedView_rawSignal_sidePlot1_popUpPlot.clear()
         self.view_selectedWaveform_idx = np.array([-1])
         self.popUp_rawPlot()
-        # Set X axis zoom level range and initial setting
-        # x_range_max = 1000 # ( (np.max(self._workingDataBase['ch_time']) - np.min(self._workingDataBase['ch_time']))/20 ).astype(int)*1000 # (max. - min. time) / 2 ms
-        # x_range_min = 1 # ms
-        # self.slider_rawPlot_popup_x_zoom_level.setMaximum(x_range_max)
-        # self.slider_rawPlot_popup_x_zoom_level.setMinimum(x_range_min)
-        # self.slider_rawPlot_popup_x_zoom_level.setValue(self.x_zoom_level)
-        # self.spinBx_rawPlot_popup_x_zoom_level_indicator.setRange(x_range_min, x_range_max)
-        # self.spinBx_rawPlot_popup_x_zoom_level_indicator.setValue(self.x_zoom_level)
         # Set Y axis zoom level range and initial setting
         y_range_max = (
             np.max(
@@ -2155,13 +2100,10 @@ class WaveDissectWidget(QWidget):
         self.plot_ss_waveform_popUp()
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
     # Instead of the copy of the functions, better to pass into a function which plot to be plotted
     # Need to make change to deepcopy the data
 
-    # %% FUNCTIONS
-
+    # FUNCTIONS
     def plot_rawSignal_popUp(self, just_update_selected=False):
         self.plot_rawSignal_SsIndex_popUp()
         self.plot_rawSignal_CsIndex_popUp()
@@ -2386,8 +2328,6 @@ class WaveDissectWidget(QWidget):
         self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.autoRange()
         return 0
 
-    ## ################################################################################################
-    ## ################################################################################################
     def popUp_rawPlot(self):
         self._workingDataBase["popUp_mode"] = np.array(
             ["raw_signal_manual"], dtype=np.unicode_
@@ -2423,22 +2363,6 @@ class WaveDissectWidget(QWidget):
             self.infLine_popUpPlot_vLine.setValue(mousePoint.x())
             # self.infLine_popUpPlot_hLine.setValue(mousePoint.y())
         return 0
-
-    # def popUpPlot_mouseMoved_SS(self, evt):
-    #     pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-    #     if self.plot_popup_sidePlot1.sceneBoundingRect().contains(pos):
-    #         mousePoint = self.viewBox_SsWave_rawSignal_sidePlot1_popUpPlot.mapSceneToView(pos)
-    #         self.infLine_popUpPlot_vLine_SS.setValue(mousePoint.x())
-    #         self.infLine_popUpPlot_hLine_SS.setValue(mousePoint.y())
-    #     return 0
-
-    # def popUpPlot_mouseMoved_CS(self, evt):
-    #     pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-    #     if self.plot_popup_sidePlot2.sceneBoundingRect().contains(pos):
-    #         mousePoint = self.viewBox_CsWave_rawSignal_sidePlot2_popUpPlot.mapSceneToView(pos)
-    #         self.infLine_popUpPlot_vLine_CS.setValue(mousePoint.x())
-    #         self.infLine_popUpPlot_hLine_CS.setValue(mousePoint.y())
-    #     return 0
 
     def popUpPlot_mouseClicked_raw(self, evt):
         # If this plot is not currently active, remove all ROI points and set it to the active plot

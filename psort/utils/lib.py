@@ -3,7 +3,6 @@ import sys
 from copy import deepcopy
 from numbers import Number
 
-import matplotlib as plt
 import numpy as np
 import pkg_resources
 import pyqtgraph as pg
@@ -11,7 +10,7 @@ import scipy.stats
 from matplotlib import path
 from neo.io import spike2io
 from numba import jit
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui
 from scipy import signal
 from sklearn import cluster, mixture
 from sklearn.cluster import KMeans

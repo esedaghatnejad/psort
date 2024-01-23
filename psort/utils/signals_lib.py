@@ -1,20 +1,11 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Laboratory for Computational Motor Control, Johns Hopkins School of Medicine
-@author: Ehsan Sedaghat-Nejad <esedaghatnejad@gmail.com>
-"""
 from copy import deepcopy
 
-## #############################################################################
-# %% IMPORT PACKAGES
 import numpy as np
 
 from psort.utils import database, lib
 
 
-## ################################################################################################
-# %% DATA MANAGEMENT
+# DATA MANAGEMENT
 def resolve_ss_ss_conflicts(_workingDataBase):
     win_look_around = _workingDataBase["GLOBAL_CONFLICT_SS_SS_AROUND"][0]
     if _workingDataBase["ssPeak_mode"] == np.array(["min"], dtype=np.unicode_):
